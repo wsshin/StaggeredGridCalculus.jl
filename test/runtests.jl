@@ -1,6 +1,17 @@
 using StaggeredGridCalculus
 using Test
+using Statistics: mean
+using LinearAlgebra, SparseArrays, StaticArrays
 
-@testset "StaggeredGridCalculus.jl" begin
-    # Write your own tests here.
-end
+Base.isapprox(a::Tuple, b::Tuple; kws...) = all(p -> isapprox(p...; kws...), zip(a,b))
+
+# @testset "StaggeredGridCalculus" begin
+
+include("enumtype.jl")
+include("grid.jl")
+# # include("gridgen.jl")
+include("differential.jl")
+include("mean.jl")
+include("pml.jl")
+
+# end  # @testset "StaggeredGridCalculus"
