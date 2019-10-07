@@ -8,6 +8,7 @@ Base.isapprox(a::Tuple, b::Tuple; kws...) = all(p -> isapprox(p...; kws...), zip
 # @testset "StaggeredGridCalculus" begin
 
 include("enumtype.jl")
+include("util.jl")
 include("grid.jl")
 # # include("gridgen.jl")
 include("differential.jl")
