@@ -54,5 +54,6 @@ alter(ins::GridType) = ins==PRIM ? DUAL : PRIM
 
 
 # Functions for enumerated types
+Base.length(ins::T) where {T<:Enum} = 1
 numel(::Type{T}) where {T<:Enum} = length(instances(T))
 alter(n::Int) = 3-n
