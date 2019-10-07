@@ -3,8 +3,8 @@ module StaggeredGridCalculus
 # @reexport makes all exported symbols of the exported packages available in module using
 # StaggeredGridCalculus.
 using Reexport
+@reexport using LinearAlgebra, SparseArrays
 using StaticArrays
-@reexport using SparseArrays, LinearAlgebra
 
 ## Type aliases
 # Below, use Int instead of Int64 for compatibility with 32-bit systems (e.g., x86 in appveyor.yml).
