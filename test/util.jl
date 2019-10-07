@@ -27,8 +27,8 @@
 @testset "newtsol" begin
     f(x) = x^2-1
     f′(x) = 2x
-    @test ((xsol,isconverged) = MaxwellFDM.newtsol(2., f, f′); isconverged && xsol ≈ 1)
-    @test ((xsol,isconverged) = MaxwellFDM.newtsol(2., f); isconverged && xsol ≈ 1)
+    @test ((xsol,isconverged) = StaggeredGridCalculus.newtsol(2., f, f′); isconverged && xsol ≈ 1)
+    @test ((xsol,isconverged) = StaggeredGridCalculus.newtsol(2., f); isconverged && xsol ≈ 1)
 end
 
 end  # @testset "base"
