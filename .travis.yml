@@ -15,10 +15,16 @@ branches:
   only:
     - master
 # uncomment the following lines to override the default test script
-script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia --project -e 'using UUIDs; write("Project.toml", replace(read("Project.toml", String), r"uuid = .*?\n" =>"uuid = \"$(uuid4())\"\n"));'
-  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
+# script:
+#   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+#   - julia --project -e 'using UUIDs; write("Project.toml", replace(read("Project.toml", String), r"uuid = .*?\n" =>"uuid = \"$(uuid4())\"\n"));'
+#   - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
 # script:
 #  - julia --project --color=yes --check-bounds=yes -e 'using Pkg; Pkg.add("StaticArrays"); Pkg.instantiate()'
-codecov: true
+# codecov: true
+jobs:
+  include:
+    - stage: "Documentation"
+      julia: 1.0
+      os: osx
+      after_success: skip
