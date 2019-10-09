@@ -1,19 +1,20 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
 os:
-  # - linux
   - osx
+  - linux
+  - windows
 julia:
   - 1.4
   # - nightly
 matrix:
   allow_failures:
     - julia: nightly
-notifications:
-  email: false
 branches:
   only:
     - master
+notifications:
+  email: false
 # uncomment the following lines to override the default test script
 # script:
 #   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
@@ -22,9 +23,9 @@ branches:
 # script:
 #  - julia --project --color=yes --check-bounds=yes -e 'using Pkg; Pkg.add("StaticArrays"); Pkg.instantiate()'
 # codecov: true
-jobs:
-  include:
-    - stage: test
-      julia: 1.4
-      os: osx
-      after_success: skip
+# jobs:
+#   include:
+#     - stage: test
+#       julia: 1.4
+#       os: osx
+#       after_success: skip
