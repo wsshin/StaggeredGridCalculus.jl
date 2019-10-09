@@ -25,4 +25,5 @@ codecov: true
 jobs:
   include:
     - stage: test
+      julia: 1.4
       after_success: skip
