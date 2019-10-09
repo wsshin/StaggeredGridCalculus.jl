@@ -24,6 +24,7 @@ branches:
 codecov: true
 jobs:
   include:
-    - julia: 1.4
+    - stage: test
+      julia: 1.4
       os: osx
       after_success: skip
