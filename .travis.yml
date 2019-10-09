@@ -1,9 +1,7 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
 os:
-  - osx
   - linux
-  - windows
 julia:
   - 1.4
   # - nightly
@@ -23,10 +21,8 @@ notifications:
 # script:
 #  - julia --project --color=yes --check-bounds=yes -e 'using Pkg; Pkg.add("StaticArrays"); Pkg.instantiate()'
 # codecov: true
-jobs:
-  include:
-    - stage: test
-      julia: 1.4
-      os: osx
-    - os: linux
-    - os: windows
+# jobs:
+#   include:
+#     - stage: test
+#       julia: 1.4
+#       os: linux
