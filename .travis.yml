@@ -11,11 +11,21 @@ matrix:
     - julia: nightly
 notifications:
   email: false
-# # uncomment the following lines to override the default test script
+branches:
+  only:
+    - master
+# uncomment the following lines to override the default test script
 script:
-- if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-- julia --project --check-bounds=yes -e 'using UUIDs; write("Project.toml", replace(read("Project.toml", String), r"uuid = .*?\n" =>"uuid = \"$(uuid4())\"\n"));
-                                          import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - julia --project -e 'using UUIDs; write("Project.toml", replace(read("Project.toml", String), r"uuid = .*?\n" =>"uuid = \"$(uuid4())\"\n"));'
+  - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
+jobs:
+  include:
+    - stage: test
+      script:
+        - julia --project=ext/TOML -e 'using Pkg; Pkg.test()'
+      after_success: skip
+
 after_success:
   # push coverage results to Coveralls
   - julia -e 'using Pkg; cd(Pkg.dir("StaggeredGridCalculus")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
