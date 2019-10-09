@@ -24,4 +24,5 @@ branches:
 # codecov: true
 jobs:
   include:
-    - after_success: skip
+    - stage: test
+      after_success: skip
