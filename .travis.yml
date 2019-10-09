@@ -3,13 +3,12 @@ language: julia
 os:
   - osx
   - linux
-  - windows
 julia:
-  # - 1.4
   - nightly
 branches:
   only:
     - master
 notifications:
   email: false
-codecov: true
+after_success:
+  - codecov: true
