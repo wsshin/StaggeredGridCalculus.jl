@@ -1,11 +1,11 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
 os:
-  - linux
+  # - linux
   - osx
 julia:
   - 1.4
-  - nightly
+  # - nightly
 matrix:
   allow_failures:
     - julia: nightly
@@ -16,5 +16,5 @@ branches:
     - master
 # uncomment the following lines to override the default test script
 script:
- - julia --project --color=yes --check-bounds=yes -e 'using Pkg; Pkg.add("StaticArrays")); Pkg.instantiate()'
+ - julia --project --color=yes --check-bounds=yes -e 'using Pkg; Pkg.add("StaticArrays"); Pkg.instantiate()'
 codecov: true
