@@ -21,8 +21,9 @@ branches:
 #   - julia --project --check-bounds=yes -e 'import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
 # script:
 #  - julia --project --color=yes --check-bounds=yes -e 'using Pkg; Pkg.add("StaticArrays"); Pkg.instantiate()'
-# codecov: true
+codecov: true
 jobs:
   include:
-    - os: osx
+    - julia: 1.4
+      os: osx
       after_success: skip
