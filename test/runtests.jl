@@ -1,7 +1,7 @@
 using StaggeredGridCalculus
 using Test
-using Statistics: mean
-using LinearAlgebra, SparseArrays, StaticArrays
+# using Statistics: mean
+using StaticArrays
 
 Base.isapprox(a::Tuple, b::Tuple; kws...) = all(p -> isapprox(p...; kws...), zip(a,b))
 
