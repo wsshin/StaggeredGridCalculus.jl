@@ -25,6 +25,4 @@ codecov: true
 jobs:
   include:
     - stage: test
-      julia: 1.0
-      os: osx
       after_success: skip
