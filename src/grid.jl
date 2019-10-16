@@ -132,7 +132,7 @@ function Grid(axis::SVector{K,Axis},
     all(issorted.(lprim)) || throw(ArgumentError("all entry vectors of lprim = $(lprim) must be sorted."))
 
     # For array inputs, create separate copies.
-    lprim = deepcopy(lprim)
+    lprim = collect.(float.(lprim))  # collect instead of deepcopy to turn range (e.g., 1.0:10.0) into vector
 
     ldual = movingavg.(lprim)  # NTuple{K,VecFloat}
 
