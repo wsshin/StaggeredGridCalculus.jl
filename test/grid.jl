@@ -13,6 +13,8 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
 
 @testset "grid" begin
 
+@test isa(Grid(X̂, 1:10, true), Any)
+
 @testset "Grid{1}, Bloch boundary" begin
     isbloch = true
     N = 22
