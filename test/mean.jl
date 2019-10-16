@@ -1,6 +1,11 @@
 @testset "mean" begin
 
-@testset "create_mean" begin
+@testset "create_m, 1D" begin
+    @test isa(create_m(nX, true, [10]), Any)
+    @test isa(create_m(nX, false, [10]), Any)
+end
+
+@testset "create_m, 3D" begin
     N = SVector(8,9,10)
     # N = SVector(3,3,3)
     M = prod(N)

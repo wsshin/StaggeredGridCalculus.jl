@@ -225,8 +225,10 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
     # For the final sparsity patterns of the operators, see my notes on September 6, 2017 in
     # RN - MaxwellFDM.jl.nb
     #
-    # Below, V[Base.setindex(axes(Vₛ), iw, nw)...] mimics the implementation of slicedim and
-    # basically means V[:,iw,:] for w = y.
+    # Below, V[Base.setindex(axes(V), iw:iw, nw)...] mimics the implementation of slicedim
+    # and means V[:,iw:iw,:] for w = y.  (Base.setindex(axes(V),iw:iw,nw) creates (:,iw:iw,:).)
+    # The use of iw:iw instead of iw is to support 1D arrays.  If V is 1D, then V[iw] is a
+    # scalar and the dot equal on V[iw] fails.
     if isbloch
         # Application of the aformentioned procedure:
         #
@@ -267,7 +269,7 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
         # ghost input fields that they are brought into.  Therefore, e⁺ⁱᵏᴸ must be
         # multiplied to the nonghost input fields to create the ghost input fields.
         iw = isfwd ? Nw : 1
-        Vₛ[Base.setindex(axes(Vₛ), iw, nw)...] .*= e⁻ⁱᵏᴸ^ns
+        Vₛ[Base.setindex(axes(Vₛ), iw:iw, nw)...] .*= e⁻ⁱᵏᴸ^ns
     else  # symmetry boundary
         # A. isfwd = true (forward difference)
         #
@@ -341,7 +343,7 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
         # zeros at the same locations.  This means the locations of zeros on the diagonal
         # must be independent of isfwd.
         iw = 1
-        V₀[Base.setindex(axes(V₀), iw, nw)...] .= 0
+        V₀[Base.setindex(axes(V₀), iw:iw, nw)...] .= 0
 
         # Zero the off-diagonal entries (Vₛ) multiplied with the fields on the boundary.
         #
@@ -349,7 +351,7 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
         # uniform, this means that for the same ns, the operators for the symmetry boundary
         # conditions will have the same off-diagonal entries, except for the opposite signs.
         iw = isfwd ? Nw : 1
-        Vₛ[Base.setindex(axes(Vₛ), iw, nw)...] .= 0
+        Vₛ[Base.setindex(axes(Vₛ), iw:iw, nw)...] .= 0
     end
 
     i = reshape(I, M)

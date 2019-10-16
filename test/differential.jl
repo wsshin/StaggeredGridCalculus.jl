@@ -1,6 +1,11 @@
 @testset "differential" begin
 
-@testset "create_∂" begin
+@testset "create_∂, 1D" begin
+    @test isa(create_∂(nX, true, [10]), Any)
+    @test isa(create_∂(nX, false, [10]), Any)
+end
+
+@testset "create_∂, 3D" begin
     N = SVector(8,9,10)
     # N = SVector(3,3,3)
     M = prod(N)

@@ -236,8 +236,10 @@ function create_minfo(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for a
     # For the final sparsity patterns of the operators, see my notes entitled [Beginning of
     # the part added on Aug/14/2018] in RN - Subpixel Smoothing.nb.
     #
-    # Below, V[Base.setindex(axes(Vₛ), iw, nw)...] mimics the implementation of slicedim and
-    # basically means V[:,iw,:] for w = y.
+    # Below, V[Base.setindex(axes(V), iw:iw, nw)...] mimics the implementation of slicedim
+    # and means V[:,iw:iw,:] for w = y.  (Base.setindex(axes(V),iw:iw,nw) creates (:,iw:iw,:).)
+    # The use of iw:iw instead of iw is to support 1D arrays.  If V is 1D, then V[iw] is a
+    # scalar and the dot equal on V[iw] fails.
     if isbloch
         # Application of the aformentioned procedure:
         #
@@ -278,7 +280,7 @@ function create_minfo(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for a
         # ghost input fields that they are brought into.  Therefore, e⁺ⁱᵏᴸ must be
         # multiplied to the nonghost input fields to create the ghost input fields.
         iw = isfwd ? Nw : 1
-        Vₛ[Base.setindex(axes(Vₛ), iw, nw)...] .*= e⁻ⁱᵏᴸ^ns
+        Vₛ[Base.setindex(axes(Vₛ), iw:iw, nw)...] .*= e⁻ⁱᵏᴸ^ns
     else  # symmetry bounndary
         # A. isfwd = true (forward averaging)
         #
@@ -356,11 +358,11 @@ function create_minfo(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for a
         # Replace some diagonal entries (V₀) with 0 or 2.
         iw = 1
         val = isfwd ? 0 : 2
-        V₀[Base.setindex(axes(V₀), iw, nw)...] .*= val
+        V₀[Base.setindex(axes(V₀), iw:iw, nw)...] .*= val
 
         # Replace some off-diagonal entries (Vₛ) with 0.
         iw = isfwd ? Nw : 1
-        Vₛ[Base.setindex(axes(Vₛ), iw, nw)...] .= 0
+        Vₛ[Base.setindex(axes(Vₛ), iw:iw, nw)...] .= 0
 
         # Note that the forward and backward averaging operators are not the transpose of
         # each other because they have different diagonals.  This may seem to make the final
