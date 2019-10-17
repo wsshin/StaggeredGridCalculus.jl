@@ -237,7 +237,8 @@ function create_minfo(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for a
     # the part added on Aug/14/2018] in RN - Subpixel Smoothing.nb.
     #
     # Below, V[Base.setindex(axes(V), iw:iw, nw)...] mimics the implementation of slicedim
-    # and means V[:,iw:iw,:] for w = y.  (Base.setindex(axes(V),iw:iw,nw) creates (:,iw:iw,:).)
+    # and means V[:,iw:iw,:] for w = y.  (axes(V) = (1:Nx,1:Ny,1:Nz) and setindex(t,v,i)
+    # does t[i] = v, so Base.setindex(axes(V),iw:iw,nw) creates (1:Nx,iw:iw,1:Nz) for w = y.)
     # The use of iw:iw instead of iw is to support 1D arrays.  If V is 1D, then V[iw] is a
     # scalar and the dot equal on V[iw] fails.
     if isbloch
