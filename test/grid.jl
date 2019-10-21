@@ -1,7 +1,7 @@
 StaggeredGridCalculus# The following without the qualifier StaggeredGridCalculus cannot find the Grid constructor
 # of StaggeredGridCalculus:
-# Grid(axis::Axis, lprim::AbsVecReal, Npml::NTuple{2,Int}, isbloch::Bool) =
-#     StaggeredGridCalculus.Grid((axis,), (lprim,), ([Npml[nN]], [Npml[nP]]), (isbloch,))
+# Grid(lprim::AbsVecReal, Npml::NTuple{2,Int}, isbloch::Bool) =
+#     StaggeredGridCalculus.Grid((lprim,), ([Npml[nN]], [Npml[nP]]), (isbloch,))
 
 # Calculate ghost points from l, L, and isbloch.
 lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
@@ -13,7 +13,7 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
 
 @testset "grid" begin
 
-@test isa(Grid(X̂, 1:10, true), Any)
+@test isa(Grid(1:10, true), Any)
 
 @testset "Grid{1}, Bloch boundary" begin
     isbloch = true
@@ -23,7 +23,7 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
     l₀ = L / 2
     lprim = cumsum([-l₀; ∆ldual])
 
-    g1 = Grid(X̂, lprim, isbloch)
+    g1 = Grid(lprim, isbloch)
 
     @test g1.N == [N]
     @test g1.L ≈ [L]

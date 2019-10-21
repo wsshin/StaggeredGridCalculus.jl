@@ -104,7 +104,6 @@ end
 # Then, for a voxel center l[gt][i], the voxel bounds are lvxlbounds[[i,i+1]], regardless of
 # the value of gt.
 struct Grid{K}
-    axis::SVector{K,Axis}  # axes of this grid (X̂, Ŷ, Ẑ)
     N::SVector{K,Int}  # N[k] = number of grid cells in k-direction
     L::SVector{K,Float}  # L[k] = length of grid (domain) in k-direction
     l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction
@@ -116,18 +115,13 @@ struct Grid{K}
 end
 
 # Constructor for 1D grid: arguments don't have to be tuples.
-Grid(axis::Axis, lprim::AbsVecReal, isbloch::Bool) = Grid(SVector(axis), (lprim,), SVector(isbloch))
-
-# Constructor for 3D grid: axis is always XYZ.
-Grid(lprim::Tuple3{AbsVecReal}, isbloch::AbsVecBool) = Grid(XYZ, lprim, isbloch)
+Grid(lprim::AbsVecReal, isbloch::Bool) = Grid((lprim,), SVector(isbloch))
 
 # Constructor taking non-static vectors.
-Grid(axis::AbsVec{Axis}, lprim::NTuple{K,AbsVecReal}, isbloch::AbsVecBool) where {K} =
-     Grid(SVector{K}(axis), lprim, SVector{K}(isbloch))
+Grid(lprim::NTuple{K,AbsVecReal}, isbloch::AbsVecBool) where {K} = Grid(lprim, SVector{K}(isbloch))
 
 # Constructor calling the inner constructor.
-function Grid(axis::SVector{K,Axis},
-              lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, including both domain boundaries
+function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, including both domain boundaries
               isbloch::SVector{K,Bool}) where {K}
     all(issorted.(lprim)) || throw(ArgumentError("all entry vectors of lprim = $(lprim) must be sorted."))
 
@@ -207,7 +201,7 @@ function Grid(axis::SVector{K,Axis},
     @assert length.(lprim) == length.(ldual) == N.data  # lprim, ldual, ∆lprim, ∆ldual have the same length
     l = (lprim, ldual)
 
-    return Grid{K}(axis, N, L, l, ∆l, isbloch, σ, bounds, ghosted)
+    return Grid{K}(N, L, l, ∆l, isbloch, σ, bounds, ghosted)
 end
 
 # To-do
