@@ -5,24 +5,32 @@
     @test isa(create_∂(nX, false, [10]), Any)
 end
 
-@testset "create_∂, 3D" begin
+@testset "create_∂ and apply_∂!, 3D" begin
     N = SVector(8,9,10)
-    # N = SVector(3,3,3)
     M = prod(N)
+
+    F = rand(N...)
+    G = similar(F)
+    g = zeros(M)
     for nw = nXYZ
     # for nw = (1,)
         Nw = N[nw]
+        sub = Vector{Int}(undef, 3)
         sub′ = Vector{Int}(undef, 3)
+        ∆w = rand(Nw)
 
-        for ns = (-1,1)
+        for ns = (-1,1)  # backward, forward difference
         # for ns = (1,)
             ∂ws = spzeros(M,M)
 
             for ind = 1:M
-                ∂ws[ind,ind] = -ns  # diagonal entries
+                sub .= CartesianIndices(N.data)[ind].I
+                indw = sub[nw]
+                ∆wᵢ = ∆w[indw]
+                ∂ws[ind,ind] = -ns / ∆wᵢ  # diagonal entries
 
                 # Calculate the column index of the off-diagonal entry in the row `ind`.
-                sub′ .= CartesianIndices(N.data)[ind].I
+                sub′ .= sub
                 if ns == 1  # forward difference
                     if sub′[nw] == Nw
                         sub′[nw] = 1
@@ -38,9 +46,17 @@ end
                 end
 
                 ind′ = LinearIndices(N.data)[sub′...]
-                ∂ws[ind, ind′] += ns  # off-diagonal entry
+                ∂ws[ind, ind′] += ns / ∆wᵢ  # off-diagonal entry
             end
-            @test create_∂(nw, ns==1, N) == ∂ws
+            @test create_∂(nw, ns==1, N, ∆w) == ∂ws
+
+            f = F[:]
+            mul!(g, ∂ws, f)
+            apply_∂!(G, F, nw, ns==1, ∆w)
+            @test G[:] ≈ g
+
+            # print("matrix: "); @btime mul!($g, $∂ws, $f)
+            # print("matrix-free: "); @btime apply_∂!($G, $F, $nw, $ns==1, $∆w)
         end
     end
 end  # @testset "create_∂"

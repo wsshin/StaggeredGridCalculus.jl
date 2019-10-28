@@ -47,7 +47,10 @@ const AbsMatComplex = AbsMat{CFloat}
 const AbsMatReal = AbsMat{<:Real}
 const AbsMatNumber = AbsMat{<:Number}
 
+const AbsArrFloat = AbsArr{Float}
 const AbsArrComplex = AbsArr{CFloat}
+
+# Below, without {N}, `where T<:AbsArrNumber{3}}` is not equivalent to `where {T<:AbstractArray{<:Number,3}}`.
 const AbsArrNumber{N} = AbsArr{<:Number,N}
 
 const SVec1 = SVector{1}
@@ -72,6 +75,7 @@ include("util.jl")
 include("grid.jl")
 # include("gridgen.jl")
 include("matrix/matrix.jl")
+include("matrixfree/matrixfree.jl")
 include("pml.jl")
 
 end # module StaggeredGridCalculus
