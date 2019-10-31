@@ -310,10 +310,10 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
         # are always primal grid planes.  Therefore, no input fields are on the domain
         # boundaries, and thus no input fields needs to be zeroed.
         #
-        # However, the fields dual grid points are symmetric around the symmetry boundaries
-        # (so that their interpolated values at the symmetry boundary are nonzero).
-        # Therefore, the difference between the two is zero, leading to zero derivatives
-        # evaluated at the symmetry boundaries.
+        # However, the fields at dual grid points are symmetric (rather than anti-symmetric)
+        # around the symmetry boundaries (so that their interpolated values at the symmetry
+        # boundary are nonzero).  Therefore, the difference between the two is zero, leading
+        # to zero derivatives evaluated at the symmetry boundaries.
         #
         # On the positive-end boundary, the derivative of the dual field is not evaluated,
         # so we don't have to do anything to realize the positivte-end symmetry boundary.
