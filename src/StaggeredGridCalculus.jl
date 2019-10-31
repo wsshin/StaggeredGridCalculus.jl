@@ -50,7 +50,8 @@ const AbsMatNumber = AbsMat{<:Number}
 const AbsArrFloat = AbsArr{Float}
 const AbsArrComplex = AbsArr{CFloat}
 
-# Below, without {N}, `where T<:AbsArrNumber{3}}` is not equivalent to `where {T<:AbstractArray{<:Number,3}}`.
+# Below, without {N}, `where T<:AbsArrNumber{3}}` is not equivalent to
+# `where {T<:AbstractArray{<:Number,3}}`.
 const AbsArrNumber{N} = AbsArr{<:Number,N}
 
 const SVec1 = SVector{1}
