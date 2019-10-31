@@ -9,18 +9,18 @@ end
     N = SVector(8,9,10)
     M = prod(N)
 
-    F = rand(N...)
-    G = similar(F)
-    g = zeros(M)
+    Fu = rand(N...)
+    Gv = similar(Fu)
+    gv = zeros(M)
+
+    Mask = similar(Fu)  # masking array
     for nw = nXYZ
-    # for nw = (1,)
         Nw = N[nw]
         sub = Vector{Int}(undef, 3)
         sub′ = Vector{Int}(undef, 3)
         ∆w = rand(Nw)
 
-        for ns = (-1,1)  # backward, forward difference
-        # for ns = (1,)
+        for ns = (-1,1), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
             ∂ws = spzeros(M,M)
 
             for ind = 1:M
@@ -48,15 +48,35 @@ end
                 ind′ = LinearIndices(N.data)[sub′...]
                 ∂ws[ind, ind′] += ns / ∆wᵢ  # off-diagonal entry
             end
-            @test create_∂(nw, ns==1, N, ∆w) == ∂ws
 
-            f = F[:]
-            mul!(g, ∂ws, f)
-            apply_∂!(G, F, nw, ns==1, ∆w)
-            @test G[:] ≈ g
+            if !isbloch  # symmetry boundary
+                # Initialize the masking array.
+                Mask .= 1
+                Mask[Base.setindex(axes(Mask), 1, nw)...] .= 0
+                if ns == 1  # forward difference
+                    # The input fields at the symmetry boundary should be zero, so apply the
+                    # mask to the input field.
+                    ∂ws = ∂ws * spdiagm(0=>Mask[:])
+                else  # backward difference
+                    # The output fields at the symmetry boundary should be zero, so apply
+                    # mask to the output field.
+                    ∂ws = spdiagm(0=>Mask[:]) * ∂ws
+                end
+            end
 
-            # print("matrix: "); @btime mul!($g, $∂ws, $f)
-            # print("matrix-free: "); @btime apply_∂!($G, $F, $nw, $ns==1, $∆w)
+            # Test create_∂.
+            @test create_∂(nw, ns==1, N, ∆w, isbloch) == ∂ws
+
+            # Test apply_∂!.
+            fu = Fu[:]
+            mul!(gv, ∂ws, fu)
+            Gv .= 0
+            apply_∂!(Gv, Fu, nw, ns==1, ∆w, isbloch)
+            @test Gv[:] ≈ gv
+
+            # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
+            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w)
+            # println()
         end
     end
 end  # @testset "create_∂"
@@ -66,18 +86,23 @@ M = prod(N)
 r = reshape(collect(1:3M), M, 3)'[:]  # index mapping from block matrix to narrowly banded matrix
 Z = spzeros(M,M)
 
-@testset "create_curl for U" begin
-    # Construct Cu for a uniform grid and BLOCH boundaries.
-    Cu = create_curl([true,true,true], N, reorder=false)
+F = rand(Complex{Float64}, N..., 3)
+G = similar(F)
+g = zeros(Complex{Float64}, 3M)
 
-    # Examine the overall coefficients.
+@testset "create_curl and apply_curl! for primal field U" begin
+    # Construct Cu for a uniform grid and BLOCH boundaries.
+    isfwd = SVector(true, true, true)  # U is differentiated forward
+    Cu = create_curl(isfwd, N, reorder=false)
+
+    # Test the overall coefficients.
     @test all(any(Cu.≠0, dims=1))  # no zero columns
     @test all(any(Cu.≠0, dims=2))  # no zero rows
     @test all(sum(Cu, dims=2) .== 0)  # all row sums are zero, because Cu * ones(M) = 0
 
-    ∂x = (nw = 1; create_∂(nw, true, N))
-    ∂y = (nw = 2; create_∂(nw, true, N))
-    ∂z = (nw = 3; create_∂(nw, true, N))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N))
     @test Cu == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
@@ -87,33 +112,41 @@ Z = spzeros(M,M)
     isbloch = SVector(true, false, false)
     e⁻ⁱᵏᴸ = @SVector rand(ComplexF64, 3)
 
-    Cu = create_curl([true,true,true], N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cu = create_curl(isfwd, N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
 
-    # Examine Cu.
-    ∂x = (nw = 1; create_∂(nw, true, N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, true, N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, true, N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    # Test Cu.
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Cu == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
-    # Examine reordering.
-    Cu_reorder = create_curl([true,true,true], N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=true)
+    # Test reordering.
+    Cu_reorder = create_curl(isfwd, N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=true)
     @test Cu_reorder == Cu[r,r]
+
+    # Test apply_curl!.
+    f = F[:]
+    mul!(g, Cu, f)
+    G .= 0
+    apply_curl!(G, F, isfwd, ∆ldual, isbloch, e⁻ⁱᵏᴸ)
+    @test G[:] ≈ g
 end  # @testset "create_curl for U"
 
-@testset "create_curl for V" begin
+@testset "create_curl for dual field V" begin
     # Construct Cv for a uniform grid and BLOCH boundaries.
-    Cv = create_curl([false,false,false], N, reorder=false)
+    isfwd = SVector(false, false, false)  # V is differentiated backward
+    Cv = create_curl(isfwd, N, reorder=false)
 
-    # Examine the overall coefficients.
+    # Test the overall coefficients.
     @test all(any(Cv.≠0, dims=1))  # no zero columns
     @test all(any(Cv.≠0, dims=2))  # no zero rows
     @test all(sum(Cv, dims=2) .== 0)  # all row sums are zero, because Cv * ones(sum(Min)) = 0
 
-    ∂x = (nw = 1; create_∂(nw, false, N))
-    ∂y = (nw = 2; create_∂(nw, false, N))
-    ∂z = (nw = 3; create_∂(nw, false, N))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N))
     @test Cv == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
@@ -123,19 +156,26 @@ end  # @testset "create_curl for U"
     isbloch = SVector(true, false, false)
     e⁻ⁱᵏᴸ = @SVector rand(ComplexF64, 3)
 
-    Cv = create_curl([false,false,false], N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cv = create_curl(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
 
-    # Examine Cv.
-    ∂x = (nw = 1; create_∂(nw, false, N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, false, N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, false, N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    # Test Cv.
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Cv == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
-    # Examine reordering
-    Cv_reorder = create_curl([false,false,false], N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=true)
+    # Test reordering
+    Cv_reorder = create_curl(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=true)
     @test Cv_reorder == Cv[r,r]
+
+    # Test apply_curl!.
+    f = F[:]
+    mul!(g, Cv, f)
+    G .= 0
+    apply_curl!(G, F, isfwd, ∆lprim, isbloch, e⁻ⁱᵏᴸ)
+    @test G[:] ≈ g
 end  # @testset "create_curl for V"
 
 @testset "curl of curl" begin
