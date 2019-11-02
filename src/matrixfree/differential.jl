@@ -10,7 +10,8 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
                      isfwd::SVec3Bool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
                      isbloch::SVec3Bool,  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SVec3Number  # Bloch phase factor in x, y, z
+                     e⁻ⁱᵏᴸ::SVec3Number;  # Bloch phase factor in x, y, z
+                     α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
                     ) where {T<:AbsArrNumber{4}}
     for nv = nXYZ  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field
@@ -20,7 +21,7 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
             Fu = @view F[:,:,:,nu]  # u-component of input field
 
             # Need to avoid allocation in parity*∆l[nw]
-            apply_∂!(Gv, Fu, nw, isfwd[nw], parity*∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])  # Gv .+= ∂w Fu
+            apply_∂!(Gv, Fu, nw, isfwd[nw], ∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
             parity = -1
         end
     end
@@ -32,9 +33,10 @@ apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
          isfwd::Bool,  # true|false for forward|backward difference
          ∆w::Number=1.0,  # spatial discretization; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1.0  # Bloch phase factor
+         e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
+         α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
         ) where {T<:AbsArrNumber{3}} =
-    (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w, N[nw]), isbloch, e⁻ⁱᵏᴸ))  # fill: create vector of ∆w
+    (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w
 
 # The field arrays Fu (and Gv) represents a 3D array of a specific Cartesian component of the
 # field, and indexed as Fu[i,j,k], where (i,j,k) is the grid cell location.
@@ -46,7 +48,8 @@ function apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
                   isfwd::Bool,  # true|false for forward|backward difference
                   ∆w::AbsVecNumber,  # spatial discretization; vector of length N[nw]
                   isbloch::Bool=true,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1.0  # Bloch phase factor
+                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
+                  α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                  ) where {T<:AbsArrNumber{3}}
     @assert(size(Gv)==size(Fu))
     @assert(size(Fu,nw)==length(∆w))
@@ -57,106 +60,133 @@ function apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
     if isfwd
         if nw == nX
             for k = 1:Nz, j = 1:Ny, i = 2:Nx-1
-                @inbounds Gv[i,j,k] += (Fu[i+1,j,k] - Fu[i,j,k]) / ∆w[i]
+                @inbounds Gv[i,j,k] += (α / ∆w[i]) * (Fu[i+1,j,k] - Fu[i,j,k])
             end
 
             if isbloch
+                β = α / ∆w[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gv[1,j,k] += (Fu[2,j,k] - Fu[1,j,k]) / ∆w[1]
+                    @inbounds Gv[1,j,k] += β * (Fu[2,j,k] - Fu[1,j,k])  # nothing special
                 end
 
+                β = α / ∆w[Nx]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gv[Nx,j,k] += (e⁻ⁱᵏᴸ*Fu[1,j,k] - Fu[Nx,j,k]) / ∆w[Nx]
+                    @inbounds Gv[Nx,j,k] += β * (e⁻ⁱᵏᴸ*Fu[1,j,k] - Fu[Nx,j,k])  # Fu[Nx+1,j,k] = exp(-i kx Lx) * Fu[1,j,k]
                 end
             else  # symmetry boundary
+                β = α / ∆w[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gv[1,j,k] += Fu[2,j,k] / ∆w[1]  # Fu[1,j,k] == 0
+                    @inbounds Gv[1,j,k] += β * Fu[2,j,k]  # Fu[1,j,k] == 0
                 end
 
+                β = α / ∆w[Nx]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gv[Nx,j,k] += -Fu[Nx,j,k] / ∆w[Nx]  # Fu[1,j,k] == 0
+                    @inbounds Gv[Nx,j,k] -= β * Fu[Nx,j,k]  # Fu[Nx+1,j,k] == 0
                 end
             end
         elseif nw == nY
-            for k = 1:Nz, j = 2:Ny-1, i = 1:Nx
-                @inbounds Gv[i,j,k] += (Fu[i,j+1,k] - Fu[i,j,k]) / ∆w[j]
+            for k = 1:Nz, j = 2:Ny-1
+                β = α / ∆w[j]
+                for i = 1:Nx
+                    @inbounds Gv[i,j,k] += β * (Fu[i,j+1,k] - Fu[i,j,k])
+                end
             end
 
             if isbloch
+                β = α / ∆w[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gv[i,1,k] += (Fu[i,2,k] - Fu[i,1,k]) / ∆w[1]
+                    @inbounds Gv[i,1,k] += β * (Fu[i,2,k] - Fu[i,1,k])  # nothing special
                 end
 
+                β = α / ∆w[Ny]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gv[i,Ny,k] += (e⁻ⁱᵏᴸ*Fu[i,1,k] - Fu[i,Ny,k]) / ∆w[Ny]
+                    @inbounds Gv[i,Ny,k] += β * (e⁻ⁱᵏᴸ*Fu[i,1,k] - Fu[i,Ny,k])  # Fu[i,Ny+1,k] = exp(-i ky Ly) * Fu[i,1,k]
                 end
             else  # symmetry boundary
+                β = α / ∆w[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gv[i,1,k] += Fu[i,2,k] / ∆w[1]
+                    @inbounds Gv[i,1,k] += β * Fu[i,2,k]  # Fu[i,1,k] == 0
                 end
 
+                β = α / ∆w[Ny]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gv[i,Ny,k] += -Fu[i,Ny,k] / ∆w[Ny]  # Fu[i,1,k] == 0
+                    @inbounds Gv[i,Ny,k] -= β * Fu[i,Ny,k]  # Fu[i,Ny+1,k] == 0
                 end
             end
         else  # nw == nZ
-            for k = 2:Nz-1, j = 1:Ny, i = 1:Nx
-                @inbounds Gv[i,j,k] += (Fu[i,j,k+1] - Fu[i,j,k]) / ∆w[k]
+            for k = 2:Nz-1
+                β = α / ∆w[k]
+                for j = 1:Ny, i = 1:Nx
+                    @inbounds Gv[i,j,k] += β * (Fu[i,j,k+1] - Fu[i,j,k])
+                end
             end
 
             if isbloch
+                β = α / ∆w[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gv[i,j,1] += (Fu[i,j,2] - Fu[i,j,1]) / ∆w[1]
+                    @inbounds Gv[i,j,1] += β * (Fu[i,j,2] - Fu[i,j,1])  # nothing special
                 end
 
+                β = α / ∆w[Nz]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gv[i,j,Nz] += (e⁻ⁱᵏᴸ*Fu[i,j,1] - Fu[i,j,Nz]) / ∆w[Nz]
+                    @inbounds Gv[i,j,Nz] += β * (e⁻ⁱᵏᴸ*Fu[i,j,1] - Fu[i,j,Nz])  # Fu[i,j,Nz+1] = exp(-i kz Lz) * Fu[i,j,1]
                 end
             else  # symmetry boundary
+                β = α / ∆w[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gv[i,j,1] += Fu[i,j,2] / ∆w[1]
+                    @inbounds Gv[i,j,1] += β * Fu[i,j,2]  # Fu[i,j,1] == 0
                 end
 
+                β = α / ∆w[Nz]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gv[i,j,Nz] += -Fu[i,j,Nz] / ∆w[Nz]  # Fu[i,j,1] == 0
+                    @inbounds Gv[i,j,Nz] -= β * Fu[i,j,Nz]  # Fu[i,j,Nz+1] == 0
                 end
             end
         end  # if nw == ...
     else  # backward difference
         if nw == nX
-            for k = 1:Nz, j = 1:Ny, i = 2:Nx
-                @inbounds Gv[i,j,k] += (Fu[i,j,k] - Fu[i-1,j,k]) / ∆w[i]
+            for k = 1:Nz, j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
+                @inbounds Gv[i,j,k] += (α / ∆w[i]) * (Fu[i,j,k] - Fu[i-1,j,k])
             end
 
             if isbloch
+                β = α / ∆w[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gv[1,j,k] += (Fu[1,j,k] - Fu[Nx,j,k]/e⁻ⁱᵏᴸ) / ∆w[1]
+                    @inbounds Gv[1,j,k] += β * (Fu[1,j,k] - Fu[Nx,j,k]/e⁻ⁱᵏᴸ)  # Fu[0,j,k] = Fu[Nx,j,k] / exp(-i kx Lx)
                 end
             else  # symmetry boundary
                 # Do nothing, because the derivative of dual fields at the symmetry boundary
                 # is zero.
             end
         elseif nw == nY
-            for k = 1:Nz, j = 2:Ny, i = 1:Nx
-                @inbounds Gv[i,j,k] += (Fu[i,j,k] - Fu[i,j-1,k]) / ∆w[j]
+            for k = 1:Nz, j = 2:Ny  # not j = 2:Ny-1
+                β = α / ∆w[j]
+                for i = 1:Nx
+                    @inbounds Gv[i,j,k] += β * (Fu[i,j,k] - Fu[i,j-1,k])
+                end
             end
 
             if isbloch
+                β = α / ∆w[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gv[i,1,k] += (Fu[i,1,k] - Fu[i,Ny,k]/e⁻ⁱᵏᴸ) / ∆w[1]
+                    @inbounds Gv[i,1,k] += β * (Fu[i,1,k] - Fu[i,Ny,k]/e⁻ⁱᵏᴸ)  # Fu[i,0,k] = Fu[i,Ny,k] / exp(-i ky Ly)
                 end
             else  # symmetry boundary
                 # Do nothing, because the derivative of dual fields at the symmetry boundary
                 # is zero.
             end
         else  # nw == nZ
-            for k = 2:Nz, j = 1:Ny, i = 1:Nx
-                @inbounds Gv[i,j,k] += (Fu[i,j,k] - Fu[i,j,k-1]) / ∆w[k]
+            for k = 2:Nz  # not k = 2:Nz-1
+                β = α / ∆w[k]
+                for j = 1:Ny, i = 1:Nx
+                    @inbounds Gv[i,j,k] += β * (Fu[i,j,k] - Fu[i,j,k-1])
+                end
             end
 
             if isbloch
+                β = α / ∆w[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gv[i,j,1] += (Fu[i,j,1] - Fu[i,j,Nz]/e⁻ⁱᵏᴸ) / ∆w[1]
+                    @inbounds Gv[i,j,1] += β * (Fu[i,j,1] - Fu[i,j,Nz]/e⁻ⁱᵏᴸ)  # Fu[i,j,0] = Fu[i,j,Nz] / exp(-i kz Lz)
                 end
             else  # symmetry boundary
                 # Do nothing, because the derivative of dual fields at the symmetry boundary
