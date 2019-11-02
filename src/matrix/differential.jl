@@ -69,11 +69,11 @@ function create_curl(isfwd::SVec3Bool,  # isfwd[w] = true|false: create ∂w by 
     Vtot = Vector{T}(undef, 12M)
 
     indblk = 0  # index of matrix block
-    for nv = nXYZ  # Cartesian compotent of output vector
+    for nv = nXYZ  # Cartesian compotent of output field
         istr, ioff = reorder ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
         parity = 1
         for nw = next2(nv)  # direction of differentiation
-            nw′ = 6 - nv - nw  # Cantesian component of input vector; 6 = nX + nY + nZ
+            nw′ = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
             jstr, joff = reorder ? (3, nw′-3) : (1, M*(nw′-1))  # (column stride, column offset)
             I, J, V = create_∂info(nw, isfwd[nw], N, ∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 

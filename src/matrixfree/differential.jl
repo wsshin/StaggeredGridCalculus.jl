@@ -12,11 +12,11 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
                      isbloch::SVec3Bool,  # boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SVec3Number  # Bloch phase factor in x, y, z
                     ) where {T<:AbsArrNumber{4}}
-    for nv = nXYZ  # Cartesian compotent of output vector
+    for nv = nXYZ  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field
         parity = 1
         for nw = next2(nv)  # direction of differentiation
-            nu = 6 - nv - nw  # Cantesian component of input vector; 6 = nX + nY + nZ
+            nu = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
             Fu = @view F[:,:,:,nu]  # u-component of input field
 
             # Need to avoid allocation in parity*∆l[nw]

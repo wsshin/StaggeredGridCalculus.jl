@@ -14,6 +14,7 @@ export create_m, create_mean
 #
 # See the comments in differential.jl as well.
 
+# Note for SALT users
 # The averaging scheme in SALT will be mostly used with the Bloch boundary condition, so the
 # implementation of the impact of boundary conditions in the averaging scheme is actually
 # not that important, because field averaging at the boundaries is trivial for the Bloch
@@ -53,7 +54,8 @@ export create_m, create_mean
 # Ez-components at the Ex-indices.
 #
 # Note that both kdiag = ±1 shift the diagonal blocks along the row directions.  This is
-# different from diagm(kdiag => v) or MATLAB's diag(v, kdiag).
+# different from diagm(kdiag => v) or MATLAB's diag(v, kdiag), which shifts v along the
+# column direction.
 
 # Creates the field-averaging operator for all three Cartegian components.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
@@ -98,11 +100,11 @@ function create_mean(isfwd::SVec3Bool,  # isfwd[w] = true|false for forward|back
     Vtot = Vector{T}(undef, 6M)
 
     indblk = 0  # index of matrix block
-    for nv = nXYZ  # Cartesian compotent of output vector
+    for nv = nXYZ  # Cartesian compotent of output field
         I, J, V = create_minfo(nv, isfwd[nv], N, ∆l[nv], ∆l′[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])  # averaging along nv-direction
 
         istr, ioff = reorder ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
-        nw = mod1(nv+kdiag, 3)  # Cartesian component of input vector
+        nw = mod1(nv+kdiag, 3)  # Cartesian component of input field
         jstr, joff = reorder ? (3, nw-3) : (1, M*(nw-1))  # (column stride, column offset)
 
         @. I = istr * I + ioff
