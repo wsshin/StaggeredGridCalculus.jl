@@ -80,7 +80,7 @@ function create_mean(isfwd::SVec3Bool,  # isfwd[w] = true|false for forward|back
                      N::SVec3Int,  # size of grid
                      ∆l::Tuple3{AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
-                     isbloch::SVec3Bool,  # boundary conditions in x, y, z
+                     isbloch::SVec3Bool=SVec3Bool(true,true,true),  # boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SVec3Number=SVec3Float(1,1,1);  # Bloch phase factor in x, y, z
                      kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
                      reorder::Bool=true)  # true for more tightly banded matrix
