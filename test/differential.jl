@@ -6,7 +6,7 @@
 end
 
 @testset "create_∂ and apply_∂!, 3D" begin
-    N = SVector(8,9,10)
+    N = (8,9,10)
     M = prod(N)
 
     Fu = rand(N...)
@@ -15,29 +15,30 @@ end
 
     Mask = similar(Fu)  # masking array
     for nw = nXYZ
-        Nw = N[nw]
         sub = Vector{Int}(undef, 3)
         sub′ = Vector{Int}(undef, 3)
+
+        Nw = N[nw]
         ∆w = rand(Nw)
 
         for ns = (-1,1), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
             ∂ws = spzeros(M,M)
 
             for ind = 1:M
-                sub .= CartesianIndices(N.data)[ind].I
+                sub .= CartesianIndices(N)[ind].I  # subscripts of diagonal entry
                 indw = sub[nw]
                 ∆wᵢ = ∆w[indw]
                 ∂ws[ind,ind] = -ns / ∆wᵢ  # diagonal entries
 
                 # Calculate the column index of the off-diagonal entry in the row `ind`.
-                sub′ .= sub
+                sub′ .= sub  # subscripts of off-diagonal entry
                 if ns == 1  # forward difference
                     if sub′[nw] == Nw
                         sub′[nw] = 1
                     else
                         sub′[nw] += 1
                     end
-                else  # ns = -1: backward difference
+                else  # backward difference
                     if sub′[nw] == 1
                         sub′[nw] = Nw
                     else
@@ -45,7 +46,7 @@ end
                     end
                 end
 
-                ind′ = LinearIndices(N.data)[sub′...]
+                ind′ = LinearIndices(N)[sub′...]
                 ∂ws[ind, ind′] += ns / ∆wᵢ  # off-diagonal entry
             end
 
@@ -65,7 +66,7 @@ end
             end
 
             # Test create_∂.
-            @test create_∂(nw, ns==1, N, ∆w, isbloch) == ∂ws
+            @test create_∂(nw, ns==1, [N...], ∆w, isbloch) == ∂ws
 
             # Test apply_∂!.
             fu = Fu[:]
@@ -81,7 +82,7 @@ end
     end
 end  # @testset "create_∂"
 
-N = SVector(3,4,5)
+N = (3,4,5)
 M = prod(N)
 r = reshape(collect(1:3M), M, 3)'[:]  # index mapping from block matrix to narrowly banded matrix
 Z = spzeros(M,M)
@@ -92,38 +93,38 @@ g = zeros(Complex{Float64}, 3M)
 
 @testset "create_curl and apply_curl! for primal field U" begin
     # Construct Cu for a uniform grid and BLOCH boundaries.
-    isfwd = SVector(true, true, true)  # U is differentiated forward
-    Cu = create_curl(isfwd, N, reorder=false)
+    isfwd = [true, true, true]  # U is differentiated forward
+    Cu = create_curl(isfwd, [N...], reorder=false)
 
     # Test the overall coefficients.
     @test all(any(Cu.≠0, dims=1))  # no zero columns
     @test all(any(Cu.≠0, dims=2))  # no zero rows
     @test all(sum(Cu, dims=2) .== 0)  # all row sums are zero, because Cu * ones(M) = 0
 
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...]))
     @test Cu == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
     # Construct Cu for a nonuniform grid and general boundaries.
-    ∆ldual = rand.(N.data)
-    isbloch = SVector(true, false, false)
-    e⁻ⁱᵏᴸ = @SVector rand(ComplexF64, 3)
+    ∆ldual = rand.(N)
+    isbloch = [true, false, false]
+    e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
 
-    Cu = create_curl(isfwd, N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cu = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
 
     # Test Cu.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N, ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Cu == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
     # Test reordering.
-    Cu_reorder = create_curl(isfwd, N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=true)
+    Cu_reorder = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=true)
     @test Cu_reorder == Cu[r,r]
 
     # Test apply_curl!.
@@ -132,42 +133,45 @@ g = zeros(Complex{Float64}, 3M)
     G .= 0
     apply_curl!(G, F, isfwd, ∆ldual, isbloch, e⁻ⁱᵏᴸ)
     @test G[:] ≈ g
+
+    # print("matrix: "); @btime mul!($g, $Cu, $f)
+    # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆ldual, $isbloch, $e⁻ⁱᵏᴸ)
 end  # @testset "create_curl for U"
 
 @testset "create_curl for dual field V" begin
     # Construct Cv for a uniform grid and BLOCH boundaries.
-    isfwd = SVector(false, false, false)  # V is differentiated backward
-    Cv = create_curl(isfwd, N, reorder=false)
+    isfwd = [false, false, false]  # V is differentiated backward
+    Cv = create_curl(isfwd, [N...], reorder=false)
 
     # Test the overall coefficients.
     @test all(any(Cv.≠0, dims=1))  # no zero columns
     @test all(any(Cv.≠0, dims=2))  # no zero rows
     @test all(sum(Cv, dims=2) .== 0)  # all row sums are zero, because Cv * ones(sum(Min)) = 0
 
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...]))
     @test Cv == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
     # Construct Cv for a nonuniform grid and general boundaries.
-    ∆lprim = rand.(N.data)
-    isbloch = SVector(true, false, false)
-    e⁻ⁱᵏᴸ = @SVector rand(ComplexF64, 3)
+    ∆lprim = rand.(N)
+    isbloch = [true, false, false]
+    e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
 
-    Cv = create_curl(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cv = create_curl(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
 
     # Test Cv.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Cv == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
     # Test reordering
-    Cv_reorder = create_curl(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=true)
+    Cv_reorder = create_curl(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=true)
     @test Cv_reorder == Cv[r,r]
 
     # Test apply_curl!.
@@ -180,13 +184,13 @@ end  # @testset "create_curl for V"
 
 @testset "curl of curl" begin
     # Construct Cu and Cv for a uniform grid and BLOCH boundaries.
-    ∆ldual = ones.(N.data)
-    ∆lprim = ones.(N.data)
-    isbloch =  SVector(true, false, false)
-    e⁻ⁱᵏᴸ = @SVector ones(3)
+    ∆ldual = ones.(N)
+    ∆lprim = ones.(N)
+    isbloch = [true, false, false]
+    e⁻ⁱᵏᴸ = ones(3)
 
-    Cu = create_curl([true,true,true], N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
-    Cv = create_curl([false,false,false], N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cu = create_curl([true,true,true], [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cv = create_curl([false,false,false], [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
 
     # Test symmetry of each block.
     for i = nXYZ
@@ -196,9 +200,9 @@ end  # @testset "create_curl for V"
     end
 
     # Construct Cv * Cu for all BLOCH.
-    isbloch =  @SVector fill(true, 3)
-    Cu = create_curl([true,true,true], N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
-    Cv = create_curl([false,false,false], N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    isbloch = fill(true, 3)
+    Cu = create_curl([true,true,true], [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cv = create_curl([false,false,false], [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
     A = Cv * Cu
 
     # Test curl of curl.
@@ -212,14 +216,14 @@ end  # @testset "curl of curl"
 
 @testset "curl of curl, mixed forward and backward" begin
     # Construct Cu and Cv for a uniform grid and BLOCH boundaries.
-    ∆ldual = ones.(N.data)
-    ∆lprim = ones.(N.data)
-    isbloch =  SVector(true, false, false)
-    e⁻ⁱᵏᴸ = @SVector ones(3)
+    ∆ldual = ones.(N)
+    ∆lprim = ones.(N)
+    isbloch = [true, false, false]
+    e⁻ⁱᵏᴸ = ones(3)
 
     isfwd = [true,false,true]
-    Cu = create_curl(isfwd, N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
-    Cv = create_curl(.!isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cu = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cv = create_curl(.!isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
 
     # Test symmetry of each block.
     for i = nXYZ
@@ -229,9 +233,9 @@ end  # @testset "curl of curl"
     end
 
     # Construct Cv * Cu for all BLOCH.
-    isbloch =  @SVector fill(true, 3)
-    Cu = create_curl(isfwd, N, ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
-    Cv = create_curl(.!isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    isbloch = fill(true, 3)
+    Cu = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
+    Cv = create_curl(.!isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
     A = Cv * Cu
 
     # Test curl of curl.
