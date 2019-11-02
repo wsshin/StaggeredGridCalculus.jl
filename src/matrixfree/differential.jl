@@ -3,7 +3,32 @@ export apply_∂!, apply_curl!
 # To-dos
 # - Test if using a separate index vector (which is an identity map) to iterate over a 3D
 # array makes iteration significantly slower.  This is to simulate the case of FEM.
+apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+            F::T,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
+            isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
+           ) where {T<:AbsArrNumber{4}} =
+    (∆l = ones.(size(F)[nXYZ]); apply_curl!(G, F, isfwd, ∆l, isbloch, e⁻ⁱᵏᴸ, α=α))
 
+apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+            F::T,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
+            isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
+           ) where {T<:AbsArrNumber{4}} =
+    # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
+    # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
+    # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
+    # of constructing it from k and L as exp.(-im .* k .* L), which is always complex even
+    # if k = 0.
+    #
+    # I should not cast ∆l to a vector of any specific type (e.g., Float, CFloat), either,
+    # because sometimes I would want to even create an integral curl operator.
+    (K = length(isfwd); apply_curl!(G, F, SVector{K}(isfwd), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
 
 function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::T,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
