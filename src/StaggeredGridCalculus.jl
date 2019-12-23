@@ -54,20 +54,10 @@ const AbsArrComplex = AbsArr{CFloat}
 # `where {T<:AbstractArray{<:Number,3}}`.
 const AbsArrNumber{N} = AbsArr{<:Number,N}
 
-const SVec1 = SVector{1}
-const SVec2 = SVector{2}
-const SVec3 = SVector{3}
-
-const SVec2Bool = SVec2{Bool}
-const SVec3Bool = SVec3{Bool}
-const SVec2Float = SVec2{Float}
-const SVec3Float = SVec3{Float}
-const SVec2Int = SVec2{Int}
-const SVec3Int = SVec3{Int}
-const SVec3Complex = SVec3{CFloat}
-const SVec3Number = SVec3{<:Number}
-
-const SMat3Complex = SMatrix{3,3,CFloat,9}
+const SBool{K} = SVector{K,Bool}
+const SFloat{K} = SVector{K,Float}
+const SInt{K} = SVector{K,Int}
+const SNumber{K} = SVector{K,<:Number}
 
 # The order of inclusion matters: if types or functions in file A are used in file B, file A
 # must be included first.

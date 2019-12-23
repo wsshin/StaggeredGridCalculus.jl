@@ -159,9 +159,9 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
 
     # Construct an instance of Ghosted.
     τind = (map(n->collect(1:n+1), N.data), map(n->collect(1:n+1), N.data))  # Tuple23{VecInt}
-    τindg_prim = .!isbloch.*N .+ 1  # SVec3Int: N+1 for symmetry; 1 for Bloch
-    τindg_dual = isbloch.*N .+ 1 .+ .!isbloch  # SVec3Int: 2 for symmetry; N+1 for Bloch
-    τindg = (τindg_prim, τindg_dual)  # Tuple2{SVec3Int}
+    τindg_prim = .!isbloch.*N .+ 1  # SInt{3}: N+1 for symmetry; 1 for Bloch
+    τindg_dual = isbloch.*N .+ 1 .+ .!isbloch  # SInt{3}: 2 for symmetry; N+1 for Bloch
+    τindg = (τindg_prim, τindg_dual)  # Tuple2{SInt{3}}
 
     τl = (deepcopy(lprim), deepcopy(ldual))
 

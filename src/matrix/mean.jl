@@ -76,12 +76,12 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             reorder::Bool=true) =  # true for more tightly banded matrix
     (K = length(N); create_mean(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, ∆l′, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), kdiag=kdiag, reorder=reorder))
 
-function create_mean(isfwd::SVec3Bool,  # isfwd[w] = true|false for forward|backward averaging
-                     N::SVec3Int,  # size of grid
+function create_mean(isfwd::SBool{3},  # isfwd[w] = true|false for forward|backward averaging
+                     N::SInt{3},  # size of grid
                      ∆l::Tuple3{AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
-                     isbloch::SVec3Bool=SVec3Bool(true,true,true),  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SVec3Number=SVec3Float(1,1,1);  # Bloch phase factor in x, y, z
+                     isbloch::SBool{3}=SBool{3}(true,true,true),  # boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{3}=SFloat{3}(1,1,1);  # Bloch phase factor in x, y, z
                      kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
                      reorder::Bool=true)  # true for more tightly banded matrix
     T = promote_type(eltype.(∆l)..., eltype.(∆l′)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous

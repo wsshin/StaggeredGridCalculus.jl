@@ -76,7 +76,7 @@ end
 # The primal grid plane locations with the ghost plane locations are passed, from which the
 # boundaries of the computational domain are retrieved.
 function get_pml_loc(lg_prim::AbsVecReal, Npml::Tuple2{Integer})  # convenience method for K = 1
-    lpml, Lpml = get_pml_loc((lg_prim,), SVec1.(Npml))
+    lpml, Lpml = get_pml_loc((lg_prim,), SVector{1}.(Npml))
 
     return (lpml[nN][1],lpml[nP][1]), (Lpml[nN][1],Lpml[nP][1])
 end
@@ -95,7 +95,7 @@ end
 # positive-end boundaries of the computational domain cannot be retrieved from them.
 # Therefore, the boundary information is passed separately.
 function get_pml_loc(lprim::AbsVecReal, bounds::Tuple2{Real}, Npml::Tuple2{Integer})  # convenience method for K = 1
-    lpml, Lpml = get_pml_loc((lprim,), SVec1.(bounds), SVec1.(Npml))
+    lpml, Lpml = get_pml_loc((lprim,), SVector{1}.(bounds), SVector{1}.(Npml))
 
     return (lpml[nN][1],lpml[nP][1]), (Lpml[nN][1],Lpml[nP][1])
 end
@@ -128,7 +128,7 @@ function calc_stretch_factor(ω::Number,  # angular frequency
 end
 
 function gen_stretch_factor(ω::Number, l::Tuple2{AbsVecReal}, lpml::Tuple2{Real}, Lpml::Tuple2{Real}, pml::PMLParam=PMLParam())
-    sfactor = gen_stretch_factor(ω, ((l[nPR],), (l[nDL],)), SVec1.(lpml), SVec1.(Lpml), pml)
+    sfactor = gen_stretch_factor(ω, ((l[nPR],), (l[nDL],)), SVector{1}.(lpml), SVector{1}.(Lpml), pml)
 
     return (sfactor[nPR][1], sfactor[nDL][1])
 end

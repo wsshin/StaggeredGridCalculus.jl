@@ -60,8 +60,8 @@ end  # @testset "Grid{1}, primal boundary"
     ∆ldual = ntuple(d->rand(N[d]), numel(Axis))
     isbloch = [false, false, true]
 
-    L = SVector(sum.(∆ldual))  # SVec3Float
-    l₀ = L ./ 2  # SVec3Float
+    L = SVector(sum.(∆ldual))  # SFloat{3}
+    l₀ = L ./ 2  # SFloat{3}
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
 
     g3 = Grid(lprim, isbloch)

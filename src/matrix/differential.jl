@@ -55,11 +55,11 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     (K = length(N); create_curl(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), reorder=reorder))
 
 
-function create_curl(isfwd::SVec3Bool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
-                     N::SVec3Int,  # size of grid
+function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+                     N::SInt{3},  # size of grid
                      ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
-                     isbloch::SVec3Bool,  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SVec3Number;  # Bloch phase factor in x, y, z
+                     isbloch::SBool{3},  # boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{3};  # Bloch phase factor in x, y, z
                      reorder::Bool=true)  # true for more tightly banded matrix
     T = promote_type(eltype.(∆l)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)

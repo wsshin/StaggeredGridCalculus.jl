@@ -32,10 +32,10 @@ apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
 
 function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::T,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
-                     isfwd::SVec3Bool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+                     isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
-                     isbloch::SVec3Bool,  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SVec3Number;  # Bloch phase factor in x, y, z
+                     isbloch::SBool{3}=SVector(true,true,true),  # boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{3}=SVector(1.0,1.0,1.0);  # Bloch phase factor in x, y, z
                      α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
                     ) where {T<:AbsArrNumber{4}}
     for nv = nXYZ  # Cartesian compotent of output field

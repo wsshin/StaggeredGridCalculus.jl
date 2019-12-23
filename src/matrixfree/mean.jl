@@ -25,11 +25,11 @@ apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
 # For the implementation, see the comments in matrix/mean.jl.
 function apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::T,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
-                     isfwd::SVec3Bool,  # isfwd[w] = true|false for forward|backward averaging
+                     isfwd::SBool{3},  # isfwd[w] = true|false for forward|backward averaging
                      ∆l::Tuple3{AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
-                     isbloch::SVec3Bool=SVec3Bool(true,true,true),  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SVec3Number=SVec3Float(1,1,1);  # Bloch phase factor in x, y, z
+                     isbloch::SBool{3}=SBool{3}(true,true,true),  # boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{3}=SFloat{3}(1,1,1);  # Bloch phase factor in x, y, z
                      kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
                      α::Number=1  # scale factor to multiply to result before adding it to G: G += α mean(F)
                     ) where {T<:AbsArrNumber{4}}
@@ -76,7 +76,8 @@ function apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
     if isfwd
         if nw == nX
             for k = 1:Nz, j = 1:Ny, i = 2:Nx-1
-                @inbounds Gv[i,j,k] += (α2 / ∆w′[i]) * (∆w[i+1]*Fu[i+1,j,k] + ∆w[i]*Fu[i,j,k])
+                β = α2 / ∆w′[i]
+                @inbounds Gv[i,j,k] += β * (∆w[i+1]*Fu[i+1,j,k] + ∆w[i]*Fu[i,j,k])
             end
 
             if isbloch
@@ -162,7 +163,8 @@ function apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
     else  # backward averaging
         if nw == nX
             for k = 1:Nz, j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
-                @inbounds Gv[i,j,k] += (α2 / ∆w′[i]) * (∆w[i]*Fu[i,j,k] + ∆w[i-1]*Fu[i-1,j,k])
+                β = α2 / ∆w′[i]
+                @inbounds Gv[i,j,k] += β * (∆w[i]*Fu[i,j,k] + ∆w[i-1]*Fu[i-1,j,k])
             end
 
             if isbloch

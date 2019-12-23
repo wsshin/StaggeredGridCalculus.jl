@@ -52,8 +52,8 @@ end  # @testset "get_pml_loc"
     M = sum(Npml) + N
     ∆ldual = ntuple(d->rand(M[d]), numel(Axis))
 
-    L = SVector(sum.(∆ldual))  # SVec3Float
-    l₀ = L ./ 2  # SVec3Float
+    L = SVector(sum.(∆ldual))  # SFloat{3}
+    l₀ = L ./ 2  # SFloat{3}
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
     ldual = StaggeredGridCalculus.movingavg.(lprim)
 
