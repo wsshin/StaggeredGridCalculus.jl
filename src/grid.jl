@@ -25,7 +25,7 @@
 #       simply use the forward difference (which is for primal fields) as ∂/∂w in
 #       constructing ∇_e.
 #
-# - The notion of U, V, and ξ, η is now not appropriate.  I used to use U to indicate the
+# - The notion of U, V, and ξ, η is now inappropriate.  I used to use U to indicate the
 # primal field, but there is no such thing like the primal field, because the E-field, for
 # example, does not have to be completely on the primal grid planes.  The notion makes sense
 # only in one Cartesian direction.
@@ -81,15 +81,19 @@ export Grid  # types
 export isproper_blochphase, lghost  # functions
 
 # Below, the transformation τ refers to the transformation of a ghost point back to the
-# non-ghost point that the value at the ghost point comes from.  For the Bloch boundary
-# condition, τ transforms the ghost point to the other side of the domain; for the symmetry
-# boundary condition, τ transforms the ghost point to its mirror symmetry position with
-# respect to the boundary.
+# non-ghost point that the material parameter at the ghost point comes from.  For the Bloch
+# boundary condition, τ transforms the ghost point to the other side of the domain; for the
+# symmetry boundary condition, τ transforms the ghost point to its mirror symmetry position
+# with respect to the boundary.
+#
+# All the fields of Ghosted include ghost points.  Therefore, their lengths are N.+1, rather
+# than N.  (Even thought σ seems to deal with reflection of ghost points, it doesn't; it has
+# N entries, so it is defined in Grid rather than in Ghosted.)
 struct Ghosted{K}
-    l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations with ghost points in k-direction
-    τl::Tuple2{NTuple{K,VecFloat}}  # τl[PRIM][k] = primal vertex locations with transformed ghost points in k-direction
-    τind::Tuple2{NTuple{K,VecInt}}  # τind[PRIM][k] = indices of Ghosted.l corresponding to transformed points by boundary conditions
-    ∆τ::Tuple2{NTuple{K,VecFloat}}  # ∆τ[PRIM][k] = amount of shift to get points shifted by Bloch boundary conditions (ignoring transformation by reflection by symmetry boundary)
+    l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction with ghost points
+    τl::Tuple2{NTuple{K,VecFloat}}  # τl[PRIM][k] = primal vertex locations in k-direction with transformed ghost points into domain; all τl are in domain
+    τind::Tuple2{NTuple{K,VecInt}}  # τind[PRIM][k] = indices of Ghosted.l corresponding to transformed points in to domain by boundary conditions
+    ∆τ::Tuple2{NTuple{K,VecFloat}}  # ∆τ[PRIM][k] = amount of "shift" to get points into domain by Bloch boundary conditions (ignoring transformation by reflection by symmetry boundary, which is handled by Grid.σ)
 end
 
 # Consider storing lvxlbounds, which is
@@ -109,7 +113,7 @@ struct Grid{K}
     l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction
     ∆l::Tuple2{NTuple{K,VecFloat}}  # ∆l[PRIM][k] = (∆l at primal vertices in w) == diff(l[DUAL][k] including ghost point)
     isbloch::SVector{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
-    σ::Tuple2{NTuple{K,VecBool}}  # false for non-ghost points exactly on symmetric boundary
+    σ::Tuple2{NTuple{K,VecBool}}  # false only for non-ghost points exactly on symmetric boundary (= first point in primal grid)
     bounds::Tuple2{SVector{K,Float}}  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
     ghosted::Ghosted{K}  # data related to ghost points
 end
@@ -143,13 +147,13 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
     end
 
     # Below, (∆lprim, ∆ldual) is not (diff(lprim), diff(ldual)), but swapped.
-    ∆lprim = diff.(ldual)  # length(∆lprim[k]) = N[k]
-    ∆ldual = diff.(lprim)  # length(∆ldual[k]) = N[k]
+    ∆lprim = diff.(ldual)  # NTuple{K,VecFloat}; length(∆lprim[k]) = N[k]
+    ∆ldual = diff.(lprim)  # NTuple{K,VecFloat}; length(∆ldual[k]) = N[k]
     ∆l = (∆lprim, ∆ldual)
 
     # Set N (number of grid cells along the axis).
     @assert length.(∆l[nPR]) == length.(∆l[nDL])  # lprim, ldual, ∆lprim, ∆ldual have the same length
-    N = SVector(length.(∆l[nPR]))
+    N = SVector(length.(∆l[nPR]))  # SInt{3}
 
     # Find the locations of the ghost points transformed into the domain by the boundary
     # conditions.  Note that regardless of the boundary condition, the primal ghost point is
@@ -157,20 +161,21 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
     # side (so it is ldual[1]).
     # Make sure these locations are where the objects assigned to the ghost points are found.
 
-    # Construct an instance of Ghosted.
+    # Construct an instance of Ghosted.  Note that lprim and ldual include ghost points now.
     τind = (map(n->collect(1:n+1), N.data), map(n->collect(1:n+1), N.data))  # Tuple23{VecInt}
-    τindg_prim = .!isbloch.*N .+ 1  # SInt{3}: N+1 for symmetry; 1 for Bloch
-    τindg_dual = isbloch.*N .+ 1 .+ .!isbloch  # SInt{3}: 2 for symmetry; N+1 for Bloch
-    τindg = (τindg_prim, τindg_dual)  # Tuple2{SInt{3}}
+    τindg_prim = .!isbloch.*N .+ 1  # SInt{K}: N+1 for symmetry; 1 for Bloch
+    τindg_dual = isbloch.*N .+ 1 .+ .!isbloch  # SInt{K}: 2 for symmetry; N+1 for Bloch
+    τindg = (τindg_prim, τindg_dual)  # Tuple2{SInt{K}}
 
     τl = (deepcopy(lprim), deepcopy(ldual))
 
-    ∆τ = (zeros.((N.+1).data), zeros.((N.+1).data))  # Tuple23{VecFloat}
+    ∆τ = (zeros.((N.+1).data), zeros.((N.+1).data))  # Tuple2{NTuple{K,VecFloat}}
 
     for k = 1:K
-        τind[nPR][k][end] = τindg[nPR][k]
-        τind[nDL][k][1] = τindg[nDL][k]
+        τind[nPR][k][end] = τindg[nPR][k]  # N+1 for symmetry; 1 for Bloch
+        τind[nDL][k][1] = τindg[nDL][k]  # 2 for symmetry; N+1 for Bloch
 
+        # Below, getindex() does not return an index, but the value at the given index.
         τl[nPR][k][end] = getindex(lprim[k], τind[nPR][k][end])  # lprim[k][τind[nPR][k][end]]
         τl[nDL][k][1] = getindex(ldual[k], τind[nDL][k][1])  # ldual[k][τind[nDL][k][1]]
 
@@ -182,8 +187,8 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
 
     # Construct σ, which is false on non-Bloch (= symmetry) boundaries.
     # Note that σ's are vectors of length-N and therefore do not include ghost points.
-    σprim = ones.(Bool, N.data)
-    σdual = ones.(Bool, N.data)
+    σprim = ones.(Bool, N.data)  # NTuple{K,VecBool}; all filled with 'True'
+    σdual = ones.(Bool, N.data)  # NTuple{K,VecBool}; all filled with 'True'
     for k = 1:K
         # Primal grid points are on the symmetry boundary if they are the first (non-ghost)
         # points and the symmetry boundary is used.
