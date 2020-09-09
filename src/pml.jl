@@ -142,7 +142,7 @@ function gen_stretch_factor(ω::Number,  # angular frequency
                             lpml::Tuple2{SVector{K,<:Real}},  # locations of PML interfaces
                             Lpml::Tuple2{SVector{K,<:Real}},  # thicknesses of PML
                             pml::PMLParam=PMLParam()  # PML parameters
-                           ) where {K}
+                            ) where {K}
     N = length.(l[nPR])  # (Nx, Ny, Nz)
     sfactor = (ones.(CFloat,N), ones.(CFloat,N))
     for k = 1:K

@@ -7,7 +7,7 @@ StaggeredGridCalculus# The following without the qualifier StaggeredGridCalculus
 lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
        L::SVector{K,Float64},  # domain size
        isbloch::SVector{K,Bool}  # boundary condition
-      ) where {K} =
+       ) where {K} =
     (map((lprimₖ,Lₖ) -> lprimₖ[1]+Lₖ, SVector(l[nPR]), L),  # lg[PRIM]
      map((isblochₖ,lprimₖ,ldualₖ,Lₖ) -> (isblochₖ ? ldualₖ[end]-Lₖ : 2lprimₖ[1]-ldualₖ[1]), isbloch, SVector(l[nPR]), SVector(l[nDL]), L))  # lg[DUAL]
 

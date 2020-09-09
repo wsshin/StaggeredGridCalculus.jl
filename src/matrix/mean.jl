@@ -149,7 +149,7 @@ function create_minfo(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for a
                       ∆w′::AbsVecNumber,  # line segments to divide by; vector of length N[nw]
                       isbloch::Bool,  # boundary condition in w-direction
                       e⁻ⁱᵏᴸ::Number  # Bloch phase factor
-                     ) where {K}
+                      ) where {K}
     M = prod(N)
     Nw = N[nw]
     ŵ = SVector(ntuple(identity,Val(K))) .== nw  # [0,true,0] for w == y

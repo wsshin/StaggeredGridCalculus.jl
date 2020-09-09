@@ -63,7 +63,7 @@ alter(ins::GridType) = ins==PRIM ? DUAL : PRIM
 # If w is not one of the valid axes, return the voxel corner grid types gt₀.
 gt_w(nw::Int,  # component index of field
      gt₀::SVector{K,GridType}  # grid type of corners of voxel whose edges are field lines
-    ) where {K} =
+     ) where {K} =
     broadcast((a,w,g)->(a==w ? alter(g) : g), SVector(ntuple(identity, Val(K))), nw, gt₀)  # no change from gt₀ for nw ∉ {1,...,K}
 
 

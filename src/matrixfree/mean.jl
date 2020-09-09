@@ -7,7 +7,7 @@ apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
-           ) where {T<:AbsArrNumber{4}} =
+            ) where {T<:AbsArrNumber{4}} =
     (N = size(F)[nXYZ]; ∆l = ones.((N...,)); apply_mean!(G, F, isfwd, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, kdiag=kdiag, α=α))
 
 apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
@@ -19,7 +19,7 @@ apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α mean(F)
-           ) where {T<:AbsArrNumber{4}} =
+            ) where {T<:AbsArrNumber{4}} =
     (K = length(isfwd); apply_mean!(G, F, SVector{K}(isfwd), ∆l, ∆l′, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), kdiag=kdiag, α=α))
 
 # For the implementation, see the comments in matrix/mean.jl.
@@ -32,7 +32,7 @@ function apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
                      e⁻ⁱᵏᴸ::SNumber{3}=SFloat{3}(1,1,1);  # Bloch phase factor in x, y, z
                      kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
                      α::Number=1  # scale factor to multiply to result before adding it to G: G += α mean(F)
-                    ) where {T<:AbsArrNumber{4}}
+                     ) where {T<:AbsArrNumber{4}}
     indblk = 0  # index of matrix block
     for nv = nXYZ  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field
@@ -53,7 +53,7 @@ apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
          α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
-        ) where {T<:AbsArrNumber{3}} =
+         ) where {T<:AbsArrNumber{3}} =
     (N = size(Fu); ∆w_vec = fill(∆w, N[nw]); apply_m!(Gv, Fu, nw, isfwd, ∆w_vec, ∆w_vec, isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w
 
 function apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
@@ -65,7 +65,7 @@ function apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
                   isbloch::Bool=true,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
                   α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
-                 ) where {T<:AbsArrNumber{3}}
+                  ) where {T<:AbsArrNumber{3}}
     @assert(size(Gv)==size(Fu))
     @assert(size(Fu,nw)==length(∆w))
 

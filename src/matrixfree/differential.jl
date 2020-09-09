@@ -9,7 +9,7 @@ apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
-           ) where {T<:AbsArrNumber{4}} =
+            ) where {T<:AbsArrNumber{4}} =
     (∆l = ones.(size(F)[nXYZ]); apply_curl!(G, F, isfwd, ∆l, isbloch, e⁻ⁱᵏᴸ, α=α))
 
 apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
@@ -19,7 +19,7 @@ apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
-           ) where {T<:AbsArrNumber{4}} =
+            ) where {T<:AbsArrNumber{4}} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -37,7 +37,7 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
                      isbloch::SBool{3}=SVector(true,true,true),  # boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SNumber{3}=SVector(1.0,1.0,1.0);  # Bloch phase factor in x, y, z
                      α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
-                    ) where {T<:AbsArrNumber{4}}
+                     ) where {T<:AbsArrNumber{4}}
     for nv = nXYZ  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field
         parity = 1
@@ -60,7 +60,7 @@ apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
          α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-        ) where {T<:AbsArrNumber{3}} =
+         ) where {T<:AbsArrNumber{3}} =
     (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w
 
 # The field arrays Fu (and Gv) represents a 3D array of a specific Cartesian component of the
@@ -75,7 +75,7 @@ function apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
                   isbloch::Bool=true,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
                   α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-                 ) where {T<:AbsArrNumber{3}}
+                  ) where {T<:AbsArrNumber{3}}
     @assert(size(Gv)==size(Fu))
     @assert(size(Fu,nw)==length(∆w))
 
