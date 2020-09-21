@@ -31,40 +31,12 @@ export create_m, create_mean
 # (-1) × backward averaging operators are not the transpose of each other). See my notes
 # entitled [Beginning of the part added on Aug/14/2018] in RN - Subpixel Smoothing.nb.
 
-# The role of the `kdiag` argument
-# This argument is used to interpolate Cartesian components of a vector field at locations
-# where the components are not defined, e.g., to interpolate Ex at Ez-locations.  For that,
-# the first interpolation needs to be applied to these Cartesian components at the grid cell
-# corners (kdiag = 0).  This will leave Ex at Ex-indices in the output column vector.  (It
-# is easier to consider the averaging operators in the block-matrix form (i.e., reorder=false).)
-# Then, the second interpolation needs to be applied to the corner Ex at the Ez-locations.
-# This requires not only averaging these corner Ex along the z-direction, but also putting
-# the Ex-components at the Ez-indices.  Similarly, this second interpolation needs to put
-# Ey-components at the Ex-indices, and Ez-components at the Ey-indices.  So, the second
-# interpolation matrix should look like
-# ⎡   Mx   ⎤
-# ⎢      My⎥
-# ⎣Mz      ⎦
-# where Mw is the operator averaging along the w-direction.  So, the second interpolation
-# matrix is generated with kdiag = +1.  Similarly, the matrix generated with kdiag = -1 is
-# ⎡      Mx⎤
-# ⎢My      ⎥
-# ⎣   Mz   ⎦
-# and this puts the Ex-components at the Ey-indices, Ey-components at the Ez-indices, and
-# Ez-components at the Ex-indices.
-#
-# Note that both kdiag = ±1 shift the diagonal blocks along the row directions.  This is
-# different from diagm(kdiag => v) or MATLAB's diag(v, kdiag), which shifts v along the
-# column direction.
-
-# Creates the field-averaging operator for all three Cartegian components.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
             isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
             reorder::Bool=true) =  # true for more tightly banded matrix
-    (∆l = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, kdiag=kdiag, reorder=reorder))
+    (∆l = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, reorder=reorder))
 
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
@@ -72,17 +44,22 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
             isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
             reorder::Bool=true) =  # true for more tightly banded matrix
-    (K = length(N); create_mean(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, ∆l′, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), kdiag=kdiag, reorder=reorder))
+    (K = length(N); create_mean(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, ∆l′, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), reorder=reorder))
 
+# Creates the field-averaging operator for all three Cartegian components.
+#
+# The function used to support setting nonzero matrix blocks at off-diagonal blocks, but the
+# need for doing it is absorbed in MaxwellFDM.jl/src/param.jl/create_param_matrix() by
+# putting the material parameters at off-diagonal blocks.  Therefore, the field-averaging
+# operators always the diagonal blocks as nonzero blocks, as they perform averaging on the
+# already generated input and output fields.  See RN - Subpixel Smoothing > [Update (May/13/2018)].
 function create_mean(isfwd::SBool{3},  # isfwd[w] = true|false for forward|backward averaging
                      N::SInt{3},  # size of grid
                      ∆l::Tuple3{AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
                      isbloch::SBool{3}=SBool{3}(true,true,true),  # boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SNumber{3}=SFloat{3}(1,1,1);  # Bloch phase factor in x, y, z
-                     kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
                      reorder::Bool=true)  # true for more tightly banded matrix
     T = promote_type(eltype.(∆l)..., eltype.(∆l′)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)
@@ -92,11 +69,11 @@ function create_mean(isfwd::SBool{3},  # isfwd[w] = true|false for forward|backw
     Vtot = Vector{T}(undef, 6M)
 
     indblk = 0  # index of matrix block
-    for nv = nXYZ  # Cartesian compotent of output field
+    for nv = nXYZ  # Cartesian compotents of output field
         I, J, V = create_minfo(nv, isfwd[nv], N, ∆l[nv], ∆l′[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])  # averaging along nv-direction
 
         istr, ioff = reorder ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
-        nw = mod1(nv+kdiag, 3)  # Cartesian component of input field
+        nw = nv  # Cartesian component of input field; same as output field's, because we set diagonal blocks
         jstr, joff = reorder ? (3, nw-3) : (1, M*(nw-1))  # (column stride, column offset)
 
         @. I = istr * I + ioff
