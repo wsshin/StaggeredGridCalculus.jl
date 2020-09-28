@@ -25,8 +25,6 @@ end
         ∆l = (rand(Nx), rand(Ny), rand(Nz))
         ∆l′ = (rand(Nx), rand(Ny), rand(Nz))
         Mdiag = spzeros(3M,3M)
-        Msup = spzeros(3M,3M)
-        Msub = spzeros(3M,3M)
 
         for nw = nXYZ
             sub_on = Vector{Int}(undef, 3)
@@ -98,23 +96,13 @@ end
             # Construct Mdiag, Msup, Msub.
             Is = 1+(nw-1)*M:nw*M
             Mdiag[Is,Is] .= Mws
-
-            Js = 1+mod(nw,3)*M:mod1(nw+1,3)*M
-            Msup[Is,Js] .= Mws
-
-            Js = 1+mod(nw-2,3)*M:mod1(nw-1,3)*M
-            Msub[Is,Js] .= Mws
         end  # for nw
         isfwd3 = [isfwd,isfwd,isfwd]
         isbloch3 = [isbloch,isbloch,isbloch]
         @test create_mean(isfwd3, N, ∆l, ∆l′, isbloch3, reorder=false) == Mdiag
-        @test create_mean(isfwd3, N, ∆l, ∆l′, isbloch3, kdiag=1, reorder=false) == Msup
-        @test create_mean(isfwd3, N, ∆l, ∆l′, isbloch3, kdiag=-1, reorder=false) == Msub
 
         # Test apply_mean!.
         mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwd3, ∆l, ∆l′, isbloch3); @test G[:] ≈ g
-        mul!(g, Msup, f); G .= 0; apply_mean!(G, F, isfwd3, ∆l, ∆l′, isbloch3, kdiag=1); @test G[:] ≈ g
-        mul!(g, Msub, f); G .= 0; apply_mean!(G, F, isfwd3, ∆l, ∆l′, isbloch3, kdiag=-1); @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_m"
 

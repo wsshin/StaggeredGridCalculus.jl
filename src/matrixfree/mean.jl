@@ -5,10 +5,9 @@ apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
-            kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
             ) where {T<:AbsArrNumber{4}} =
-    (N = size(F)[nXYZ]; ∆l = ones.((N...,)); apply_mean!(G, F, isfwd, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, kdiag=kdiag, α=α))
+    (N = size(F)[nXYZ]; ∆l = ones.((N...,)); apply_mean!(G, F, isfwd, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, α=α))
 
 apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::T,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
@@ -17,10 +16,9 @@ apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
-            kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α mean(F)
             ) where {T<:AbsArrNumber{4}} =
-    (K = length(isfwd); apply_mean!(G, F, SVector{K}(isfwd), ∆l, ∆l′, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), kdiag=kdiag, α=α))
+    (K = length(isfwd); apply_mean!(G, F, SVector{K}(isfwd), ∆l, ∆l′, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
 
 # For the implementation, see the comments in matrix/mean.jl.
 function apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
@@ -30,14 +28,13 @@ function apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
                      ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
                      isbloch::SBool{3}=SBool{3}(true,true,true),  # boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SNumber{3}=SFloat{3}(1,1,1);  # Bloch phase factor in x, y, z
-                     kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
                      α::Number=1  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      ) where {T<:AbsArrNumber{4}}
     indblk = 0  # index of matrix block
     for nv = nXYZ  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field
 
-        nu = mod1(nv+kdiag, 3)  # Cartesian component of input field
+        nu = nv  # Cartesian component of input field
         Fu = @view F[:,:,:,nu]  # u-component of input field
 
         apply_m!(Gv, Fu, nv, isfwd[nv], ∆l[nv], ∆l′[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv], α=α)

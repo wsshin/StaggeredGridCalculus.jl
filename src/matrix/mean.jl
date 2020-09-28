@@ -33,19 +33,20 @@ export create_m, create_mean
 
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
-            isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
+            isbloch::AbsVecBool=fill(true,length(N)),  # for length(N) = 3, boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for length(N) = 3, Bloch phase factor in x, y, z
             reorder::Bool=true) =  # true for more tightly banded matrix
     (∆l = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, reorder=reorder))
 
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
-            ∆l::Tuple3{AbsVecNumber},  # line segments to multiply with; vectors of length N
-            ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
-            isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            reorder::Bool=true) =  # true for more tightly banded matrix
-    (K = length(N); create_mean(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, ∆l′, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), reorder=reorder))
+            ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
+            ∆l′::NTuple{K,AbsVecNumber},  # line segments to divide by; vectors of length N
+            isbloch::AbsVecBool=fill(true,length(N)),  # for K = 3, boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for K = 3, Bloch phase factor in x, y, z
+            reorder::Bool=true  # true for more tightly banded matrix
+            ) where {K} =
+    (create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), reorder=reorder))
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -54,27 +55,29 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
 # putting the material parameters at off-diagonal blocks.  Therefore, the field-averaging
 # operators always the diagonal blocks as nonzero blocks, as they perform averaging on the
 # already generated input and output fields.  See RN - Subpixel Smoothing > [Update (May/13/2018)].
-function create_mean(isfwd::SBool{3},  # isfwd[w] = true|false for forward|backward averaging
-                     N::SInt{3},  # size of grid
-                     ∆l::Tuple3{AbsVecNumber},  # line segments to multiply with; vectors of length N
-                     ∆l′::Tuple3{AbsVecNumber},  # line segments to divide by; vectors of length N
-                     isbloch::SBool{3}=SBool{3}(true,true,true),  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SNumber{3}=SFloat{3}(1,1,1);  # Bloch phase factor in x, y, z
-                     reorder::Bool=true)  # true for more tightly banded matrix
+function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backward averaging
+                     N::SInt{K},  # size of grid
+                     ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
+                     ∆l′::NTuple{K,AbsVecNumber},  # line segments to divide by; vectors of length N
+                     isbloch::SBool{K}=SVector(ntuple(k->true,K)),  # for K = 3, boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{K}=SVector(ntuple(k->1.0,K));  # for K = 3, Bloch phase factor in x, y, z
+                     reorder::Bool=true  # true for more tightly banded matrix
+                     ) where {K}
     T = promote_type(eltype.(∆l)..., eltype.(∆l′)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)
+    KM = K * M
 
-    Itot = VecInt(undef, 6M)
-    Jtot = VecInt(undef, 6M)
-    Vtot = Vector{T}(undef, 6M)
+    Itot = VecInt(undef, 2KM)
+    Jtot = VecInt(undef, 2KM)
+    Vtot = Vector{T}(undef, 2KM)
 
     indblk = 0  # index of matrix block
-    for nv = nXYZ  # Cartesian compotents of output field
+    for nv = 1:K  # Cartesian compotents of output field
         I, J, V = create_minfo(nv, isfwd[nv], N, ∆l[nv], ∆l′[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])  # averaging along nv-direction
 
-        istr, ioff = reorder ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
+        istr, ioff = reorder ? (K, nv-K) : (1, M*(nv-1))  # (row stride, row offset)
         nw = nv  # Cartesian component of input field; same as output field's, because we set diagonal blocks
-        jstr, joff = reorder ? (3, nw-3) : (1, M*(nw-1))  # (column stride, column offset)
+        jstr, joff = reorder ? (K, nw-K) : (1, M*(nw-1))  # (column stride, column offset)
 
         @. I = istr * I + ioff
         @. J = jstr * J + joff
@@ -88,7 +91,7 @@ function create_mean(isfwd::SBool{3},  # isfwd[w] = true|false for forward|backw
         indblk += 1
     end
 
-    return dropzeros!(sparse(Itot, Jtot, Vtot, 3M, 3M))  # 3M×3M matrix with 2 entries per row (so 6M entries for I, J, V)
+    return dropzeros!(sparse(Itot, Jtot, Vtot, KM, KM))  # KM×KM matrix with 2 entries per row (so 2KM entries for I, J, V)
 end
 
 
@@ -102,26 +105,26 @@ end
 # the fields along the direction normal to the fields, the field-averaging operators average
 # fields along the field direction.  As a result, backward (rather than forward) averaging
 # is for primal fields.
-create_m(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for averaging along horizontal|vertical
+create_m(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          isfwd::Bool,  # true|false for forward|backward averaging
          N::AbsVecInteger,  # size of grid
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
-    (K = length(N); ∆w = ones(N[nw]); create_m(nw, isfwd, SVector{K,Int}(N), ∆w, ∆w, isbloch, e⁻ⁱᵏᴸ))
+    (K = length(N); ∆w = ones(N[nw]); create_m(nw, isfwd, SInt{K}(N), ∆w, ∆w, isbloch, e⁻ⁱᵏᴸ))
 
-create_m(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for averaging along horizontal|vertical
+create_m(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          isfwd::Bool,  # true|false for forward|backward averaging
          N::AbsVecInteger,  # size of grid
          ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
          ∆w′::AbsVecNumber,  # line segments to divide by; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
-    (K = length(N); M = prod(N); dropzeros!(sparse(create_minfo(nw, isfwd, SVector{K,Int}(N), ∆w, ∆w′, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
+    (K = length(N); M = prod(N); dropzeros!(sparse(create_minfo(nw, isfwd, SInt{K}(N), ∆w, ∆w′, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
 
 
-function create_minfo(nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for averaging along horizontal|vertical
+function create_minfo(nw::Integer,  # for K = 3, 1|2|3 for averaging along x|y|z
                       isfwd::Bool,  # true|false for forward|backward averaging
-                      N::SVector{K,Int},  # size of grid
+                      N::SInt{K},  # size of grid
                       ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
                       ∆w′::AbsVecNumber,  # line segments to divide by; vector of length N[nw]
                       isbloch::Bool,  # boundary condition in w-direction
