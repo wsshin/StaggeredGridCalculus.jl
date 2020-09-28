@@ -107,6 +107,8 @@ end
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 3D"
 
+# Need to generalize apply_mean!() for an arbitrary dimension K and uncomment lines around
+# apply_mean!() below.
 @testset "create_mean and apply_mean! 2D" begin
     N = SVector(8,9)
     M = prod(N)
