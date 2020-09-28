@@ -57,7 +57,7 @@ end  # @testset "Grid{1}, primal boundary"
 
 @testset "Grid{3}" begin
     N = [29, 23, 6]
-    ∆ldual = ntuple(d->rand(N[d]), numel(Axis))
+    ∆ldual = ntuple(d->rand(N[d]), length(N))
     isbloch = [false, false, true]
 
     L = SVector(sum.(∆ldual))  # SFloat{3}

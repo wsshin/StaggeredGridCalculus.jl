@@ -50,7 +50,7 @@ end  # @testset "get_pml_loc"
     Npml = ([10,5,1], [9,6,4])
     N = [10, 12, 1]
     M = sum(Npml) + N
-    ∆ldual = ntuple(d->rand(M[d]), numel(Axis))
+    ∆ldual = ntuple(d->rand(M[d]), length(N))
 
     L = SVector(sum.(∆ldual))  # SFloat{3}
     l₀ = L ./ 2  # SFloat{3}
