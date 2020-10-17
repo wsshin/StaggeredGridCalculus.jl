@@ -13,6 +13,7 @@ include("grid.jl")
 # include("interval.jl")
 # include("gridgen.jl")
 include("differential.jl")
+include("curl.jl")
 include("mean.jl")
 include("pml.jl")
 
