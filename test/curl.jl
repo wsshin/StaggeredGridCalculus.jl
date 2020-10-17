@@ -54,9 +54,9 @@ g = zeros(Complex{Float64}, 3M)
 
     # print("matrix: "); @btime mul!($g, $Cu, $f)
     # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆ldual, $isbloch, $e⁻ⁱᵏᴸ)
-end  # @testset "create_curl for U"
+end  # @testset "create_curl and apply_curl! for primal field U"
 
-@testset "create_curl for dual field V" begin
+@testset "create_curl and apply_curl! for dual field V" begin
     # Construct Cv for a uniform grid and BLOCH boundaries.
     isfwd = [false, false, false]  # V is differentiated backward
     Cv = create_curl(isfwd, [N...], reorder=false)
@@ -98,7 +98,7 @@ end  # @testset "create_curl for U"
     G .= 0
     apply_curl!(G, F, isfwd, ∆lprim, isbloch, e⁻ⁱᵏᴸ)
     @test G[:] ≈ g
-end  # @testset "create_curl for V"
+end  # @testset "create_curl and apply_curl! for dual field V"
 
 @testset "curl of curl" begin
     # Construct Cu and Cv for a uniform grid and BLOCH boundaries.
@@ -163,6 +163,6 @@ end  # @testset "curl of curl"
 
     B = A - 4I
     @test all(abs.(B[B.≠0]).==1)  # all nonzero off-diagonal entries are ±1
-end  # @testset "curl of curl"
+end  # @testset "curl of curl, mixed forward and backward"
 
 end  # @testset "curl"
