@@ -312,3 +312,4 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
 end
 
 include("curl.jl")
+include("divergence.jl")
