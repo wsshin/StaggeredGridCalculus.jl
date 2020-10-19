@@ -10,7 +10,7 @@ G = similar(F)
 g = zeros(Complex{Float64}, 3M)
 
 @testset "create_divg and apply_divg! for primal field U" begin
-    # Construct Du for a uniform grid and BLOCH boundaries.
+    # Construct Du for a uniform grid and Bloch boundaries.
     isfwd = [false, false, false]  # U is differentiated backward
     Du = create_divg(isfwd, [N...], reorder=false)
 

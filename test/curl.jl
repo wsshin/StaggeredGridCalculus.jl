@@ -10,7 +10,7 @@ G = similar(F)
 g = zeros(Complex{Float64}, 3M)
 
 @testset "create_curl and apply_curl! for primal field U" begin
-    # Construct Cu for a uniform grid and BLOCH boundaries.
+    # Construct Cu for a uniform grid and Bloch boundaries.
     isfwd = [true, true, true]  # U is differentiated forward
     Cu = create_curl(isfwd, [N...], reorder=false)
 
@@ -57,7 +57,7 @@ g = zeros(Complex{Float64}, 3M)
 end  # @testset "create_curl and apply_curl! for primal field U"
 
 @testset "create_curl and apply_curl! for dual field V" begin
-    # Construct Cv for a uniform grid and BLOCH boundaries.
+    # Construct Cv for a uniform grid and Bloch boundaries.
     isfwd = [false, false, false]  # V is differentiated backward
     Cv = create_curl(isfwd, [N...], reorder=false)
 
@@ -101,7 +101,7 @@ end  # @testset "create_curl and apply_curl! for primal field U"
 end  # @testset "create_curl and apply_curl! for dual field V"
 
 @testset "curl of curl" begin
-    # Construct Cu and Cv for a uniform grid and BLOCH boundaries.
+    # Construct Cu and Cv for a uniform grid and Bloch boundaries.
     ∆ldual = ones.(N)
     ∆lprim = ones.(N)
     isbloch = [true, false, false]
@@ -117,7 +117,7 @@ end  # @testset "create_curl and apply_curl! for dual field V"
         end
     end
 
-    # Construct Cv * Cu for all BLOCH.
+    # Construct Cv * Cu.
     isbloch = fill(true, 3)
     Cu = create_curl([true,true,true], [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
     Cv = create_curl([false,false,false], [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
@@ -133,7 +133,7 @@ end  # @testset "create_curl and apply_curl! for dual field V"
 end  # @testset "curl of curl"
 
 @testset "curl of curl, mixed forward and backward" begin
-    # Construct Cu and Cv for a uniform grid and BLOCH boundaries.
+    # Construct Cu and Cv for a uniform grid and Bloch boundaries.
     ∆ldual = ones.(N)
     ∆lprim = ones.(N)
     isbloch = [true, false, false]
@@ -150,7 +150,7 @@ end  # @testset "curl of curl"
         end
     end
 
-    # Construct Cv * Cu for all BLOCH.
+    # Construct Cv * Cu.
     isbloch = fill(true, 3)
     Cu = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, reorder=false)
     Cv = create_curl(.!isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, reorder=false)
