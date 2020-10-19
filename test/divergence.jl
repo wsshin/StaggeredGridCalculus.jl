@@ -46,15 +46,8 @@ g = zeros(Complex{Float64}, 3M)
     Du_reorder = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, reorder=true)
     @test Du_reorder == Du[:,r]
 
-    # # Test apply_curl!.
-    # f = F[:]
-    # mul!(g, Cu, f)
-    # G .= 0
-    # apply_curl!(G, F, isfwd, ∆lprim, isbloch, e⁻ⁱᵏᴸ)
-    # @test G[:] ≈ g
-    #
-    # # print("matrix: "); @btime mul!($g, $Cu, $f)
-    # # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆lprim, $isbloch, $e⁻ⁱᵏᴸ)
+    # Test apply_divg!.
+    # # to be filled
 end  # @testset "create_divg and apply_divg! for primal field U"
 
 # @testset "create_divg and apply_divg! for dual field V" begin
@@ -75,6 +68,6 @@ end  # @testset "create_divg and apply_divg! for primal field U"
     # Test Divergence of curl.
     @test size(A) == (M,3M)
     @test all(A.==0)
-end  # @testset "curl of curl"
+end  # @testset "divergence of curl"
 
 end  # @testset "divergence"
