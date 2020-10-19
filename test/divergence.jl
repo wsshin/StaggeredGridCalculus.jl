@@ -58,7 +58,7 @@ end  # @testset "create_divg and apply_divg! for primal field U"
 
 # @testset "create_divg and apply_divg! for dual field V" begin
 #     # To be filled
-# end  # @testset "create_divergence and apply_divergence! for dual field V"
+# end  # @testset "create_divg and apply_divg! for dual field V"
 
 @testset "divergence of curl" begin
     # Construct Cu and Dv for a uniform grid and periodic boundaries.
