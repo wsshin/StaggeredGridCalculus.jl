@@ -15,6 +15,7 @@ g = zeros(Complex{Float64}, 3M)
     Du = create_divg(isfwd, [N...], reorder=false)
 
     # Test the overall coefficients.
+    @test size(Du) == (M,3M)
     @test all(any(Du.≠0, dims=1))  # no zero columns
     @test all(any(Du.≠0, dims=2))  # no zero rows
     @test all(sum(Du, dims=1) .== 0)  # all column sums are zero, because each input field to Du is used twice, once multiplied with +1 and once with -1

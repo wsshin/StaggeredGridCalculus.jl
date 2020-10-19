@@ -15,6 +15,7 @@ g = zeros(Complex{Float64}, 3M)
     Cu = create_curl(isfwd, [N...], reorder=false)
 
     # Test the overall coefficients.
+    @test size(Cu) == (3M,3M)
     @test all(any(Cu.≠0, dims=1))  # no zero columns
     @test all(any(Cu.≠0, dims=2))  # no zero rows
     @test all(sum(Cu, dims=2) .== 0)  # all row sums are zero, because Cu * ones(M) = 0
@@ -62,6 +63,7 @@ end  # @testset "create_curl and apply_curl! for primal field U"
     Cv = create_curl(isfwd, [N...], reorder=false)
 
     # Test the overall coefficients.
+    @test size(Cv) == (3M,3M)
     @test all(any(Cv.≠0, dims=1))  # no zero columns
     @test all(any(Cv.≠0, dims=2))  # no zero rows
     @test all(sum(Cv, dims=2) .== 0)  # all row sums are zero, because Cv * ones(sum(Min)) = 0
