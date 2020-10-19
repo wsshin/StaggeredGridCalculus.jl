@@ -1,6 +1,5 @@
 export create_curl
 
-# Discrete curl, whose nonzero coefficients are ±1's
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l::Tuple3{AbsVecNumber}=ones.((N...,)),  # ∆l[w]: distances between grid planes in x-direction
@@ -17,7 +16,6 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     # because sometimes I would want to even create an integral curl operator.
     (K = length(N); create_curl(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), reorder=reorder))
 
-# General curl
 function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{3},  # size of grid
                      ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
