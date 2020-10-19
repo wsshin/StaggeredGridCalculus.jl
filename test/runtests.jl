@@ -15,6 +15,7 @@ include("grid.jl")
 include("differential.jl")
 include("curl.jl")
 include("divergence.jl")
+include("gradient.jl")
 include("mean.jl")
 include("pml.jl")
 
