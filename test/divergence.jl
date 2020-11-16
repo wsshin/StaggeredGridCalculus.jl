@@ -47,10 +47,10 @@ g = zeros(Complex{Float64}, 3M)
     @test Du_compfirst == Du[:,r]
 
     # Test permutation.
-    Du_permute = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, wpermute=[2,1,3], order_compfirst=false)
+    Du_permute = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1,3], scale∂=scale∂, order_compfirst=false)
     @test Du_permute == [scale∂[1].*∂y scale∂[2].*∂x scale∂[3].*∂z]
 
-    Du_permute_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, wpermute=[2,1,3], order_compfirst=true)
+    Du_permute_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1,3], scale∂=scale∂, order_compfirst=true)
     @test Du_permute_compfirst == Du_permute[:,r]
 
     # Test apply_divg!.

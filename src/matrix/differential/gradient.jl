@@ -5,7 +5,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
             ∆l::Tuple{Vararg{AbsVecNumber}}=ones.((N...,)),  # ∆l[w]: distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            vpermute::AbsVecInteger=1:length(N),  # permuted order of output Cartesian components
+            permute∂::AbsVecInteger=1:length(N),  # permuted order of partial derivatives
             scale∂::AbsVecNumber=ones(length(N)), # scale factors to multiply to partial derivatives (after permutation)
             order_compfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
@@ -17,14 +17,14 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     # I should not cast ∆l to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
     (K = length(N); create_grad(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ),
-                                vpermute=SVector{K}(vpermute), scale∂=SVector{K}(scale∂), order_compfirst=order_compfirst))
+                                permute∂=SVector{K}(permute∂), scale∂=SVector{K}(scale∂), order_compfirst=order_compfirst))
 
 function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{K},  # size of grid
                      ∆l::NTuple{K,AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     vpermute::SInt{K}=SVector(ntuple(identity, Val(K))),  # permuted order of output Cartesian components
+                     permute∂::SInt{K}=SVector(ntuple(identity, Val(K))),  # permuted order of partial derivatives
                      scale∂::SNumber{K}=SVector(ntuple(k->1, Val(K))), # scale factors to multiply to partial derivatives
                      order_compfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
@@ -39,7 +39,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
     Vtot = Vector{T}(undef, 2KM)
 
     for nblk = 1:K  # Cartesian compotent of output field
-        nv = vpermute[nblk]  # Cartesian compotent of output field
+        nv = permute∂[nblk]  # Cartesian compotent of output field
         I, J, V = create_∂info(nv, isfwd[nv], N, ∆l[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])
 
         istr, ioff = order_compfirst ? (3, nblk-3) : (1, M*(nblk-1))  # (row stride, row offset)
