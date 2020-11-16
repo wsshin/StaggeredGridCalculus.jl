@@ -32,25 +32,25 @@ g = zeros(Complex{Float64}, 3M)
     ∆lprim = rand.(N)
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
-    parity = [1, -1, -1]
+    scale∂ = [1, -1, -1]
 
-    uG = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=false)
+    uG = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=false)
 
     # Test Cu.
     ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    @test uG == [parity[1].*∂x; parity[2].*∂y; parity[3].*∂z]
+    @test uG == [scale∂[1].*∂x; scale∂[2].*∂y; scale∂[3].*∂z]
 
     # Test Cartesian-component-first ordering.
-    uG_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=true)
+    uG_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=true)
     @test uG_compfirst == uG[r,:]
 
     # Test permutation.
-    uG_permute = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], order_compfirst=false)
-    @test uG_permute == [parity[1].*∂y; parity[2].*∂x; parity[3].*∂z]
+    uG_permute = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, vpermute=[2,1,3], order_compfirst=false)
+    @test uG_permute == [scale∂[1].*∂y; scale∂[2].*∂x; scale∂[3].*∂z]
 
-    uG_permute_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], order_compfirst=true)
+    uG_permute_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, vpermute=[2,1,3], order_compfirst=true)
     @test uG_permute_compfirst == uG_permute[r,:]
 
     # Test apply_grad!.

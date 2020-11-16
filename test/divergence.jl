@@ -32,25 +32,25 @@ g = zeros(Complex{Float64}, 3M)
     ∆lprim = rand.(N)
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
-    parity = [1, -1, -1]
+    scale∂ = [1, -1, -1]
 
-    Du = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=false)
+    Du = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=false)
 
     # Test Cu.
     ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    @test Du == [parity[1].*∂x parity[2].*∂y parity[3].*∂z]
+    @test Du == [scale∂[1].*∂x scale∂[2].*∂y scale∂[3].*∂z]
 
     # Test Cartesian-component-first ordering.
-    Du_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=true)
+    Du_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=true)
     @test Du_compfirst == Du[:,r]
 
     # Test permutation.
-    Du_permute = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], order_compfirst=false)
-    @test Du_permute == [parity[1].*∂y parity[2].*∂x parity[3].*∂z]
+    Du_permute = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, wpermute=[2,1,3], order_compfirst=false)
+    @test Du_permute == [scale∂[1].*∂y scale∂[2].*∂x scale∂[3].*∂z]
 
-    Du_permute_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], order_compfirst=true)
+    Du_permute_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, wpermute=[2,1,3], order_compfirst=true)
     @test Du_permute_compfirst == Du_permute[:,r]
 
     # Test apply_divg!.

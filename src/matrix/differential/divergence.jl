@@ -6,7 +6,7 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
             isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
             wpermute::AbsVecInteger=1:length(N),  # permuted order of Cartesian components
-            parity::AbsVecNumber=ones(length(N)), # constants to multiply to entries in individual dimensions
+            scale∂::AbsVecNumber=ones(length(N)), # scale factors to multiply to partial derivatives (after permuted)
             order_compfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -17,15 +17,15 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     # I should not cast ∆l to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
     (K = length(N); create_divg(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ),
-                                parity=SVector{K}(parity), wpermute=SVector{K}(wpermute), order_compfirst=order_compfirst))
+                                wpermute=SVector{K}(wpermute), scale∂=SVector{K}(scale∂), order_compfirst=order_compfirst))
 
 function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{K},  # size of grid
                      ∆l::NTuple{K,AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     parity::SNumber{K}=SVector(ntuple(k->1, Val(K))), # constants to multiply to entries in individual dimensions
                      wpermute::SInt{K}=SVector(ntuple(identity, Val(K))),  # permuted order of input Cartesian components
+                     scale∂::SNumber{K}=SVector(ntuple(k->1, Val(K))), # scale factors to multiply to partial derivatives (after permuted)
                      order_compfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
@@ -44,7 +44,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
 
         jstr, joff = order_compfirst ? (3, nblk-3) : (1, M*(nblk-1))  # (column stride, column offset)
         @. J = jstr * J + joff
-        V .*= parity[nblk]
+        V .*= scale∂[nblk]
 
         # For some reason, using .= below is slower because it uses 1 allocatiotn.  On the
         # other hand, using = does not use allocation and therefore faster.
