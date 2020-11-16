@@ -12,7 +12,7 @@ g = zeros(Complex{Float64}, 2M)
 @testset "create_grad and apply_grad! to generate primal field U" begin
     # Construct uG for a uniform grid and Bloch boundaries.
     isfwd = [true, true]  # to generate U, scalar is differentiated forward
-    uG = create_grad(isfwd, N, order_compfirst=false)
+    uG = create_grad(isfwd, N, order_cmpfirst=false)
 
     # Test the overall coefficients.
     @test size(uG) == (2M,M)
@@ -33,7 +33,7 @@ g = zeros(Complex{Float64}, 2M)
     e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
     scale∂ = [1, -1]
 
-    uG = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=false)
+    uG = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
 
     # Test Cu.
     ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -41,14 +41,14 @@ g = zeros(Complex{Float64}, 2M)
     @test uG == [scale∂[1].*∂x; scale∂[2].*∂y]
 
     # Test Cartesian-component-first ordering.
-    uG_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=true)
+    uG_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
     @test uG_compfirst == uG[r,:]
 
     # Test permutation.
-    uG_permute = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_compfirst=false)
+    uG_permute = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=false)
     @test uG_permute == [scale∂[1].*∂y; scale∂[2].*∂x]
 
-    uG_permute_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_compfirst=true)
+    uG_permute_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=true)
     @test uG_permute_compfirst == uG_permute[r,:]
 
     # Test apply_grad!.
@@ -65,8 +65,8 @@ end  # @testset "create_grad and apply_grad! for primal field U"
     M = prod(N)
     isfwd = [true, true, true]  # curl(U) and gradient to generate U are differentiated forward
 
-    Cu = create_curl(isfwd, N, order_compfirst=false)
-    uG = create_grad(isfwd, N, order_compfirst=false)
+    Cu = create_curl(isfwd, N, order_cmpfirst=false)
+    uG = create_grad(isfwd, N, order_cmpfirst=false)
 
     # Construct Dv * Cu.
     A = Cu * uG

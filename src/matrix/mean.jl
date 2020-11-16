@@ -35,8 +35,8 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             N::AbsVecInteger,  # size of grid
             isbloch::AbsVecBool=fill(true,length(N)),  # for length(N) = 3, boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for length(N) = 3, Bloch phase factor in x, y, z
-            order_compfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (∆l = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, order_compfirst=order_compfirst))
+            order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    (∆l = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst))
 
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
@@ -44,9 +44,9 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             ∆l′::NTuple{K,AbsVecNumber},  # line segments to divide by; vectors of length N
             isbloch::AbsVecBool=fill(true,length(N)),  # for K = 3, boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for K = 3, Bloch phase factor in x, y, z
-            order_compfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
-    (create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_compfirst=order_compfirst))
+    (create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst))
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -61,7 +61,7 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backw
                      ∆l′::NTuple{K,AbsVecNumber},  # line segments to divide by; vectors of length N
                      isbloch::SBool{K}=SVector(ntuple(k->true,K)),  # for K = 3, boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SNumber{K}=SVector(ntuple(k->1.0,K));  # for K = 3, Bloch phase factor in x, y, z
-                     order_compfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l)..., eltype.(∆l′)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)
@@ -75,9 +75,9 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backw
     for nv = 1:K  # Cartesian compotents of output field
         I, J, V = create_minfo(nv, isfwd[nv], N, ∆l[nv], ∆l′[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])  # averaging along nv-direction
 
-        istr, ioff = order_compfirst ? (K, nv-K) : (1, M*(nv-1))  # (row stride, row offset)
+        istr, ioff = order_cmpfirst ? (K, nv-K) : (1, M*(nv-1))  # (row stride, row offset)
         nw = nv  # Cartesian component of input field; same as output field's, because we set diagonal blocks
-        jstr, joff = order_compfirst ? (K, nw-K) : (1, M*(nw-1))  # (column stride, column offset)
+        jstr, joff = order_cmpfirst ? (K, nw-K) : (1, M*(nw-1))  # (column stride, column offset)
 
         @. I = istr * I + ioff
         @. J = jstr * J + joff

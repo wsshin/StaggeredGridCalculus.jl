@@ -5,7 +5,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
             ∆l::Tuple3{AbsVecNumber}=ones.((N...,)),  # ∆l[w]: distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            order_compfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -14,14 +14,14 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     #
     # I should not cast ∆l to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    (K = length(N); create_curl(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_compfirst=order_compfirst))
+    (K = length(N); create_curl(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst))
 
 function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{3},  # size of grid
                      ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
                      isbloch::SBool{3},  # boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SNumber{3};  # Bloch phase factor in x, y, z
-                     order_compfirst::Bool=true)  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     order_cmpfirst::Bool=true)  # true to use Cartesian-component-major ordering for more tightly banded matrix
     T = promote_type(eltype.(∆l)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)
 
@@ -33,11 +33,11 @@ function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by f
 
     indblk = 0  # index of matrix block
     for nv = nXYZ  # Cartesian compotent of output field
-        istr, ioff = order_compfirst ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
+        istr, ioff = order_cmpfirst ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
         parity = 1
         for nw = next2(nv)  # direction of differentiation
             nw′ = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
-            jstr, joff = order_compfirst ? (3, nw′-3) : (1, M*(nw′-1))  # (column stride, column offset)
+            jstr, joff = order_cmpfirst ? (3, nw′-3) : (1, M*(nw′-1))  # (column stride, column offset)
             I, J, V = create_∂info(nw, isfwd[nw], N, ∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
             @. I = istr * I + ioff

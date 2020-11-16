@@ -7,7 +7,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
             permute∂::AbsVecInteger=1:length(N),  # permuted order of partial derivatives
             scale∂::AbsVecNumber=ones(length(N)), # scale factors to multiply to partial derivatives (after permutation)
-            order_compfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -17,7 +17,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     # I should not cast ∆l to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
     (K = length(N); create_grad(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ),
-                                permute∂=SVector{K}(permute∂), scale∂=SVector{K}(scale∂), order_compfirst=order_compfirst))
+                                permute∂=SVector{K}(permute∂), scale∂=SVector{K}(scale∂), order_cmpfirst=order_cmpfirst))
 
 function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{K},  # size of grid
@@ -26,7 +26,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
                      permute∂::SInt{K}=SVector(ntuple(identity, Val(K))),  # permuted order of partial derivatives
                      scale∂::SNumber{K}=SVector(ntuple(k->1, Val(K))), # scale factors to multiply to partial derivatives
-                     order_compfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)
@@ -42,7 +42,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
         nv = permute∂[nblk]  # Cartesian compotent of output field
         I, J, V = create_∂info(nv, isfwd[nv], N, ∆l[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])
 
-        istr, ioff = order_compfirst ? (K, nblk-K) : (1, M*(nblk-1))  # (row stride, row offset)
+        istr, ioff = order_cmpfirst ? (K, nblk-K) : (1, M*(nblk-1))  # (row stride, row offset)
         @. I = istr * I + ioff
         V .*= scale∂[nblk]
 

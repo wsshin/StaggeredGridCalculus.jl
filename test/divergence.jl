@@ -12,7 +12,7 @@ g = zeros(Complex{Float64}, 2M)
 @testset "create_divg and apply_divg! for primal field U" begin
     # Construct Du for a uniform grid and Bloch boundaries.
     isfwd = [false, false]  # U is differentiated backward
-    Du = create_divg(isfwd, N, order_compfirst=false)
+    Du = create_divg(isfwd, N, order_cmpfirst=false)
 
     # Test the overall coefficients.
     @test size(Du) == (M,2M)
@@ -33,7 +33,7 @@ g = zeros(Complex{Float64}, 2M)
     e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
     scale∂ = [1, -1]
 
-    Du = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=false)
+    Du = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
 
     # Test Cu.
     ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -41,14 +41,14 @@ g = zeros(Complex{Float64}, 2M)
     @test Du == [scale∂[1].*∂x scale∂[2].*∂y]
 
     # Test Cartesian-component-first ordering.
-    Du_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=true)
+    Du_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
     @test Du_compfirst == Du[:,r]
 
     # Test permutation.
-    Du_permute = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_compfirst=false)
+    Du_permute = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=false)
     @test Du_permute == [scale∂[1].*∂y scale∂[2].*∂x]
 
-    Du_permute_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_compfirst=true)
+    Du_permute_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=true)
     @test Du_permute_compfirst == Du_permute[:,r]
 
     # Test apply_divg!.
@@ -65,8 +65,8 @@ end  # @testset "create_divg and apply_divg! for primal field U"
     M = prod(N)
     isfwd = [true, true, true]  # curl(U) and divg(V) are differentiated forward
 
-    Cu = create_curl(isfwd, N, order_compfirst=false)
-    Dv = create_divg(isfwd, N, order_compfirst=false)
+    Cu = create_curl(isfwd, N, order_cmpfirst=false)
+    Dv = create_divg(isfwd, N, order_cmpfirst=false)
 
     # Construct Dv * Cu.
     A = Dv * Cu

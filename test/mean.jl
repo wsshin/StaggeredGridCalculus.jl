@@ -100,7 +100,7 @@ end
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, N, ∆l, ∆l′, isblochK, order_compfirst=false) == Mdiag
+        @test create_mean(isfwdK, N, ∆l, ∆l′, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
         mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′, isblochK); @test G[:] ≈ g
@@ -204,7 +204,7 @@ end  # @testset "create_mean and apply_mean! 3D"
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, N, ∆l, ∆l′, isblochK, order_compfirst=false) == Mdiag
+        @test create_mean(isfwdK, N, ∆l, ∆l′, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
         # mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′, isblochK); @test G[:] ≈ g
@@ -217,7 +217,7 @@ end  # @testset "create_mean and apply_mean! 2D"
 #             isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
 #             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
 #             kdiag::Integer=0,  # 0|+1|-1 for diagonal|superdiagonal|subdiagonal of material parameter
-#             order_compfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+#             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
 #
 #     N = SVector(8,9,10)
 #     # N = SVector(3,3,3)
