@@ -46,6 +46,13 @@ g = zeros(Complex{Float64}, 3M)
     Du_reorder = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, reorder=true)
     @test Du_reorder == Du[:,r]
 
+    # Test permutation.
+    Du_permute = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], reorder=false)
+    @test Du_permute == [parity[1].*∂y parity[2].*∂x parity[3].*∂z]
+
+    Du_permute_reorder = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], reorder=true)
+    @test Du_permute_reorder == Du_permute[:,r]
+
     # Test apply_divg!.
     # # to be filled
 end  # @testset "create_divg and apply_divg! for primal field U"

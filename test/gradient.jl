@@ -46,6 +46,13 @@ g = zeros(Complex{Float64}, 3M)
     uG_reorder = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, reorder=true)
     @test uG_reorder == uG[r,:]
 
+    # Test permutation.
+    uG_permute = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], reorder=false)
+    @test uG_permute == [parity[1].*∂y; parity[2].*∂x; parity[3].*∂z]
+
+    uG_permute_reorder = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], reorder=true)
+    @test uG_permute_reorder == uG_permute[r,:]
+
     # Test apply_grad!.
     # # to be filled
 end  # @testset "create_grad and apply_grad! for primal field U"
