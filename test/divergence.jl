@@ -12,7 +12,7 @@ g = zeros(Complex{Float64}, 3M)
 @testset "create_divg and apply_divg! for primal field U" begin
     # Construct Du for a uniform grid and Bloch boundaries.
     isfwd = [false, false, false]  # U is differentiated backward
-    Du = create_divg(isfwd, [N...], reorder=false)
+    Du = create_divg(isfwd, [N...], order_compfirst=false)
 
     # Test the overall coefficients.
     @test size(Du) == (M,3M)
@@ -34,7 +34,7 @@ g = zeros(Complex{Float64}, 3M)
     e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
     parity = [1, -1, -1]
 
-    Du = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, reorder=false)
+    Du = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=false)
 
     # Test Cu.
     ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -42,16 +42,16 @@ g = zeros(Complex{Float64}, 3M)
     ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Du == [parity[1].*∂x parity[2].*∂y parity[3].*∂z]
 
-    # Test reordering.
-    Du_reorder = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, reorder=true)
-    @test Du_reorder == Du[:,r]
+    # Test Cartesian-component-first ordering.
+    Du_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=true)
+    @test Du_compfirst == Du[:,r]
 
     # Test permutation.
-    Du_permute = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], reorder=false)
+    Du_permute = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], order_compfirst=false)
     @test Du_permute == [parity[1].*∂y parity[2].*∂x parity[3].*∂z]
 
-    Du_permute_reorder = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], reorder=true)
-    @test Du_permute_reorder == Du_permute[:,r]
+    Du_permute_compfirst = create_divg(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, wpermute=[2,1,3], order_compfirst=true)
+    @test Du_permute_compfirst == Du_permute[:,r]
 
     # Test apply_divg!.
     # # to be filled
@@ -66,8 +66,8 @@ end  # @testset "create_divg and apply_divg! for primal field U"
     isfwd = [true, true, true]  # curl(U) and divg(V) are differentiated forward
     isbloch = [true, false, false]
 
-    Cu = create_curl(isfwd, [N...], reorder=false)
-    Dv = create_divg(isfwd, [N...], reorder=false)
+    Cu = create_curl(isfwd, [N...], order_compfirst=false)
+    Dv = create_divg(isfwd, [N...], order_compfirst=false)
 
     # Construct Dv * Cu.
     A = Dv * Cu

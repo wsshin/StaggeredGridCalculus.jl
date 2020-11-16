@@ -7,7 +7,7 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
             wpermute::AbsVecInteger=1:length(N),  # permuted order of Cartesian components
             parity::AbsVecNumber=ones(length(N)), # constants to multiply to entries in individual dimensions
-            reorder::Bool=true) =  # true for more tightly banded matrix
+            order_compfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -17,7 +17,7 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     # I should not cast ∆l to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
     (K = length(N); create_divg(SVector{K}(isfwd), SVector{K,Int}(N), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ),
-                                parity=SVector{K}(parity), wpermute=SVector{K}(wpermute), reorder=reorder))
+                                parity=SVector{K}(parity), wpermute=SVector{K}(wpermute), order_compfirst=order_compfirst))
 
 function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{K},  # size of grid
@@ -26,7 +26,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
                      parity::SNumber{K}=SVector(ntuple(k->1, Val(K))), # constants to multiply to entries in individual dimensions
                      wpermute::SInt{K}=SVector(ntuple(identity, Val(K))),  # permuted order of input Cartesian components
-                     reorder::Bool=true  # true for more tightly banded matrix
+                     order_compfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)
@@ -42,7 +42,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
         nw = wpermute[nblk]  # Cartesian compotent of input field
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
-        jstr, joff = reorder ? (3, nblk-3) : (1, M*(nblk-1))  # (column stride, column offset)
+        jstr, joff = order_compfirst ? (3, nblk-3) : (1, M*(nblk-1))  # (column stride, column offset)
         @. J = jstr * J + joff
         V .*= parity[nblk]
 

@@ -12,7 +12,7 @@ g = zeros(Complex{Float64}, 3M)
 @testset "create_grad and apply_grad! to generate primal field U" begin
     # Construct uG for a uniform grid and Bloch boundaries.
     isfwd = [true, true, true]  # to generate U, scalar is differentiated forward
-    uG = create_grad(isfwd, [N...], reorder=false)
+    uG = create_grad(isfwd, [N...], order_compfirst=false)
 
     # Test the overall coefficients.
     @test size(uG) == (3M,M)
@@ -34,7 +34,7 @@ g = zeros(Complex{Float64}, 3M)
     e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
     parity = [1, -1, -1]
 
-    uG = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, reorder=false)
+    uG = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=false)
 
     # Test Cu.
     ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -42,16 +42,16 @@ g = zeros(Complex{Float64}, 3M)
     ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test uG == [parity[1].*∂x; parity[2].*∂y; parity[3].*∂z]
 
-    # Test reordering.
-    uG_reorder = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, reorder=true)
-    @test uG_reorder == uG[r,:]
+    # Test Cartesian-component-first ordering.
+    uG_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, order_compfirst=true)
+    @test uG_compfirst == uG[r,:]
 
     # Test permutation.
-    uG_permute = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], reorder=false)
+    uG_permute = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], order_compfirst=false)
     @test uG_permute == [parity[1].*∂y; parity[2].*∂x; parity[3].*∂z]
 
-    uG_permute_reorder = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], reorder=true)
-    @test uG_permute_reorder == uG_permute[r,:]
+    uG_permute_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, parity=parity, vpermute=[2,1,3], order_compfirst=true)
+    @test uG_permute_compfirst == uG_permute[r,:]
 
     # Test apply_grad!.
     # # to be filled
@@ -66,8 +66,8 @@ end  # @testset "create_grad and apply_grad! for primal field U"
     isfwd = [true, true, true]  # curl(U) and gradient to generate U are differentiated forward
     isbloch = [true, false, false]
 
-    Cu = create_curl(isfwd, [N...], reorder=false)
-    uG = create_grad(isfwd, [N...], reorder=false)
+    Cu = create_curl(isfwd, [N...], order_compfirst=false)
+    uG = create_grad(isfwd, [N...], order_compfirst=false)
 
     # Construct Dv * Cu.
     A = Cu * uG
