@@ -42,7 +42,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
         nv = permute∂[nblk]  # Cartesian compotent of output field
         I, J, V = create_∂info(nv, isfwd[nv], N, ∆l[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])
 
-        istr, ioff = order_compfirst ? (3, nblk-3) : (1, M*(nblk-1))  # (row stride, row offset)
+        istr, ioff = order_compfirst ? (K, nblk-K) : (1, M*(nblk-1))  # (row stride, row offset)
         @. I = istr * I + ioff
         V .*= scale∂[nblk]
 

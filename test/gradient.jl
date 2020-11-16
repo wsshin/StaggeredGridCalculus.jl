@@ -1,56 +1,54 @@
 @testset "gradient" begin
 
-N = (3,4,5)
+N = [4,5]
 M = prod(N)
-r = reshape(collect(1:3M), M, 3)'[:]  # index mapping from block matrix to narrowly banded matrix
+r = reshape(collect(1:2M), M, 2)'[:]  # index mapping from block matrix to narrowly banded matrix
 Z = spzeros(M,M)
 
-F = rand(Complex{Float64}, N..., 3)
+F = rand(Complex{Float64}, N..., 2)
 G = similar(F)
-g = zeros(Complex{Float64}, 3M)
+g = zeros(Complex{Float64}, 2M)
 
 @testset "create_grad and apply_grad! to generate primal field U" begin
     # Construct uG for a uniform grid and Bloch boundaries.
-    isfwd = [true, true, true]  # to generate U, scalar is differentiated forward
-    uG = create_grad(isfwd, [N...], order_compfirst=false)
+    isfwd = [true, true]  # to generate U, scalar is differentiated forward
+    uG = create_grad(isfwd, N, order_compfirst=false)
 
     # Test the overall coefficients.
-    @test size(uG) == (3M,M)
+    @test size(uG) == (2M,M)
     @test all(any(uG.≠0, dims=1))  # no zero columns
     @test all(any(uG.≠0, dims=2))  # no zero rows
     @test all(sum(uG, dims=1) .== 0)  # all column sums are zero, because each input field to uG is used twice in each Cartesian direction, once multiplied with +1 and once with -1
     @test all(sum(uG, dims=2) .== 0)  # all row sums are zero, because uG * ones(M) = 0
-    @test all(sum(abs.(uG), dims=1) .== 6)  # each column of uG has six nonzero entries, which are ±1's
+    @test all(sum(abs.(uG), dims=1) .== 4)  # each column of uG has six nonzero entries, which are ±1's
     @test all(sum(abs.(uG), dims=2) .== 2)  # each row of uG has two nonzero entries, which are ±1's
 
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...]))
-    @test uG == [∂x; ∂y; ∂z]
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N))
+    @test uG == [∂x; ∂y]
 
     # Construct uG for a nonuniform grid and general boundaries.
-    ∆lprim = rand.(N)
-    isbloch = [true, false, false]
-    e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
-    scale∂ = [1, -1, -1]
+    ∆lprim = rand.(tuple(N...))
+    isbloch = [true, false]
+    e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
+    scale∂ = [1, -1]
 
-    uG = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=false)
+    uG = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=false)
 
     # Test Cu.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    @test uG == [scale∂[1].*∂x; scale∂[2].*∂y; scale∂[3].*∂z]
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    @test uG == [scale∂[1].*∂x; scale∂[2].*∂y]
 
     # Test Cartesian-component-first ordering.
-    uG_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=true)
+    uG_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_compfirst=true)
     @test uG_compfirst == uG[r,:]
 
     # Test permutation.
-    uG_permute = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1,3], scale∂=scale∂, order_compfirst=false)
-    @test uG_permute == [scale∂[1].*∂y; scale∂[2].*∂x; scale∂[3].*∂z]
+    uG_permute = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_compfirst=false)
+    @test uG_permute == [scale∂[1].*∂y; scale∂[2].*∂x]
 
-    uG_permute_compfirst = create_grad(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1,3], scale∂=scale∂, order_compfirst=true)
+    uG_permute_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_compfirst=true)
     @test uG_permute_compfirst == uG_permute[r,:]
 
     # Test apply_grad!.
@@ -63,11 +61,12 @@ end  # @testset "create_grad and apply_grad! for primal field U"
 
 @testset "curl of gradient" begin
     # Construct Cu and uG for a uniform grid and periodic boundaries.
+    N = [3,4,5]
+    M = prod(N)
     isfwd = [true, true, true]  # curl(U) and gradient to generate U are differentiated forward
-    isbloch = [true, false, false]
 
-    Cu = create_curl(isfwd, [N...], order_compfirst=false)
-    uG = create_grad(isfwd, [N...], order_compfirst=false)
+    Cu = create_curl(isfwd, N, order_compfirst=false)
+    uG = create_grad(isfwd, N, order_compfirst=false)
 
     # Construct Dv * Cu.
     A = Cu * uG

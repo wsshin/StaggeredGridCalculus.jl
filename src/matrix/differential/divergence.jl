@@ -42,7 +42,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
         nw = permute∂[nblk]  # Cartesian compotent of input field
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
-        jstr, joff = order_compfirst ? (3, nblk-3) : (1, M*(nblk-1))  # (column stride, column offset)
+        jstr, joff = order_compfirst ? (K, nblk-K) : (1, M*(nblk-1))  # (column stride, column offset)
         @. J = jstr * J + joff
         V .*= scale∂[nblk]
 
