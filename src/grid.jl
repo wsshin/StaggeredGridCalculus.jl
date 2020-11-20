@@ -113,7 +113,7 @@ struct Grid{K}
     l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction
     ∆l::Tuple2{NTuple{K,VecFloat}}  # ∆l[PRIM][k] = (∆l at primal vertices in w) == diff(l[DUAL][k] including ghost point)
     isbloch::SVector{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
-    σ::Tuple2{NTuple{K,VecBool}}  # false only for non-ghost points exactly on symmetric boundary (= first point in primal grid)
+    σ::Tuple2{NTuple{K,VecBool}}  # false only for non-ghost points exactly on symmetry boundary (= first point in primal grid)
     bounds::Tuple2{SVector{K,Float}}  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
     ghosted::Ghosted{K}  # data related to ghost points
 end
