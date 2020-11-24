@@ -32,7 +32,7 @@ function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by f
     Vtot = Vector{T}(undef, 12M)
 
     indblk = 0  # index of matrix block
-    for nv = nXYZ  # Cartesian compotent of output field
+    for nv = 1:3  # Cartesian compotent of output field
         istr, ioff = order_cmpfirst ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
         parity = 1
         for nw = next2(nv)  # direction of differentiation
