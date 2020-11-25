@@ -1,3 +1,8 @@
+# Conventions for Cartesian components
+# nw: direction of differentiation (∂w)
+# nu: component of the input field (Fu)
+# nv: component of the output field (Gv)
+
 export create_∂
 
 # Assumption: we don't calculate derivatives for interpolated fields.  In other words, we

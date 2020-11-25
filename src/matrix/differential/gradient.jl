@@ -38,18 +38,18 @@ function create_grad(isfwd::SBool{K},  # isfwd[v] = true|false: create ∂v by f
     Jtot = VecInt(undef, 2KM)
     Vtot = Vector{T}(undef, 2KM)
 
-    for nv = 1:K  # direction of differentiation
-        I, J, V = create_∂info(nv, isfwd[nv], N, ∆l[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])
+    for nw = 1:K  # direction of differentiation
+        I, J, V = create_∂info(nw, isfwd[nw], N, ∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
-        nblk = permute∂[nv]  # index of matrix block
-        istr, ioff = order_cmpfirst ? (K, nblk-K) : (1, M*(nblk-1))  # (row stride, row offset)
+        nv = permute∂[nw]  # index of output field (index of matrix block)
+        istr, ioff = order_cmpfirst ? (K, nv-K) : (1, M*(nv-1))  # (row stride, row offset)
         @. I = istr * I + ioff
 
-        V .*= scale∂[nv]
+        V .*= scale∂[nw]
 
         # For some reason, using .= below is slower because it uses 1 allocatiotn.  On the
         # other hand, using = does not use allocation and therefore faster.
-        indₛ, indₑ = (nv-1)*2M + 1, nv*2M
+        indₛ, indₑ = (nw-1)*2M + 1, nw*2M
         Itot[indₛ:indₑ] = I
         Jtot[indₛ:indₑ] = J
         Vtot[indₛ:indₑ] = V
