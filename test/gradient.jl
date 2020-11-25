@@ -45,10 +45,11 @@ g = zeros(Complex{Float64}, 2M)
     @test uG_compfirst == uG[r,:]
 
     # Test permutation.
-    uG_permute = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=false)
-    @test uG_permute == [scale∂[1].*∂y; scale∂[2].*∂x]
+    permute∂ = [2, 1]  # with scale∂ = [1,-1], create divergence operator [-∂y; ∂x]
+    uG_permute = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
+    @test uG_permute == [scale∂[2].*∂y; scale∂[1].*∂x]
 
-    uG_permute_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=true)
+    uG_permute_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
     @test uG_permute_compfirst == uG_permute[r,:]
 
     # Test apply_grad!.

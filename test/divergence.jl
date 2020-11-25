@@ -31,7 +31,7 @@ g = zeros(Complex{Float64}, 2M)
     ∆lprim = rand.(tuple(N...))
     isbloch = [true, false]
     e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
-    scale∂ = [1, -1]
+    scale∂ = [1, -1]  # +∂x, -∂y
 
     Du = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
 
@@ -45,10 +45,11 @@ g = zeros(Complex{Float64}, 2M)
     @test Du_compfirst == Du[:,r]
 
     # Test permutation.
-    Du_permute = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=false)
-    @test Du_permute == [scale∂[1].*∂y scale∂[2].*∂x]
+    permute∂ = [2, 1]  # with scale∂ = [1,-1], create divergence operator [-∂y, ∂x]
+    Du_permute = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
+    @test Du_permute == [scale∂[2].*∂y scale∂[1].*∂x]
 
-    Du_permute_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=[2,1], scale∂=scale∂, order_cmpfirst=true)
+    Du_permute_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
     @test Du_permute_compfirst == Du_permute[:,r]
 
     # Test apply_divg!.
