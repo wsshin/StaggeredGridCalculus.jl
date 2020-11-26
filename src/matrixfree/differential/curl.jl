@@ -50,4 +50,6 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
             parity = -1
         end
     end
+
+    return nothing
 end
