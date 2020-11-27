@@ -6,19 +6,10 @@ export apply_curl!
 apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::T,  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            ∆l⁻¹::Tuple3{AbsVecNumber}=ones.(size(F)[1:3]),  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
-            α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
-            ) where {T<:AbsArrNumber{4}} =
-    (∆l⁻¹ = ones.(size(F)[1:3]); apply_curl!(G, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, α=α))
-
-apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-            F::T,  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
-            isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
-            α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
+            α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
             ) where {T<:AbsArrNumber{4}} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -34,9 +25,9 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
                      F::T,  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
                      isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-                     isbloch::SBool{3}=SVector(true,true,true),  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SNumber{3}=SVector(1.0,1.0,1.0);  # Bloch phase factor in x, y, z
-                     α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
+                     isbloch::SBool{3},  # boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{3};  # Bloch phase factor in x, y, z
+                     α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
                      ) where {T<:AbsArrNumber{4}}
     for nv = 1:3  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field

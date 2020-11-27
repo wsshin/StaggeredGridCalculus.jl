@@ -59,8 +59,8 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backw
                      N::SInt{K},  # size of grid
                      ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-                     isbloch::SBool{K}=SVector(ntuple(k->true,K)),  # for K = 3, boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SNumber{K}=SVector(ntuple(k->1.0,K));  # for K = 3, Bloch phase factor in x, y, z
+                     isbloch::SBool{K},  # for K = 3, boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{K};  # for K = 3, Bloch phase factor in x, y, z
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l)..., eltype.(∆l′⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous

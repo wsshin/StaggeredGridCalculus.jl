@@ -25,7 +25,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
                      permute∂::SInt{K}=SVector(ntuple(identity, Val(K))),  # permute∂[w]: location of ∂w block
-                     scale∂::SNumber{K}=SVector(ntuple(k->1, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
+                     scale∂::SNumber{K}=SVector(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous

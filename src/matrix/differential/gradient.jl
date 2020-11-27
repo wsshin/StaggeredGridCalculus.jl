@@ -25,7 +25,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[v] = true|false: create ∂v by f
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
                      permute∂::SInt{K}=SVector(ntuple(identity, Val(K))),  # permute∂[v]: location of ∂v block
-                     scale∂::SNumber{K}=SVector(ntuple(k->1, Val(K))),  # scale∂[w]: scale factor to multiply to ∂v
+                     scale∂::SNumber{K}=SVector(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂v
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
