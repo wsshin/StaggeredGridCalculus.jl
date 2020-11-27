@@ -36,17 +36,17 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             isbloch::AbsVecBool=fill(true,length(N)),  # for length(N) = 3, boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for length(N) = 3, Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (∆l = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst))
+    (∆l = ones.((N...,)); ∆l′⁻¹ = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l′⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst))
 
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
-            ∆l′::NTuple{K,AbsVecNumber},  # line segments to divide by; vectors of length N
+            ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
             isbloch::AbsVecBool=fill(true,length(N)),  # for K = 3, boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for K = 3, Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
-    (create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst))
+    (create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst))
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -58,12 +58,12 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
 function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backward averaging
                      N::SInt{K},  # size of grid
                      ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
-                     ∆l′::NTuple{K,AbsVecNumber},  # line segments to divide by; vectors of length N
+                     ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
                      isbloch::SBool{K}=SVector(ntuple(k->true,K)),  # for K = 3, boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SNumber{K}=SVector(ntuple(k->1.0,K));  # for K = 3, Bloch phase factor in x, y, z
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
-    T = promote_type(eltype.(∆l)..., eltype.(∆l′)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
+    T = promote_type(eltype.(∆l)..., eltype.(∆l′⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     M = prod(N)
     KM = K * M
 
@@ -73,7 +73,7 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backw
 
     indblk = 0  # index of matrix block
     for nv = 1:K  # Cartesian compotents of output field
-        I, J, V = create_minfo(nv, isfwd[nv], N, ∆l[nv], ∆l′[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])  # averaging along nv-direction
+        I, J, V = create_minfo(nv, isfwd[nv], N, ∆l[nv], ∆l′⁻¹[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])  # averaging along nv-direction
 
         istr, ioff = order_cmpfirst ? (K, nv-K) : (1, M*(nv-1))  # (row stride, row offset)
         nw = nv  # Cartesian component of input field; same as output field's, because we set diagonal blocks
@@ -110,23 +110,23 @@ create_m(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          N::AbsVecInteger,  # size of grid
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
-    (K = length(N); ∆w = ones(N[nw]); create_m(nw, isfwd, SInt{K}(N), ∆w, ∆w, isbloch, e⁻ⁱᵏᴸ))
+    (K = length(N); ∆w = ones(N[nw]); ∆w′⁻¹ = ones(N[nw]); create_m(nw, isfwd, SInt{K}(N), ∆w, ∆w′⁻¹, isbloch, e⁻ⁱᵏᴸ))
 
 create_m(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          isfwd::Bool,  # true|false for forward|backward averaging
          N::AbsVecInteger,  # size of grid
          ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
-         ∆w′::AbsVecNumber,  # line segments to divide by; vector of length N[nw]
+         ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
-    (K = length(N); M = prod(N); dropzeros!(sparse(create_minfo(nw, isfwd, SInt{K}(N), ∆w, ∆w′, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
+    (K = length(N); M = prod(N); dropzeros!(sparse(create_minfo(nw, isfwd, SInt{K}(N), ∆w, ∆w′⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
 
 
 function create_minfo(nw::Integer,  # for K = 3, 1|2|3 for averaging along x|y|z
                       isfwd::Bool,  # true|false for forward|backward averaging
                       N::SInt{K},  # size of grid
                       ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
-                      ∆w′::AbsVecNumber,  # line segments to divide by; vector of length N[nw]
+                      ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                       isbloch::Bool,  # boundary condition in w-direction
                       e⁻ⁱᵏᴸ::Number  # Bloch phase factor
                       ) where {K}
@@ -160,11 +160,11 @@ function create_minfo(nw::Integer,  # for K = 3, 1|2|3 for averaging along x|y|z
     shifts = -ns * ŵ  # shift vector for sign; [0,-1,0] for w == y and ns = +1
     Jₛ = circshift(Jₛ, shifts.data)
 
-    # Align ∆w and ∆w′ in the w-direction.
+    # Align ∆w and ∆w′⁻¹ in the w-direction.
     vec1 =  @SVector ones(Int,K)
     sizew = @. !ŵ * vec1 + ŵ * N  # [1,Ny,1] for w == y
     ∆W = reshape(∆w, sizew.data)
-    ∆W′ = reshape(∆w′, sizew.data)
+    ∆W′⁻¹ = reshape(∆w′⁻¹, sizew.data)
 
     # Construct the values of the diagonal and off-diagonal nonzero entries of the matrix
     # for the periodic (≠ Bloch) boundary condition.  (These values will be updated for
@@ -173,12 +173,12 @@ function create_minfo(nw::Integer,  # for K = 3, 1|2|3 for averaging along x|y|z
     # To figure out the entries of V₀ and Vₛ, it is most convenient to figure out the entire
     # 3D arrays V₀ and Vₛ, instead of entry by entry.  In doing so, note that the entries
     # with the same subscripts correspond to the same *output* field (= same row index).
-    T = promote_type(eltype(∆w), eltype(∆w′), eltype(e⁻ⁱᵏᴸ))
-    V₀ = fill(T(0.5), N.data) .* ∆W ./ ∆W′  # values of diagonal entries
+    T = promote_type(eltype(∆w), eltype(∆w′⁻¹), eltype(e⁻ⁱᵏᴸ))
+    V₀ = fill(T(0.5), N.data) .* ∆W .* ∆W′⁻¹  # values of diagonal entries
 
     Vₛ = fill(T(0.5), N.data) .* ∆W  # values of off-diagonal entries (division later)
     Vₛ = circshift(Vₛ, shifts.data)
-    Vₛ ./= ∆W′
+    Vₛ .*= ∆W′⁻¹
 
     # Modify V₀ and Vₛ according to the boundary condition.  What we do is basically to take
     # the operator for the periodic boundary condition (constructed above) as a template and

@@ -24,7 +24,7 @@ end
 
     for isfwd = (true,false), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
         ∆l = rand.(tuple(N...))
-        ∆l′ = rand.(tuple(N...))
+        ∆l′⁻¹ = rand.(tuple(N...))
         Mdiag = spzeros(KM,KM)
 
         for nw = 1:K
@@ -33,7 +33,7 @@ end
 
             Nw = N[nw]
             ∆w = ∆l[nw]
-            ∆w′ = ∆l′[nw]
+            ∆w′⁻¹ = ∆l′⁻¹[nw]
 
             Mws = spzeros(M,M)
 
@@ -41,8 +41,8 @@ end
                 sub_on .= CartesianIndices(N.data)[ind_on].I  # subscripts of diagonal entry
                 indw_on = sub_on[nw]
                 ∆w_on = ∆w[indw_on]
-                ∆w′_on = ∆w′[indw_on]
-                Mws[ind_on,ind_on] = 0.5 * ∆w_on / ∆w′_on  # diagonal entries
+                ∆w′_on⁻¹ = ∆w′⁻¹[indw_on]
+                Mws[ind_on,ind_on] = 0.5 * ∆w_on * ∆w′_on⁻¹  # diagonal entries
 
                 # Calculate the column index of the off-diagonal entry in the row `ind`.
                 sub_off .= sub_on  # subscripts of off-diagonal entry
@@ -68,9 +68,9 @@ end
                 ∆w_off = ∆w[indw_off]
                 ind_off = LinearIndices(N.data)[sub_off...]  # index of off-diagonal entry
                 if !isfwd && !isbloch && sub_on[nw]==1  # bacward difference && symmetry boundary at negative end
-                    Mws[ind_on, ind_off] = ∆w_off / ∆w′_on  # double diagonal entry
+                    Mws[ind_on, ind_off] = ∆w_off * ∆w′_on⁻¹  # double diagonal entry
                 else
-                    Mws[ind_on, ind_off] = 0.5 * ∆w_off / ∆w′_on  # off-diagonal entry
+                    Mws[ind_on, ind_off] = 0.5 * ∆w_off * ∆w′_on⁻¹  # off-diagonal entry
                 end
             end
 
@@ -85,13 +85,13 @@ end
             end
 
             # Test create_m.
-            @test create_m(nw, isfwd, N, ∆w, ∆w′, isbloch) == Mws
+            @test create_m(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
             # Test apply_m!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
             Gv .= 0
-            apply_m!(Gv, Fu, nw, isfwd, ∆w, ∆w′, isbloch)
+            apply_m!(Gv, Fu, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
@@ -100,10 +100,10 @@ end
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, N, ∆l, ∆l′, isblochK, order_cmpfirst=false) == Mdiag
+        @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
-        mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′, isblochK); @test G[:] ≈ g
+        mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK); @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 3D"
 
@@ -128,7 +128,7 @@ end  # @testset "create_mean and apply_mean! 3D"
 
     for isfwd = (true,false), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
         ∆l = rand.(tuple(N...))
-        ∆l′ = rand.(tuple(N...))
+        ∆l′⁻¹ = rand.(tuple(N...))
         Mdiag = spzeros(KM,KM)
 
         for nw = 1:K
@@ -137,7 +137,7 @@ end  # @testset "create_mean and apply_mean! 3D"
 
             Nw = N[nw]
             ∆w = ∆l[nw]
-            ∆w′ = ∆l′[nw]
+            ∆w′⁻¹ = ∆l′⁻¹[nw]
 
             Mws = spzeros(M,M)
 
@@ -145,8 +145,8 @@ end  # @testset "create_mean and apply_mean! 3D"
                 sub_on .= CartesianIndices(N.data)[ind_on].I  # subscripts of diagonal entry
                 indw_on = sub_on[nw]
                 ∆w_on = ∆w[indw_on]
-                ∆w′_on = ∆w′[indw_on]
-                Mws[ind_on,ind_on] = 0.5 * ∆w_on / ∆w′_on  # diagonal entries
+                ∆w′_on⁻¹ = ∆w′⁻¹[indw_on]
+                Mws[ind_on,ind_on] = 0.5 * ∆w_on * ∆w′_on⁻¹  # diagonal entries
 
                 # Calculate the column index of the off-diagonal entry in the row `ind`.
                 sub_off .= sub_on  # subscripts of off-diagonal entry
@@ -172,9 +172,9 @@ end  # @testset "create_mean and apply_mean! 3D"
                 ∆w_off = ∆w[indw_off]
                 ind_off = LinearIndices(N.data)[sub_off...]  # index of off-diagonal entry
                 if !isfwd && !isbloch && sub_on[nw]==1  # bacward difference && symmetry boundary at negative end
-                    Mws[ind_on, ind_off] = ∆w_off / ∆w′_on  # double diagonal entry
+                    Mws[ind_on, ind_off] = ∆w_off * ∆w′_on⁻¹  # double diagonal entry
                 else
-                    Mws[ind_on, ind_off] = 0.5 * ∆w_off / ∆w′_on  # off-diagonal entry
+                    Mws[ind_on, ind_off] = 0.5 * ∆w_off * ∆w′_on⁻¹  # off-diagonal entry
                 end
             end
 
@@ -189,13 +189,13 @@ end  # @testset "create_mean and apply_mean! 3D"
             end
 
             # Test create_m.
-            @test create_m(nw, isfwd, N, ∆w, ∆w′, isbloch) == Mws
+            @test create_m(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
             # Test apply_m!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
             Gv .= 0
-            # apply_m!(Gv, Fu, nw, isfwd, ∆w, ∆w′, isbloch)
+            # apply_m!(Gv, Fu, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             # @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
@@ -204,10 +204,10 @@ end  # @testset "create_mean and apply_mean! 3D"
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, N, ∆l, ∆l′, isblochK, order_cmpfirst=false) == Mdiag
+        @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
-        # mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′, isblochK); @test G[:] ≈ g
+        # mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK); @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 2D"
 

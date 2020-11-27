@@ -48,25 +48,25 @@ export create_∂
 create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
          isfwd::Bool,  # true|false for forward|backward difference
          N::AbsVecInteger,  # size of grid
-         ∆w::Number=1.0,  # spatial discretization; vector of length N[nw]
+         ∆w⁻¹::Number=1.0,  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
-    (K = length(N); create_∂(nw, isfwd, N, fill(∆w, N[nw]), isbloch, e⁻ⁱᵏᴸ))  # fill: create vector of ∆w
+    (K = length(N); create_∂(nw, isfwd, N, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ))  # fill: create vector of ∆w⁻¹
 
 
 create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
          isfwd::Bool,  # true|false for forward|backward difference
          N::AbsVecInteger,  # size of grid
-         ∆w::AbsVecNumber,  # spatial discretization; vector of length N[nw]
+         ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
-    (K = length(N); M = prod(N); dropzeros!(sparse(create_∂info(nw, isfwd, SVector{K,Int}(N), ∆w, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
+    (K = length(N); M = prod(N); dropzeros!(sparse(create_∂info(nw, isfwd, SVector{K,Int}(N), ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
 
 
 # I need to figure out whether the ±1 entries of the backward difference operator is always
 # the transpose of the forward difference operator for all boundary conditions. (∆w division
-# factors are different, though.)  This was the case in the MATLAB code, but in the Julia
-# code I changed the treatment of PDC, so let's make sure about this again.
+# factors vary, though.)  This was the case in the MATLAB code, but in the Julia code I
+# changed the treatment of PDC, so let's make sure about this again.
 #
 # For the symmetry boundary for the E-field (then the E-fields are on the primal grid planes),
 # assuming E that is correctly zeroed at the negative boundary is supplied to the forward
@@ -90,7 +90,7 @@ create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
 function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
                       isfwd::Bool,  # true|false for forward|backward difference
                       N::SVector{K,Int},  # size of grid
-                      ∆w::AbsVecNumber,  # spatial discretization; vector of length N[nw]
+                      ∆w⁻¹::AbsVecNumber,  # spatial discretization; vector of length N[nw]
                       isbloch::Bool,  # boundary condition in w-direction
                       e⁻ⁱᵏᴸ::Number  # Bloch phase factor
                       ) where {K}
@@ -124,10 +124,10 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
     shifts = -ns * ŵ  # shift vector for sign; [0,-1,0] for w == y and ns = +1
     Jₛ = circshift(Jₛ, shifts.data)
 
-    # Align ∆w in the w-direction.
+    # Align ∆w⁻¹ in the w-direction.
     vec1 =  @SVector ones(Int,K)
     sizew = @. !ŵ * vec1 + ŵ * N  # [1,Ny,1] for w == y
-    ∆W = reshape(∆w, sizew.data)
+    ∆W⁻¹ = reshape(∆w⁻¹, sizew.data)
 
     # Construct the values of the diagonal and off-diagonal nonzero entries of the matrix
     # for the periodic (≠ Bloch) boundary condition.  (These values will be updated for
@@ -136,9 +136,9 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
     # To figure out the entries of V₀ and Vₛ, it is most convenient to figure out the entire
     # 3D arrays V₀ and Vₛ, instead of entry by entry.  In doing so, note that the entries
     # with the same subscripts correspond to the same *output* field (= same row index).
-    T = promote_type(eltype(∆w), eltype(e⁻ⁱᵏᴸ))
-    V₀ = -ns .* ones(T, N.data) ./ ∆W  # values of diagonal entries
-    Vₛ = ns .* ones(T, N.data) ./ ∆W  # values of off-diagonal entries
+    T = promote_type(eltype(∆w⁻¹), eltype(e⁻ⁱᵏᴸ))
+    V₀ = -ns .* ones(T, N.data) .* ∆W⁻¹  # values of diagonal entries
+    Vₛ = ns .* ones(T, N.data) .* ∆W⁻¹  # values of off-diagonal entries
 
     # Modify V₀ and Vₛ according to the boundary condition.  What we do is basically to take
     # the operator for the periodic boundary condition (constructed above) as a template and

@@ -28,28 +28,28 @@ g = zeros(Complex{Float64}, 2M)
     @test Du == [∂x ∂y]
 
     # Construct Du for a nonuniform grid and general boundaries.
-    ∆lprim = rand.(tuple(N...))
+    ∆lprim⁻¹ = rand.(tuple(N...))
     isbloch = [true, false]
     e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
     scale∂ = [1, -1]  # +∂x, -∂y
 
-    Du = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
+    Du = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
 
     # Test Cu.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Du == [scale∂[1].*∂x scale∂[2].*∂y]
 
     # Test Cartesian-component-first ordering.
-    Du_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
+    Du_compfirst = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
     @test Du_compfirst == Du[:,r]
 
     # Test permutation.
     permute∂ = [2, 1]  # with scale∂ = [1,-1], create divergence operator [-∂y, ∂x]
-    Du_permute = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
+    Du_permute = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
     @test Du_permute == [scale∂[2].*∂y scale∂[1].*∂x]
 
-    Du_permute_compfirst = create_divg(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
+    Du_permute_compfirst = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
     @test Du_permute_compfirst == Du_permute[:,r]
 
     # Test apply_divg!.

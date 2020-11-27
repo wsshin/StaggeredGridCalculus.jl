@@ -10,12 +10,12 @@ apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
             ) where {T<:AbsArrNumber{4}} =
-    (∆l = ones.(size(F)[1:3]); apply_curl!(G, F, isfwd, ∆l, isbloch, e⁻ⁱᵏᴸ, α=α))
+    (∆l⁻¹ = ones.(size(F)[1:3]); apply_curl!(G, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, α=α))
 
 apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::T,  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
+            ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
@@ -26,14 +26,14 @@ apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
     # of constructing it from k and L as exp.(-im .* k .* L), which is always complex even
     # if k = 0.
     #
-    # I should not cast ∆l to a vector of any specific type (e.g., Float, CFloat), either,
+    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    (K = length(isfwd); apply_curl!(G, F, SVector{K}(isfwd), ∆l, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
+    (K = length(isfwd); apply_curl!(G, F, SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
 
 function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::T,  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
                      isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
-                     ∆l::Tuple3{AbsVecNumber},  # ∆l[w]: distances between grid planes in x-direction
+                     ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
                      isbloch::SBool{3}=SVector(true,true,true),  # boundary conditions in x, y, z
                      e⁻ⁱᵏᴸ::SNumber{3}=SVector(1.0,1.0,1.0);  # Bloch phase factor in x, y, z
                      α::Number=1  # scale factor to multiply to result before adding it to G: G += α ∇×F
@@ -45,8 +45,8 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
             nu = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
             Fu = @view F[:,:,:,nu]  # u-component of input field
 
-            # Need to avoid allocation in parity*∆l[nw]
-            apply_∂!(Gv, Fu, nw, isfwd[nw], ∆l[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            # Need to avoid allocation in parity*∆l⁻¹[nw]
+            apply_∂!(Gv, Fu, nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
             parity = -1
         end
     end

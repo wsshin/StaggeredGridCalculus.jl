@@ -33,6 +33,7 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
     @test g1.l ≈ ((lprim,), (ldual,))
     ∆lprim = [ldual[1]+L-ldual[end]; diff(ldual)]
     @test g1.∆l ≈ ((∆lprim,), (∆ldual,))
+    @test g1.∆l⁻¹ ≈ ((1 ./ ∆lprim,), (1 ./ ∆ldual,))
     @test g1.isbloch == [isbloch]
     # @test g1.Npml == ([Npmln], [Npmlp])
     # @test g1.Lpml ≈ ([sum(∆ldual[1:Npmln])], [sum(∆ldual[end-Npmlp+1:end])])
@@ -76,6 +77,7 @@ end  # @testset "Grid{1}, primal boundary"
     prepend!(∆lprim[nY], 2(ldual[nY][1]-lprim[nY][1]))
     prepend!(∆lprim[nZ], ldual[nZ][1]+L[nZ]-ldual[nZ][end])
     @test g3.∆l ≈ (∆lprim, ∆ldual)
+    @test g3.∆l⁻¹ ≈ ((1 ./ ∆lprim[1], 1 ./ ∆lprim[2], 1 ./ ∆lprim[3]), (1 ./ ∆ldual[1], 1 ./ ∆ldual[2], 1 ./ ∆ldual[3]))
     @test g3.isbloch == isbloch
     # @test g3.Npml == Npml
     # @test g3.Lpml ≈ (

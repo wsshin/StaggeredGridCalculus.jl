@@ -28,33 +28,33 @@ g = zeros(Complex{Float64}, 3M)
                  -∂y ∂x Z]
 
     # Construct Cu for a nonuniform grid and general boundaries.
-    ∆ldual = rand.(N)
+    ∆ldual⁻¹ = rand.(N)
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
 
-    Cu = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cu = create_curl(isfwd, [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
     # Test Cu.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆ldual[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆ldual⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆ldual⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆ldual⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Cu == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
     # Test Cartesian-component-major ordering.
-    Cu_compfirst = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+    Cu_compfirst = create_curl(isfwd, [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
     @test Cu_compfirst == Cu[r,r]
 
     # Test apply_curl!.
     f = F[:]
     mul!(g, Cu, f)
     G .= 0
-    apply_curl!(G, F, isfwd, ∆ldual, isbloch, e⁻ⁱᵏᴸ)
+    apply_curl!(G, F, isfwd, ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ)
     @test G[:] ≈ g
 
     # print("matrix: "); @btime mul!($g, $Cu, $f)
-    # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆ldual, $isbloch, $e⁻ⁱᵏᴸ)
+    # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆ldual⁻¹, $isbloch, $e⁻ⁱᵏᴸ)
 end  # @testset "create_curl and apply_curl! for primal field U"
 
 @testset "create_curl and apply_curl! for dual field V" begin
@@ -76,41 +76,41 @@ end  # @testset "create_curl and apply_curl! for primal field U"
                  -∂y ∂x Z]
 
     # Construct Cv for a nonuniform grid and general boundaries.
-    ∆lprim = rand.(N)
+    ∆lprim⁻¹ = rand.(N)
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
 
-    Cv = create_curl(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cv = create_curl(isfwd, [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
     # Test Cv.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test Cv == [Z -∂z ∂y;
                  ∂z Z -∂x;
                  -∂y ∂x Z]
 
     # Test Cartesian-component-major ordering
-    Cv_compfirst = create_curl(isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+    Cv_compfirst = create_curl(isfwd, [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
     @test Cv_compfirst == Cv[r,r]
 
     # Test apply_curl!.
     f = F[:]
     mul!(g, Cv, f)
     G .= 0
-    apply_curl!(G, F, isfwd, ∆lprim, isbloch, e⁻ⁱᵏᴸ)
+    apply_curl!(G, F, isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ)
     @test G[:] ≈ g
 end  # @testset "create_curl and apply_curl! for dual field V"
 
 @testset "curl of curl" begin
     # Construct Cu and Cv for a uniform grid and Bloch boundaries.
-    ∆ldual = ones.(N)
-    ∆lprim = ones.(N)
+    ∆ldual⁻¹ = ones.(N)
+    ∆lprim⁻¹ = ones.(N)
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = ones(3)
 
-    Cu = create_curl([true,true,true], [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    Cv = create_curl([false,false,false], [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cu = create_curl([true,true,true], [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cv = create_curl([false,false,false], [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
     # Test symmetry of each block.
     for i = nXYZ
@@ -121,8 +121,8 @@ end  # @testset "create_curl and apply_curl! for dual field V"
 
     # Construct Cv * Cu.
     isbloch = fill(true, 3)
-    Cu = create_curl([true,true,true], [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    Cv = create_curl([false,false,false], [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cu = create_curl([true,true,true], [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cv = create_curl([false,false,false], [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
     A = Cv * Cu
 
     # Test curl of curl.
@@ -136,14 +136,14 @@ end  # @testset "curl of curl"
 
 @testset "curl of curl, mixed forward and backward" begin
     # Construct Cu and Cv for a uniform grid and Bloch boundaries.
-    ∆ldual = ones.(N)
-    ∆lprim = ones.(N)
+    ∆ldual⁻¹ = ones.(N)
+    ∆lprim⁻¹ = ones.(N)
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = ones(3)
 
     isfwd = [true,false,true]
-    Cu = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    Cv = create_curl(.!isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cu = create_curl(isfwd, [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cv = create_curl(.!isfwd, [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
     # Test symmetry of each block.
     for i = nXYZ
@@ -154,8 +154,8 @@ end  # @testset "curl of curl"
 
     # Construct Cv * Cu.
     isbloch = fill(true, 3)
-    Cu = create_curl(isfwd, [N...], ∆ldual, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    Cv = create_curl(.!isfwd, [N...], ∆lprim, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cu = create_curl(isfwd, [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    Cv = create_curl(.!isfwd, [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
     A = Cv * Cu
 
     # Test curl of curl.

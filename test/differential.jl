@@ -14,7 +14,7 @@
         sub′ = Vector{Int}(undef, 1)
 
         Nw = N[nw]
-        ∆w = rand(Nw)
+        ∆w⁻¹ = rand(Nw)
 
         for ns = (-1,1), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
             ∂ws = spzeros(M,M)
@@ -22,8 +22,8 @@
             for ind = 1:M
                 sub .= CartesianIndices(N)[ind].I  # subscripts of diagonal entry
                 indw = sub[nw]
-                ∆wᵢ = ∆w[indw]
-                ∂ws[ind,ind] = -ns / ∆wᵢ  # diagonal entries
+                ∆wᵢ⁻¹ = ∆w⁻¹[indw]
+                ∂ws[ind,ind] = -ns * ∆wᵢ⁻¹  # diagonal entries
 
                 # Calculate the column index of the off-diagonal entry in the row `ind`.
                 sub′ .= sub  # subscripts of off-diagonal entry
@@ -42,7 +42,7 @@
                 end
 
                 ind′ = LinearIndices(N)[sub′...]
-                ∂ws[ind, ind′] += ns / ∆wᵢ  # off-diagonal entry
+                ∂ws[ind, ind′] += ns * ∆wᵢ⁻¹  # off-diagonal entry
             end
 
             if !isbloch  # symmetry boundary
@@ -61,17 +61,17 @@
             end
 
             # Test create_∂.
-            @test create_∂(nw, ns==1, [N...], ∆w, isbloch) == ∂ws
+            @test create_∂(nw, ns==1, [N...], ∆w⁻¹, isbloch) == ∂ws
 
             # Test apply_∂!.
             fu = Fu[:]
             mul!(gv, ∂ws, fu)
             Gv .= 0
-            apply_∂!(Gv, Fu, nw, ns==1, ∆w, isbloch)
+            apply_∂!(Gv, Fu, nw, ns==1, ∆w⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
-            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w)
+            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w⁻¹)
             # println()
         end
     end
@@ -91,7 +91,7 @@ end  # @testset "create_∂ and apply_∂!, 1D"
         sub′ = Vector{Int}(undef, 2)
 
         Nw = N[nw]
-        ∆w = rand(Nw)
+        ∆w⁻¹ = rand(Nw)
 
         for ns = (-1,1), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
             ∂ws = spzeros(M,M)
@@ -99,8 +99,8 @@ end  # @testset "create_∂ and apply_∂!, 1D"
             for ind = 1:M
                 sub .= CartesianIndices(N)[ind].I  # subscripts of diagonal entry
                 indw = sub[nw]
-                ∆wᵢ = ∆w[indw]
-                ∂ws[ind,ind] = -ns / ∆wᵢ  # diagonal entries
+                ∆wᵢ⁻¹ = ∆w⁻¹[indw]
+                ∂ws[ind,ind] = -ns * ∆wᵢ⁻¹  # diagonal entries
 
                 # Calculate the column index of the off-diagonal entry in the row `ind`.
                 sub′ .= sub  # subscripts of off-diagonal entry
@@ -119,7 +119,7 @@ end  # @testset "create_∂ and apply_∂!, 1D"
                 end
 
                 ind′ = LinearIndices(N)[sub′...]
-                ∂ws[ind, ind′] += ns / ∆wᵢ  # off-diagonal entry
+                ∂ws[ind, ind′] += ns * ∆wᵢ⁻¹  # off-diagonal entry
             end
 
             if !isbloch  # symmetry boundary
@@ -138,17 +138,17 @@ end  # @testset "create_∂ and apply_∂!, 1D"
             end
 
             # Test create_∂.
-            @test create_∂(nw, ns==1, [N...], ∆w, isbloch) == ∂ws
+            @test create_∂(nw, ns==1, [N...], ∆w⁻¹, isbloch) == ∂ws
 
             # Test apply_∂!.
             fu = Fu[:]
             mul!(gv, ∂ws, fu)
             Gv .= 0
-            apply_∂!(Gv, Fu, nw, ns==1, ∆w, isbloch)
+            apply_∂!(Gv, Fu, nw, ns==1, ∆w⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
-            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w)
+            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w⁻¹)
             # println()
         end
     end
@@ -168,7 +168,7 @@ end  # @testset "create_∂ and apply_∂!, 2D"
         sub′ = Vector{Int}(undef, 3)
 
         Nw = N[nw]
-        ∆w = rand(Nw)
+        ∆w⁻¹ = rand(Nw)
 
         for ns = (-1,1), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
             ∂ws = spzeros(M,M)
@@ -176,8 +176,8 @@ end  # @testset "create_∂ and apply_∂!, 2D"
             for ind = 1:M
                 sub .= CartesianIndices(N)[ind].I  # subscripts of diagonal entry
                 indw = sub[nw]
-                ∆wᵢ = ∆w[indw]
-                ∂ws[ind,ind] = -ns / ∆wᵢ  # diagonal entries
+                ∆wᵢ⁻¹ = ∆w⁻¹[indw]
+                ∂ws[ind,ind] = -ns * ∆wᵢ⁻¹  # diagonal entries
 
                 # Calculate the column index of the off-diagonal entry in the row `ind`.
                 sub′ .= sub  # subscripts of off-diagonal entry
@@ -196,7 +196,7 @@ end  # @testset "create_∂ and apply_∂!, 2D"
                 end
 
                 ind′ = LinearIndices(N)[sub′...]
-                ∂ws[ind, ind′] += ns / ∆wᵢ  # off-diagonal entry
+                ∂ws[ind, ind′] += ns * ∆wᵢ⁻¹  # off-diagonal entry
             end
 
             if !isbloch  # symmetry boundary
@@ -215,17 +215,17 @@ end  # @testset "create_∂ and apply_∂!, 2D"
             end
 
             # Test create_∂.
-            @test create_∂(nw, ns==1, [N...], ∆w, isbloch) == ∂ws
+            @test create_∂(nw, ns==1, [N...], ∆w⁻¹, isbloch) == ∂ws
 
             # Test apply_∂!.
             fu = Fu[:]
             mul!(gv, ∂ws, fu)
             Gv .= 0
-            apply_∂!(Gv, Fu, nw, ns==1, ∆w, isbloch)
+            apply_∂!(Gv, Fu, nw, ns==1, ∆w⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
-            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w)
+            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w⁻¹)
             # println()
         end
     end

@@ -28,28 +28,28 @@ g = zeros(Complex{Float64}, 2M)
     @test uG == [∂x; ∂y]
 
     # Construct uG for a nonuniform grid and general boundaries.
-    ∆lprim = rand.(tuple(N...))
+    ∆lprim⁻¹ = rand.(tuple(N...))
     isbloch = [true, false]
     e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
     scale∂ = [1, -1]
 
-    uG = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
+    uG = create_grad(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
 
     # Test Cu.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆lprim[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+    ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
     @test uG == [scale∂[1].*∂x; scale∂[2].*∂y]
 
     # Test Cartesian-component-first ordering.
-    uG_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
+    uG_compfirst = create_grad(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
     @test uG_compfirst == uG[r,:]
 
     # Test permutation.
     permute∂ = [2, 1]  # with scale∂ = [1,-1], create divergence operator [-∂y; ∂x]
-    uG_permute = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
+    uG_permute = create_grad(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
     @test uG_permute == [scale∂[2].*∂y; scale∂[1].*∂x]
 
-    uG_permute_compfirst = create_grad(isfwd, N, ∆lprim, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
+    uG_permute_compfirst = create_grad(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
     @test uG_permute_compfirst == uG_permute[r,:]
 
     # Test apply_grad!.
