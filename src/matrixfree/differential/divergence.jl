@@ -1,3 +1,6 @@
+# Assumes the space dimension and field dimension are the same.  In other words, when the
+# space coordinate indices are (i,j,k), then the field has three vector components.
+# Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.
 export apply_divg!
 
 apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)

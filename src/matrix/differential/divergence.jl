@@ -1,3 +1,6 @@
+# Assumes the space dimension and field dimension are the same.  In other words, when the
+# space coordinate indices are (i,j,k), then the field has three vector components.
+# Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.
 export create_divg
 
 create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
