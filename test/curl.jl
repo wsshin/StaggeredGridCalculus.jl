@@ -11,50 +11,50 @@ g = zeros(Complex{Float64}, 3M)
 
 @testset "create_curl and apply_curl!" begin
     for ci = CartesianIndices((false:true,false:true,false:true))
-        # Construct Cu for a uniform grid and Bloch boundaries.
+        # Construct Curl for a uniform grid and Bloch boundaries.
         isfwd = Vector{Bool}([ci.I...])
-        Cu = create_curl(isfwd, [N...], order_cmpfirst=false)
+        Curl = create_curl(isfwd, [N...], order_cmpfirst=false)
 
         # Test the overall coefficients.
-        @test size(Cu) == (3M,3M)
-        @test all(any(Cu.≠0, dims=1))  # no zero columns
-        @test all(any(Cu.≠0, dims=2))  # no zero rows
-        @test all(sum(Cu, dims=2) .== 0)  # all row sums are zero, because Cu * ones(M) = 0
+        @test size(Curl) == (3M,3M)
+        @test all(any(Curl.≠0, dims=1))  # no zero columns
+        @test all(any(Curl.≠0, dims=2))  # no zero rows
+        @test all(sum(Curl, dims=2) .== 0)  # all row sums are zero, because Curl * ones(M) = 0
 
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...]))
         ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...]))
         ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...]))
-        @test Cu == [Z -∂z ∂y;
-                     ∂z Z -∂x;
-                     -∂y ∂x Z]
+        @test Curl == [Z -∂z ∂y;
+                       ∂z Z -∂x;
+                       -∂y ∂x Z]
 
-        # Construct Cu for a nonuniform grid and general boundaries.
+        # Construct Curl for a nonuniform grid and general boundaries.
         ∆l⁻¹ = rand.(N)  # isfwd = true (false) uses ∆l⁻¹ at dual (primal) locations
         isbloch = [true, false, false]
         e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
 
-        Cu = create_curl(isfwd, [N...], ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+        Curl = create_curl(isfwd, [N...], ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
-        # Test Cu.
+        # Test Curl.
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
         ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
         ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-        @test Cu == [Z -∂z ∂y;
+        @test Curl == [Z -∂z ∂y;
                      ∂z Z -∂x;
                      -∂y ∂x Z]
 
         # Test Cartesian-component-major ordering.
-        Cu_cmpfirst = create_curl(isfwd, [N...], ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
-        @test Cu_cmpfirst == Cu[r,r]
+        Curl_cmpfirst = create_curl(isfwd, [N...], ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+        @test Curl_cmpfirst == Curl[r,r]
 
         # Test apply_curl!.
         f = F[:]
-        mul!(g, Cu, f)
+        mul!(g, Curl, f)
         G .= 0
         apply_curl!(G, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)
         @test G[:] ≈ g
 
-        # print("matrix: "); @btime mul!($g, $Cu, $f)
+        # print("matrix: "); @btime mul!($g, $Curl, $f)
         # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆l⁻¹, $isbloch, $e⁻ⁱᵏᴸ)
     end
 end  # @testset "create_curl and apply_curl!"
