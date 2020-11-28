@@ -44,7 +44,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
     for nw = 1:K  # direction of differentiation
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
-        nu = permute∂[nw]  # index of input field (index of matrix block)
+        nu = permute∂[nw]  # component of input field to feed to ∂w (index of matrix block)
         jstr, joff = order_cmpfirst ? (K, nu-K) : (1, M*(nu-1))  # (column stride, column offset)
         @. J = jstr * J + joff
 
