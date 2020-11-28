@@ -1,3 +1,8 @@
+# Conventions for Cartesian components
+# nw: direction of differentiation (∂w)
+# nu: component of the input field (Fu)
+# nv: component of the output field (Gv)
+
 export apply_∂!
 
 apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z)
