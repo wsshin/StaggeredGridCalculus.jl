@@ -9,103 +9,60 @@ F = rand(Complex{Float64}, N..., 3)
 G = similar(F)
 g = zeros(Complex{Float64}, 3M)
 
-@testset "create_curl and apply_curl! for primal field U" begin
-    # Construct Cu for a uniform grid and Bloch boundaries.
-    isfwd = [true, true, true]  # U is differentiated forward
-    Cu = create_curl(isfwd, [N...], order_cmpfirst=false)
+@testset "create_curl and apply_curl!" begin
+    for ci = CartesianIndices((false:true,false:true,false:true))
+        # Construct Cu for a uniform grid and Bloch boundaries.
+        isfwd = Vector{Bool}([ci.I...])
+        Cu = create_curl(isfwd, [N...], order_cmpfirst=false)
 
-    # Test the overall coefficients.
-    @test size(Cu) == (3M,3M)
-    @test all(any(Cu.≠0, dims=1))  # no zero columns
-    @test all(any(Cu.≠0, dims=2))  # no zero rows
-    @test all(sum(Cu, dims=2) .== 0)  # all row sums are zero, because Cu * ones(M) = 0
+        # Test the overall coefficients.
+        @test size(Cu) == (3M,3M)
+        @test all(any(Cu.≠0, dims=1))  # no zero columns
+        @test all(any(Cu.≠0, dims=2))  # no zero rows
+        @test all(sum(Cu, dims=2) .== 0)  # all row sums are zero, because Cu * ones(M) = 0
 
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...]))
-    @test Cu == [Z -∂z ∂y;
-                 ∂z Z -∂x;
-                 -∂y ∂x Z]
+        ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...]))
+        ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...]))
+        ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...]))
+        @test Cu == [Z -∂z ∂y;
+                     ∂z Z -∂x;
+                     -∂y ∂x Z]
 
-    # Construct Cu for a nonuniform grid and general boundaries.
-    ∆ldual⁻¹ = rand.(N)
-    isbloch = [true, false, false]
-    e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
+        # Construct Cu for a nonuniform grid and general boundaries.
+        ∆l⁻¹ = rand.(N)  # isfwd = true (false) uses ∆l⁻¹ at dual (primal) locations
+        isbloch = [true, false, false]
+        e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
 
-    Cu = create_curl(isfwd, [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+        Cu = create_curl(isfwd, [N...], ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
-    # Test Cu.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆ldual⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆ldual⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆ldual⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    @test Cu == [Z -∂z ∂y;
-                 ∂z Z -∂x;
-                 -∂y ∂x Z]
+        # Test Cu.
+        ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+        ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+        ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
+        @test Cu == [Z -∂z ∂y;
+                     ∂z Z -∂x;
+                     -∂y ∂x Z]
 
-    # Test Cartesian-component-major ordering.
-    Cu_compfirst = create_curl(isfwd, [N...], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
-    @test Cu_compfirst == Cu[r,r]
+        # Test Cartesian-component-major ordering.
+        Cu_cmpfirst = create_curl(isfwd, [N...], ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+        @test Cu_cmpfirst == Cu[r,r]
 
-    # Test apply_curl!.
-    f = F[:]
-    mul!(g, Cu, f)
-    G .= 0
-    apply_curl!(G, F, isfwd, ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ)
-    @test G[:] ≈ g
+        # Test apply_curl!.
+        f = F[:]
+        mul!(g, Cu, f)
+        G .= 0
+        apply_curl!(G, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)
+        @test G[:] ≈ g
 
-    # print("matrix: "); @btime mul!($g, $Cu, $f)
-    # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆ldual⁻¹, $isbloch, $e⁻ⁱᵏᴸ)
-end  # @testset "create_curl and apply_curl! for primal field U"
-
-@testset "create_curl and apply_curl! for dual field V" begin
-    # Construct Cv for a uniform grid and Bloch boundaries.
-    isfwd = [false, false, false]  # V is differentiated backward
-    Cv = create_curl(isfwd, [N...], order_cmpfirst=false)
-
-    # Test the overall coefficients.
-    @test size(Cv) == (3M,3M)
-    @test all(any(Cv.≠0, dims=1))  # no zero columns
-    @test all(any(Cv.≠0, dims=2))  # no zero rows
-    @test all(sum(Cv, dims=2) .== 0)  # all row sums are zero, because Cv * ones(sum(Min)) = 0
-
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...]))
-    @test Cv == [Z -∂z ∂y;
-                 ∂z Z -∂x;
-                 -∂y ∂x Z]
-
-    # Construct Cv for a nonuniform grid and general boundaries.
-    ∆lprim⁻¹ = rand.(N)
-    isbloch = [true, false, false]
-    e⁻ⁱᵏᴸ = rand(ComplexF64, 3)
-
-    Cv = create_curl(isfwd, [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-
-    # Test Cv.
-    ∂x = (nw = 1; create_∂(nw, isfwd[nw], [N...], ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂y = (nw = 2; create_∂(nw, isfwd[nw], [N...], ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    ∂z = (nw = 3; create_∂(nw, isfwd[nw], [N...], ∆lprim⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-    @test Cv == [Z -∂z ∂y;
-                 ∂z Z -∂x;
-                 -∂y ∂x Z]
-
-    # Test Cartesian-component-major ordering
-    Cv_compfirst = create_curl(isfwd, [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
-    @test Cv_compfirst == Cv[r,r]
-
-    # Test apply_curl!.
-    f = F[:]
-    mul!(g, Cv, f)
-    G .= 0
-    apply_curl!(G, F, isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ)
-    @test G[:] ≈ g
-end  # @testset "create_curl and apply_curl! for dual field V"
+        # print("matrix: "); @btime mul!($g, $Cu, $f)
+        # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆l⁻¹, $isbloch, $e⁻ⁱᵏᴸ)
+    end
+end  # @testset "create_curl and apply_curl!"
 
 @testset "curl of curl" begin
     # Construct Cu and Cv for a uniform grid and Bloch boundaries.
-    ∆ldual⁻¹ = ones.(N)
-    ∆lprim⁻¹ = ones.(N)
+    ∆ldual⁻¹ = ones.(N)  # inverse of ∆l evaluated at dual locations
+    ∆lprim⁻¹ = ones.(N)  # inverse of ∆l evaluated at primal locations
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = ones(3)
 
