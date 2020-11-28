@@ -6,8 +6,8 @@ r = reshape(collect(1:2M), M, 2)'[:]  # index mapping from block matrix to narro
 Z = spzeros(M,M)
 
 F = rand(Complex{Float64}, N..., 2)
-G = similar(F)
-g = zeros(Complex{Float64}, 2M)
+g = zeros(Complex{Float64}, N...)
+gvec = zeros(Complex{Float64}, M)
 
 @testset "create_divg and apply_divg! for primal field U" begin
     # Construct Du for a uniform grid and Bloch boundaries.
@@ -41,19 +41,33 @@ g = zeros(Complex{Float64}, 2M)
     @test Du == [scale∂[1].*∂x scale∂[2].*∂y]
 
     # Test Cartesian-component-first ordering.
-    Du_compfirst = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
-    @test Du_compfirst == Du[:,r]
+    Du_cmpfirst = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
+    @test Du_cmpfirst == Du[:,r]
 
     # Test permutation.
     permute∂ = [2, 1]  # with scale∂ = [1,-1], create divergence operator [-∂y, ∂x]
     Du_permute = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
     @test Du_permute == [scale∂[2].*∂y scale∂[1].*∂x]
 
-    Du_permute_compfirst = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
-    @test Du_permute_compfirst == Du_permute[:,r]
+    Du_permute_cmpfirst = create_divg(isfwd, N, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
+    @test Du_permute_cmpfirst == Du_permute[:,r]
 
     # Test apply_divg!.
-    # # to be filled
+    f = F[:]
+    mul!(gvec, Du, f)
+    g .= 0
+    apply_divg!(g, F, isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+    @test g[:] ≈ gvec
+
+    mul!(gvec, Du_cmpfirst, f[r])
+    g .= 0
+    apply_divg!(g, F, isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+    @test g[:] ≈ gvec
+
+    mul!(gvec, Du_permute_cmpfirst, f[r])
+    g .= 0
+    apply_divg!(g, F, isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂)
+    @test g[:] ≈ gvec
 end  # @testset "create_divg and apply_divg! for primal field U"
 
 # @testset "create_divg and apply_divg! for dual field V" begin
