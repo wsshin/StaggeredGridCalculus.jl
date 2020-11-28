@@ -1,27 +1,23 @@
 export apply_∂!
 
-apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
-         Fu::T,  # u-component of input field (u = x, y, z)
+apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z)
+         Fu::AbsArrNumber,  # u-component of input field (u = x, y, z)
          nw::Integer,  # 1|2|3 for x|y|z
          isfwd::Bool,  # true|false for forward|backward difference
          ∆w⁻¹::Number,  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-         α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-         ) where {K,  # space dimension (field dimension Kf does not show up as we deal with single component)
-                  T<:AbsArrNumber{K}} =
+         α::Number=1.0) =  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
 
-apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
-         Fu::T,  # u-component of input field (u = x, y, z)
+apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z)
+         Fu::AbsArrNumber,  # u-component of input field (u = x, y, z)
          nw::Integer,  # 1|2|3 for x|y|z
          isfwd::Bool,  # true|false for forward|backward difference
          ∆w⁻¹::AbsVecNumber=ones(size(Fu)[nw]),  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-         α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-         ) where {K,  # space dimension (field dimension Kf does not show up as we deal with single component)
-                  T<:AbsArrNumber{K}} =
+         α::Number=1.0) =  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
 
 # The field arrays Fu (and Gv) represents a K-D array of a specific Cartesian component of the
@@ -30,15 +26,14 @@ apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
 # to get the derivative values themselves, pass Gv initialized with zeros.
 
 # For 3D
-function apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
-                  Fu::T,  # u-component of input field (u = x, y, z)
+function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
+                  Fu::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
                   nw::Integer,  # 1|2|3 for x|y|z
                   isfwd::Bool,  # true|false for forward|backward difference
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-                  ) where {T<:AbsArrNumber{3}}
+                  α::Number=1.0)  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     @assert(size(Gv)==size(Fu))
     @assert(1≤nw≤3)
     @assert(size(Fu,nw)==length(∆w⁻¹))
@@ -191,15 +186,14 @@ function apply_∂!(Gv::T,  # v-component of output field (v = x, y, z)
 end
 
 # For 2D
-function apply_∂!(Gv::T,  # v-component of output field (v = x, y)
-                  Fu::T,  # u-component of input field (u = x, y)
+function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, y)
+                  Fu::AbsArrNumber{2},  # u-component of input field (u = x, y)
                   nw::Integer,  # 1|2 for x|y
                   isfwd::Bool,  # true|false for forward|backward difference
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-                  ) where {T<:AbsArrNumber{2}}
+                  α::Number=1.0)  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     @assert(size(Gv)==size(Fu))
     @assert(1≤nw≤2)
     @assert(size(Fu,nw)==length(∆w⁻¹))
@@ -304,15 +298,14 @@ function apply_∂!(Gv::T,  # v-component of output field (v = x, y)
 end
 
 # For 1D
-function apply_∂!(Gv::T,  # v-component of output field (v = x)
-                  Fu::T,  # u-component of input field (u = x)
+function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
+                  Fu::AbsArrNumber{1},  # u-component of input field (u = x)
                   nw::Integer,  # 1 for x
                   isfwd::Bool,  # true|false for forward|backward difference
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-                  ) where {T<:AbsArrNumber{1}}
+                  α::Number=1.0)  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     @assert(size(Gv)==size(Fu))
     @assert(nw==1)
     @assert(size(Fu,nw)==length(∆w⁻¹))
@@ -357,16 +350,15 @@ function apply_∂!(Gv::T,  # v-component of output field (v = x)
 end
 
 # # The following is the implementation for arbitrary space dimensions, but it is slow.
-# function apply_∂!(Gv::T,  # v-component of output field (v = x, y, z in 3D)
-#                   Fu::T,  # u-component of input field (u = x, y, z in 3D)
+# function apply_∂!(Gv::AbsArrNumber{K},  # v-component of output field (v = x, y, z in 3D)
+#                   Fu::AbsArrNumber{K},  # u-component of input field (u = x, y, z in 3D)
 #                   nw::Integer,  # 1|2|3 for x|y|z in 3D
 #                   isfwd::Bool,  # true|false for forward|backward difference
 #                   ∆w⁻¹::AbsVecNumber,  # spatial discretization; vector of length N[nw]
 #                   isbloch::Bool,  # boundary condition in w-direction
 #                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
 #                   α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-#                   ) where {K,  # space dimension (field dimension Kf does not show up as we deal with single component)
-#                            T<:AbsArrNumber{K}}
+#                   ) where {K}  # space dimension (field dimension Kf does not show up as we deal with single component)
 #     @assert(size(Gv)==size(Fu))
 #     @assert(1≤nw≤K)
 #     @assert(size(Fu,nw)==length(∆w⁻¹))
@@ -450,5 +442,5 @@ end
 # end
 
 include("curl.jl")
-# include("divergence.jl")
+include("divergence.jl")
 # include("gradient.jl")
