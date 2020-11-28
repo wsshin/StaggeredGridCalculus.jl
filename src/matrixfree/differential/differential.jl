@@ -448,4 +448,4 @@ end
 
 include("curl.jl")
 include("divergence.jl")
-# include("gradient.jl")
+include("gradient.jl")
