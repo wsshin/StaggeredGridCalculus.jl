@@ -49,24 +49,29 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
     if isfwd
         if nw == 1
             if isbloch
+                # At locations except for the positive end of the x-direction
                 for k = 1:Nz, j = 1:Ny, i = 1:Nx-1
                     @inbounds Gv[i,j,k] += (α * ∆w⁻¹[i]) * (Fu[i+1,j,k] - Fu[i,j,k])
                 end
 
+                # At the positive end of the x-direction (where the boundary fields are taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Nx]
                 for k = 1:Nz, j = 1:Ny
                     @inbounds Gv[Nx,j,k] += β * (e⁻ⁱᵏᴸ*Fu[1,j,k] - Fu[Nx,j,k])  # Fu[Nx+1,j,k] = exp(-i kx Lx) * Fu[1,j,k]
                 end
             else  # symmetry boundary
+                # At the locations except for the positive and negative ends of the x-direction
                 for k = 1:Nz, j = 1:Ny, i = 2:Nx-1
                     @inbounds Gv[i,j,k] += (α * ∆w⁻¹[i]) * (Fu[i+1,j,k] - Fu[i,j,k])
                 end
 
+                # At the negative end of the x-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, j = 1:Ny
                     @inbounds Gv[1,j,k] += β * Fu[2,j,k]  # Fu[1,j,k] == 0
                 end
 
+                # At the positive end of the x-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[Nx]
                 for k = 1:Nz, j = 1:Ny
                     @inbounds Gv[Nx,j,k] -= β * Fu[Nx,j,k]  # Fu[Nx+1,j,k] == 0
@@ -74,6 +79,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             end
         elseif nw == 2
             if isbloch
+                # At locations except for the positive end of the y-direction
                 for k = 1:Nz, j = 1:Ny-1
                     β = α * ∆w⁻¹[j]
                     for i = 1:Nx
@@ -81,11 +87,13 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     end
                 end
 
+                # At the positive end of the y-direction (where the boundary fields are taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Ny]
                 for k = 1:Nz, i = 1:Nx
                     @inbounds Gv[i,Ny,k] += β * (e⁻ⁱᵏᴸ*Fu[i,1,k] - Fu[i,Ny,k])  # Fu[i,Ny+1,k] = exp(-i ky Ly) * Fu[i,1,k]
                 end
             else  # symmetry boundary
+                # At the locations except for the positive and negative ends of the y-direction
                 for k = 1:Nz, j = 2:Ny-1
                     β = α * ∆w⁻¹[j]
                     for i = 1:Nx
@@ -93,11 +101,13 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     end
                 end
 
+                # At the negative end of the y-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, i = 1:Nx
                     @inbounds Gv[i,1,k] += β * Fu[i,2,k]  # Fu[i,1,k] == 0
                 end
 
+                # At the positive end of the y-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[Ny]
                 for k = 1:Nz, i = 1:Nx
                     @inbounds Gv[i,Ny,k] -= β * Fu[i,Ny,k]  # Fu[i,Ny+1,k] == 0
@@ -105,6 +115,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             end
         else  # nw == 3
             if isbloch
+                # At locations except for the positive end of the z-direction
                 for k = 1:Nz-1
                     β = α * ∆w⁻¹[k]
                     for j = 1:Ny, i = 1:Nx
@@ -112,11 +123,13 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     end
                 end
 
+                # At the positive end of the z-direction (where the boundary fields are taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Nz]
                 for j = 1:Ny, i = 1:Nx
                     @inbounds Gv[i,j,Nz] += β * (e⁻ⁱᵏᴸ*Fu[i,j,1] - Fu[i,j,Nz])  # Fu[i,j,Nz+1] = exp(-i kz Lz) * Fu[i,j,1]
                 end
             else  # symmetry boundary
+                # At the locations except for the positive and negative ends of the z-direction
                 for k = 2:Nz-1
                     β = α * ∆w⁻¹[k]
                     for j = 1:Ny, i = 1:Nx
@@ -124,11 +137,13 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     end
                 end
 
+                # At the negative end of the z-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny, i = 1:Nx
                     @inbounds Gv[i,j,1] += β * Fu[i,j,2]  # Fu[i,j,1] == 0
                 end
 
+                # At the positive end of the z-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[Nz]
                 for j = 1:Ny, i = 1:Nx
                     @inbounds Gv[i,j,Nz] -= β * Fu[i,j,Nz]  # Fu[i,j,Nz+1] == 0
@@ -137,11 +152,15 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         end  # if nw == ...
     else  # backward difference
         if nw == 1
+            # At the locations except for the negative end of the x-direction; unlike for
+            # the forward difference, for the backward difference this part of the code is
+            # common for both the Bloch and symmetry boundary conditions.
             for k = 1:Nz, j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
                 @inbounds Gv[i,j,k] += (α * ∆w⁻¹[i]) * (Fu[i,j,k] - Fu[i-1,j,k])
             end
 
             if isbloch
+                # At the negative end of the x-direction (where the boundary fields are taken from the positive-end boundary)
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, j = 1:Ny
                     @inbounds Gv[1,j,k] += β * (Fu[1,j,k] - Fu[Nx,j,k]/e⁻ⁱᵏᴸ)  # Fu[0,j,k] = Fu[Nx,j,k] / exp(-i kx Lx)
@@ -151,6 +170,9 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # is zero.
             end
         elseif nw == 2
+            # At the locations except for the negative end of the y-direction; unlike for
+            # the forward difference, for the backward difference this part of the code is
+            # common for both the Bloch and symmetry boundary conditions.
             for k = 1:Nz, j = 2:Ny  # not j = 2:Ny-1
                 β = α * ∆w⁻¹[j]
                 for i = 1:Nx
@@ -159,6 +181,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             end
 
             if isbloch
+                # At the negative end of the y-direction (where the boundary fields are taken from the positive-end boundary)
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, i = 1:Nx
                     @inbounds Gv[i,1,k] += β * (Fu[i,1,k] - Fu[i,Ny,k]/e⁻ⁱᵏᴸ)  # Fu[i,0,k] = Fu[i,Ny,k] / exp(-i ky Ly)
@@ -168,6 +191,9 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # is zero.
             end
         else  # nw == 3
+            # At the locations except for the negative end of the z-direction; unlike for
+            # the forward difference, for the backward difference this part of the code is
+            # common for both the Bloch and symmetry boundary conditions.
             for k = 2:Nz  # not k = 2:Nz-1
                 β = α * ∆w⁻¹[k]
                 for j = 1:Ny, i = 1:Nx
@@ -176,6 +202,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             end
 
             if isbloch
+                # At the negative end of the z-direction (where the boundary fields are taken from the positive-end boundary)
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny, i = 1:Nx
                     @inbounds Gv[i,j,1] += β * (Fu[i,j,1] - Fu[i,j,Nz]/e⁻ⁱᵏᴸ)  # Fu[i,j,0] = Fu[i,j,Nz] / exp(-i kz Lz)
@@ -209,24 +236,29 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
     if isfwd
         if nw == 1
             if isbloch
+                # At locations except for the positive end of the x-direction
                 for j = 1:Ny, i = 1:Nx-1
                     @inbounds Gv[i,j] += (α * ∆w⁻¹[i]) * (Fu[i+1,j] - Fu[i,j])
                 end
 
+                # At the positive end of the x-direction (where the boundary fields are taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Nx]
                 for j = 1:Ny
                     @inbounds Gv[Nx,j] += β * (e⁻ⁱᵏᴸ*Fu[1,j] - Fu[Nx,j])  # Fu[Nx+1,j] = exp(-i kx Lx) * Fu[1,j]
                 end
             else  # symmetry boundary
+                # At the locations except for the positive and negative ends of the x-direction
                 for j = 1:Ny, i = 2:Nx-1
                     @inbounds Gv[i,j] += (α * ∆w⁻¹[i]) * (Fu[i+1,j] - Fu[i,j])
                 end
 
+                # At the negative end of the x-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny
                     @inbounds Gv[1,j] += β * Fu[2,j]  # Fu[1,j] == 0
                 end
 
+                # At the positive end of the x-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[Nx]
                 for j = 1:Ny
                     @inbounds Gv[Nx,j] -= β * Fu[Nx,j]  # Fu[Nx+1,j] == 0
@@ -234,6 +266,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             end
         else  # nw == 2
             if isbloch
+                # At locations except for the positive end of the y-direction
                 for j = 1:Ny-1
                     β = α * ∆w⁻¹[j]
                     for i = 1:Nx
@@ -241,11 +274,13 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                     end
                 end
 
+                # At the positive end of the y-direction (where the boundary fields are taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Ny]
                 for i = 1:Nx
                     @inbounds Gv[i,Ny] += β * (e⁻ⁱᵏᴸ*Fu[i,1] - Fu[i,Ny])  # Fu[i,Ny+1] = exp(-i ky Ly) * Fu[i,1]
                 end
             else  # symmetry boundary
+                # At the locations except for the positive and negative ends of the y-direction
                 for j = 2:Ny-1
                     β = α * ∆w⁻¹[j]
                     for i = 1:Nx
@@ -253,11 +288,13 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                     end
                 end
 
+                # At the negative end of the y-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[1]
                 for i = 1:Nx
                     @inbounds Gv[i,1] += β * Fu[i,2]  # Fu[i,1] == 0
                 end
 
+                # At the positive end of the y-direction (where the boundary fields are assumed zero)
                 β = α * ∆w⁻¹[Ny]
                 for i = 1:Nx
                     @inbounds Gv[i,Ny] -= β * Fu[i,Ny]  # Fu[i,Ny+1] == 0
@@ -266,11 +303,15 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
         end  # if nw == ...
     else  # backward difference
         if nw == 1
+            # At the locations except for the negative end of the x-direction; unlike for
+            # the forward difference, for the backward difference this part of the code is
+            # common for both the Bloch and symmetry boundary conditions.
             for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
                 @inbounds Gv[i,j] += (α * ∆w⁻¹[i]) * (Fu[i,j] - Fu[i-1,j])
             end
 
             if isbloch
+                # At the negative end of the x-direction (where the boundary fields are taken from the positive-end boundary)
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny
                     @inbounds Gv[1,j] += β * (Fu[1,j] - Fu[Nx,j]/e⁻ⁱᵏᴸ)  # Fu[0,j] = Fu[Nx,j] / exp(-i kx Lx)
@@ -280,6 +321,9 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 # is zero.
             end
         else  # nw == 2
+            # At the locations except for the negative end of the y-direction; unlike for
+            # the forward difference, for the backward difference this part of the code is
+            # common for both the Bloch and symmetry boundary conditions.
             for j = 2:Ny  # not j = 2:Ny-1
                 β = α * ∆w⁻¹[j]
                 for i = 1:Nx
@@ -288,6 +332,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             end
 
             if isbloch
+                # At the negative end of the y-direction (where the boundary fields are taken from the positive-end boundary)
                 β = α * ∆w⁻¹[1]
                 for i = 1:Nx
                     @inbounds Gv[i,1] += β * (Fu[i,1] - Fu[i,Ny]/e⁻ⁱᵏᴸ)  # Fu[i,0] = Fu[i,Ny] / exp(-i ky Ly)
@@ -320,29 +365,38 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
     # Make sure not to include branches inside for loops.
     if isfwd
         if isbloch
+            # At locations except for the positive end of the x-direction
             for i = 1:Nx-1
                 @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i])
             end
 
+            # At the positive end of the x-direction (where the boundary fields are taken from the negative-end boundary)
             β = α * ∆w⁻¹[Nx]
             Gv[Nx] += β * (e⁻ⁱᵏᴸ*Fu[1] - Fu[Nx])  # Fu[Nx+1] = exp(-i kx Lx) * Fu[1]
         else  # symmetry boundary
+            # At the locations except for the positive and negative ends of the x-direction
             for i = 2:Nx-1
                 @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i])
             end
 
+            # At the negative end of the x-direction (where the boundary fields are assumed zero)
             β = α * ∆w⁻¹[1]
             Gv[1] += β * Fu[2]  # Fu[1] == 0
 
+            # At the positive end of the y-direction (where the boundary fields are assumed zero)
             β = α * ∆w⁻¹[Nx]
             Gv[Nx] -= β * Fu[Nx]  # Fu[Nx+1] == 0
         end
     else  # backward difference
+        # At the locations except for the negative end of the x-direction; unlike for
+        # the forward difference, for the backward difference this part of the code is
+        # common for both the Bloch and symmetry boundary conditions.
         for i = 2:Nx  # not i = 2:Nx-1
             @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i] - Fu[i-1])
         end
 
         if isbloch
+            # At the negative end of the x-direction (where the boundary fields are taken from the positive-end boundary)
             β = α * ∆w⁻¹[1]
             Gv[1] += β * (Fu[1] - Fu[Nx]/e⁻ⁱᵏᴸ)  # Fu[0] = Fu[Nx] / exp(-i kx Lx)
         else  # symmetry boundary
@@ -383,7 +437,7 @@ end
 #                 @inbounds Gv[ci] += (α * ∆w⁻¹[ci[nw]]) * (Fu[ci+δci] - Fu[ci])
 #             end
 #
-#             # At the positive end of the w-direction (where the boundary fields are taken from the negative boundary)
+#             # At the positive end of the w-direction (where the boundary fields are taken from the negative-end boundary)
 #             ciₛ = ciₛ₀ + ∆ci  # Nw at w-component; 1 elsewhere
 #             ciₑ = ciₑ₀  # (Nx,Ny,Nz) in 3D
 #             CI = CartesianIndices(map(:, ciₛ.I, ciₑ.I))
@@ -430,6 +484,7 @@ end
 #         end
 #
 #         if isbloch  # Bloch boundary condition
+#             # At the negative end of the w-direction (where the boundary fields are taken from the positive-end boundary)
 #             ciₛ = ciₛ₀  # (1,1,1) in 3D
 #             ciₑ = ciₑ₀ - ∆ci  #  1 at w-component; N elsewhere
 #             CI = CartesianIndices(map(:, ciₛ.I, ciₑ.I))
