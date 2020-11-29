@@ -42,20 +42,19 @@ function apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
     end
 end
 
-apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
-         Fu::T,  # u-component of input field (u = x, y, z)
+apply_m!(Gv::AbsArrNumber{K},  # v-component of output field (v = x, y, z)
+         Fu::AbsArrNumber{K},  # u-component of input field (u = x, y, z)
          nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for averaging along horizontal|vertical
          isfwd::Bool,  # true|false for forward|backward averaging
          ∆w::Number,  # line segments to multiply with; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
          α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
-         ) where {K,  # space dimension (field dimension Kf does not show up as we deal with single component)
-                  T<:AbsArrNumber{K}} =
+         ) where {K} =  # space dimension (field dimension Kf does not show up as we deal with single component)
     (N = size(Fu); ∆w_vec = fill(∆w, N[nw]); ∆w′⁻¹_vec = fill(1/∆w, N[nw]); apply_m!(Gv, Fu, nw, isfwd, ∆w_vec, ∆w′⁻¹_vec, isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w
 
-apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
-         Fu::T,  # u-component of input field (u = x, y, z)
+apply_m!(Gv::AbsArrNumber{K},  # v-component of output field (v = x, y, z)
+         Fu::AbsArrNumber{K},  # u-component of input field (u = x, y, z)
          nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for averaging along horizontal|vertical
          isfwd::Bool,  # true|false for forward|backward averaging
          ∆w::AbsVecNumber=ones(size(Fu)[nw]),  # line segments to multiply with; vector of length N[nw]
@@ -63,20 +62,18 @@ apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
          α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
-         ) where {K,  # space dimension (field dimension Kf does not show up as we deal with single component)
-                  T<:AbsArrNumber{K}} =
+         ) where {K} =  # space dimension (field dimension Kf does not show up as we deal with single component)
     (N = size(Fu); ∆w_vec = fill(∆w, N[nw]); ∆w′⁻¹_vec = fill(1/∆w, N[nw]); apply_m!(Gv, Fu, nw, isfwd, ∆w_vec, ∆w′⁻¹_vec, isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w
 
-function apply_m!(Gv::T,  # v-component of output field (v = x, y, z)
-                  Fu::T,  # u-component of input field (u = x, y, z)
+function apply_m!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
+                  Fu::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
                   nw::Integer,  # 1|2|3 for averaging along x|y|z; 1|2 for averaging along horizontal|vertical
                   isfwd::Bool,  # true|false for forward|backward averaging
                   ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
                   ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor
-                  α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
-                  ) where {T<:AbsArrNumber{3}}
+                  α::Number=1)  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
     @assert(size(Gv)==size(Fu))
     @assert(size(Fu,nw)==length(∆w))
     @assert(length(∆w)==length(∆w′⁻¹))
