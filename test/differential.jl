@@ -48,7 +48,7 @@
             if !isbloch  # symmetry boundary
                 # Initialize the masking array.
                 Mask .= 1
-                Mask[Base.setindex(axes(Mask), 1, nw)...] = 0
+                Mask[Base.setindex(axes(Mask), 1, nw)...] = 0  # not .= 0 unlike code for 2D and 3D
                 if ns == 1  # forward difference
                     # The input fields at the symmetry boundary should be zero, so apply the
                     # mask to the input field.

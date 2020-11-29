@@ -385,7 +385,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
     @assert(nw==1)
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
-    Nx = length(Fu)
+    Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
 
     # Make sure not to include branches inside for loops.
     if isfwd
