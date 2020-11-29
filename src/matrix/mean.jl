@@ -1,3 +1,9 @@
+# Average fields along the field directions (i.e., Fw along the w-direction).  See the
+# description of create_m() below.
+
+# Assumes the space dimension and field dimension are the same.  In other words, when the
+# space coordinate indices are (i,j,k), then the field has three vector components.
+# Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.
 export create_m, create_mean
 
 # Assumption: we don't calculate averages for interpolated fields.  In other words, we

@@ -1,3 +1,10 @@
+# Average fields along the field directions (i.e., Fw along the w-direction).  See the
+# description of matrix/mean.jl/create_m().  Technically, apply_m!() can be used to average
+# fields normal to the direction of averaging, but it is not used that way in apply_mean!().
+
+# Assumes the space dimension and field dimension are the same.  In other words, when the
+# space coordinate indices are (i,j,k), then the field has three vector components.
+# Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.
 export apply_m!, apply_mean!
 
 apply_mean!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
