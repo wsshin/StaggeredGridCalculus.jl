@@ -5,9 +5,9 @@
 
 export apply_∂!
 
-apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z)
-         Fu::AbsArrNumber,  # u-component of input field (u = x, y, z)
-         nw::Integer,  # 1|2|3 for x|y|z
+apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
+         Fu::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
+         nw::Integer,  # 1|2|3 for x|y|z in 3D
          isfwd::Bool,  # true|false for forward|backward difference
          ∆w⁻¹::Number,  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
@@ -15,9 +15,9 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z)
          α::Number=1.0) =  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
 
-apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z)
-         Fu::AbsArrNumber,  # u-component of input field (u = x, y, z)
-         nw::Integer,  # 1|2|3 for x|y|z
+apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
+         Fu::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
+         nw::Integer,  # 1|2|3 for x|y|z in 3D
          isfwd::Bool,  # true|false for forward|backward difference
          ∆w⁻¹::AbsVecNumber=ones(size(Fu)[nw]),  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
