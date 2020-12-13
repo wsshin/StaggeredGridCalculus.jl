@@ -47,6 +47,10 @@ function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
     end
 end
 
+## Field-averaging operators "m" (as used in de Moerloose and de Zutter)
+#
+# This applies the averaging operator for a single Cartesian component.  For the operator
+# for all three Cartesian components, use apply_mean!.
 apply_m!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          Fu::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
          nw::Integer,  # 1|2|3 for averaging along x|y|z in 3D

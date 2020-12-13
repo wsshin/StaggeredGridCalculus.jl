@@ -101,7 +101,7 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backw
 end
 
 
-## Field-averaging operators ##
+## Field-averaging operators "m" (as used in de Moerloose and de Zutter)
 #
 # This creates the averaging operator for a single Cartesian component.  For the operator
 # for all three Cartesian components, use create_mean.
