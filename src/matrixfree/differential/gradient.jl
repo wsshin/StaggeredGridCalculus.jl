@@ -1,6 +1,11 @@
 # Assumes the space dimension and field dimension are the same.  In other words, when the
 # space coordinate indices are (i,j,k), then the field has three vector components.
 # Therefore, for the output field array G[i,j,k,w], we assume w = 1:3.
+
+# The functions add the calculated values to the existing values of the output array.
+# Therefore, if the derivative values themselves are desired, pass the output array
+# initialized with zeros.
+
 export apply_grad!
 
 apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)

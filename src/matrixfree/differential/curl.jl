@@ -1,3 +1,7 @@
+# The functions add the calculated values to the existing values of the output array.
+# Therefore, if the derivative values themselves are desired, pass the output array
+# initialized with zeros.
+
 export apply_curl!
 
 # To-dos

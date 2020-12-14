@@ -3,6 +3,10 @@
 # nu: component of the input field (Fu)
 # nv: component of the output field (Gv)
 
+# The functions add the calculated values to the existing values of the output array.
+# Therefore, if the derivative values themselves are desired, pass the output array
+# initialized with zeros.
+
 export apply_∂!
 
 apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
@@ -27,8 +31,6 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
 
 # The field arrays Fu (and Gv) represents a K-D array of a specific Cartesian component of the
 # field, and indexed as Fu[i,j,k], where (i,j,k) is the grid cell location.
-# This function adds the derivatives to the existing values of Gv.  Therefore, if you want
-# to get the derivative values themselves, pass Gv initialized with zeros.
 
 # For 3D
 function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, y, z)

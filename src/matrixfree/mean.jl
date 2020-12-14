@@ -5,6 +5,11 @@
 # Assumes the space dimension and field dimension are the same.  In other words, when the
 # space coordinate indices are (i,j,k), then the field has three vector components.
 # Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.
+
+# The functions calculate the average and add to the output array, instead of replacing the
+# values stored in the output array.  Therefore, if the derivative values themselves are
+# desired, pass the output array initialized with zeros.
+
 export apply_m!, apply_mean!
 
 apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k) in 3D
