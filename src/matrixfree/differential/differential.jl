@@ -87,7 +87,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             if isbloch
                 # At locations except for the positive end of the y-direction
                 for k = 1:Nz, j = 1:Ny-1
-                    β = α * ∆w⁻¹[j]
+                    @inbounds β = α * ∆w⁻¹[j]
                     for i = 1:Nx
                         @inbounds Gv[i,j,k] += β * (Fu[i,j+1,k] - Fu[i,j,k])
                     end
@@ -103,7 +103,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # At the locations except for the positive and negative ends of the
                 # y-direction
                 for k = 1:Nz, j = 2:Ny-1
-                    β = α * ∆w⁻¹[j]
+                    @inbounds β = α * ∆w⁻¹[j]
                     for i = 1:Nx
                         @inbounds Gv[i,j,k] += β * (Fu[i,j+1,k] - Fu[i,j,k])
                     end
@@ -127,7 +127,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             if isbloch
                 # At locations except for the positive end of the z-direction
                 for k = 1:Nz-1
-                    β = α * ∆w⁻¹[k]
+                    @inbounds β = α * ∆w⁻¹[k]
                     for j = 1:Ny, i = 1:Nx
                         @inbounds Gv[i,j,k] += β * (Fu[i,j,k+1] - Fu[i,j,k])
                     end
@@ -143,7 +143,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # At the locations except for the positive and negative ends of the
                 # z-direction
                 for k = 2:Nz-1
-                    β = α * ∆w⁻¹[k]
+                    @inbounds β = α * ∆w⁻¹[k]
                     for j = 1:Ny, i = 1:Nx
                         @inbounds Gv[i,j,k] += β * (Fu[i,j,k+1] - Fu[i,j,k])
                     end
@@ -189,7 +189,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
             for k = 1:Nz, j = 2:Ny  # not j = 2:Ny-1
-                β = α * ∆w⁻¹[j]
+                @inbounds β = α * ∆w⁻¹[j]
                 for i = 1:Nx
                     @inbounds Gv[i,j,k] += β * (Fu[i,j,k] - Fu[i,j-1,k])
                 end
@@ -211,7 +211,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
             for k = 2:Nz  # not k = 2:Nz-1
-                β = α * ∆w⁻¹[k]
+                @inbounds β = α * ∆w⁻¹[k]
                 for j = 1:Ny, i = 1:Nx
                     @inbounds Gv[i,j,k] += β * (Fu[i,j,k] - Fu[i,j,k-1])
                 end
@@ -289,7 +289,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             if isbloch
                 # At locations except for the positive end of the y-direction
                 for j = 1:Ny-1
-                    β = α * ∆w⁻¹[j]
+                    @inbounds β = α * ∆w⁻¹[j]
                     for i = 1:Nx
                         @inbounds Gv[i,j] += β * (Fu[i,j+1] - Fu[i,j])
                     end
@@ -305,7 +305,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 # At the locations except for the positive and negative ends of the
                 # y-direction
                 for j = 2:Ny-1
-                    β = α * ∆w⁻¹[j]
+                    @inbounds β = α * ∆w⁻¹[j]
                     for i = 1:Nx
                         @inbounds Gv[i,j] += β * (Fu[i,j+1] - Fu[i,j])
                     end
@@ -351,7 +351,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
             for j = 2:Ny  # not j = 2:Ny-1
-                β = α * ∆w⁻¹[j]
+                @inbounds β = α * ∆w⁻¹[j]
                 for i = 1:Nx
                     @inbounds Gv[i,j] += β * (Fu[i,j] - Fu[i,j-1])
                 end
