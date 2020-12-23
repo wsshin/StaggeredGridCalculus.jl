@@ -1,8 +1,3 @@
-# Conventions for Cartesian components
-# nw: direction of differentiation (∂w)
-# nu: component of the input field (Fu)
-# nv: component of the output field (Gv)
-
 # The functions add the calculated values to the existing values of the output array.
 # Therefore, if the derivative values themselves are desired, pass the output array
 # initialized with zeros.
@@ -533,7 +528,3 @@ end
 #
 #     return nothing
 # end
-
-include("curl.jl")
-include("divergence.jl")
-include("gradient.jl")

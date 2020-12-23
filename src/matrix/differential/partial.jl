@@ -1,8 +1,3 @@
-# Conventions for Cartesian components
-# nw: direction of differentiation (∂w)
-# nu: component of the input field (Fu)
-# nv: component of the output field (Gv)
-
 export create_∂
 
 # Assumption: we don't calculate derivatives for interpolated fields.  In other words, we
@@ -315,7 +310,3 @@ function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vert
 
     return Is, Js, Vs
 end
-
-include("curl.jl")
-include("divergence.jl")
-include("gradient.jl")
