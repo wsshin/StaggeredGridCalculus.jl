@@ -34,7 +34,7 @@ function apply_divg!(g::AbsArrNumber{K},  # output array of scalar; in 3D, g[i,j
     for nw = 1:K  # direction of differentiation
         nu = permute∂[nw]  # component of input field to feed to ∂w
         Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
-        @spawn apply_∂!(g, Fu, nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=α*scale∂[nw])  # g += (α scale∂[w]) ∂Fu/∂w
+        apply_∂!(g, Fu, nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=α*scale∂[nw])  # g += (α scale∂[w]) ∂Fu/∂w
     end
 
     return nothing

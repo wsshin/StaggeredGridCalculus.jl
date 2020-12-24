@@ -41,7 +41,7 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
             Fu = @view F[:,:,:,nu]  # u-component of input field
 
             # Need to avoid allocation in parity*∆l⁻¹[nw]
-            @spawn apply_∂!(Gv, Fu, nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            apply_∂!(Gv, Fu, nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
             parity = -1
         end
     end
