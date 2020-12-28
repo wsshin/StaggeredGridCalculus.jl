@@ -5,7 +5,7 @@ module StaggeredGridCalculus
 using Reexport
 @reexport using LinearAlgebra, SparseArrays
 using StaticArrays
-using Base.Threads: @spawn  # to be used in matrixfree/differential/*.jl
+using Base.Threads: nthreads, @spawn  # to be used in matrixfree/differential/*.jl
 
 ## Type aliases
 # Below, use Int instead of Int64 for compatibility with 32-bit systems (e.g., x86 in appveyor.yml).
