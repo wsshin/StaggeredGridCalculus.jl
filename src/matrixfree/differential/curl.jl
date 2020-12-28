@@ -46,5 +46,17 @@ function apply_curl!(G::T,  # output field; G[i,j,k,w] is w-component of G at (i
         end
     end
 
+    # @sync begin
+    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,3]), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,1]), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,2]), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=α)  # Gv += α (±∂Fu/∂w)
+    # end
+    #
+    # @sync begin
+    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,2]), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=-α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,3]), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=-α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,1]), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=-α)  # Gv += α (±∂Fu/∂w)
+    # end
+
     return nothing
 end
