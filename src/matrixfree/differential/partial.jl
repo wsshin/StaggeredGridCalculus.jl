@@ -4,6 +4,36 @@
 
 export apply_∂!
 
+function calc_boundary_indices(N::Tuple{Vararg{Int}})  # range of index: 1 through N
+    Nₜ = nthreads()
+
+    Nₑ = N[end]
+    L = prod(N) ÷ Nₑ
+
+    ∆n₀ = Nₑ ÷ Nₜ  # default value of entries of ∆n
+    min_L∆n₀ = 50 * 50 * 3  # want ∆n₀ to satisfy L * ∆n₀ ≥ 50 * 50 * 3
+    if L*∆n₀ < min_L∆n₀
+        Nₜ = Int(cld(Nₑ, min_L∆n₀/L))  # cld to make Nₜ ≥ 1; min_L∆n₀/L is target number of entries in each chuck in last dimension
+        ∆n₀ = Nₑ ÷ Nₜ
+    end
+
+    ∆n = fill(∆n₀, Nₜ)  # N÷Nₜ is repeated Nₜ times.
+    @view(∆n[1:Nₑ%Nₜ]) .+= 1  # first N%Nₜ entries of ∆n is increased by 1
+    @assert(sum(∆n)==Nₑ)
+
+    nₛ = ones(Int, Nₜ)
+    for j = 2:Nₜ, i = 1:j-1
+        nₛ[j] += ∆n[i]  # nₛ[1] = 1, nₛ[2] = 1 + ∆n[1], nₛ[3] = 1 + ∆n[1] + ∆n[2], ...
+    end
+
+    nₑ = zeros(Int, Nₜ)
+    for j = 1:Nₜ, i = 1:j
+        nₑ[j] += ∆n[i]  # nₑ[1] = ∆n[1], nₑ[2] = ∆n[1] + ∆n[2], nₑ[3] = ∆n[1] + ∆n[2] + ∆n[3], ...
+    end
+
+    return (nₛ, nₑ)
+end
+
 apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          Fu::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
          nw::Integer,  # 1|2|3 for x|y|z in 3D
@@ -11,8 +41,9 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w⁻¹::Number,  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
+         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
          α::Number=1.0) =  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-    (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
+    (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w⁻¹
 
 apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          Fu::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
@@ -21,37 +52,12 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w⁻¹::AbsVecNumber=ones(size(Fu)[nw]),  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
+         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
          α::Number=1.0) =  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
-    (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
+    (N = size(Fu); apply_∂!(Gv, Fu, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w⁻¹
 
 # The field arrays Fu (and Gv) represents a K-D array of a specific Cartesian component of the
 # field, and indexed as Fu[i,j,k], where (i,j,k) is the grid cell location.
-
-function calc_boundary_indices(N::Int)  # range of index: 1 through N
-    Nt = nthreads()
-
-    ∆n₀ = N÷Nt
-    ∆n_min = 3
-    if ∆n₀ < ∆n_min
-        Nt = N ÷ ∆n_min
-        ∆n₀ = N ÷ Nt
-    end
-    ∆n = fill(∆n₀, Nt)  # N÷Nt is repeated Nt times.
-    @view(∆n[1:N%Nt]) .+= 1  # first N%Nt entries of ∆n is increased by 1
-    @assert(sum(∆n)==N)
-
-    nₛ = ones(Int, Nt)
-    for j = 2:Nt, i = 1:j-1
-        nₛ[j] += ∆n[i]  # nₛ[1] = 1, nₛ[2] = 1 + ∆n[1], nₛ[3] = 1 + ∆n[1] + ∆n[2], ...
-    end
-
-    nₑ = zeros(Int, Nt)
-    for j = 1:Nt, i = 1:j
-        nₑ[j] += ∆n[i]  # nₑ[1] = ∆n[1], nₑ[2] = ∆n[1] + ∆n[2], nₑ[3] = ∆n[1] + ∆n[2] + ∆n[3], ...
-    end
-
-    return (nₛ, nₑ)
-end
 
 # For 3D
 function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
@@ -61,21 +67,22 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
+                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0)  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     @assert(size(Gv)==size(Fu))
     @assert(1≤nw≤3)
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx, Ny, Nz = size(Fu)
-    kₛ, kₑ = calc_boundary_indices(Nz)
-    Nt = length(kₛ)
+    kₛ, kₑ = n_bounds
+    Nₜ = length(kₛ)
 
     # Make sure not to include branches inside for loops.
     @sync if isfwd
         if nw == 1
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
-                for t = 1:Nt
+                for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
@@ -95,7 +102,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
-                for t = 1:Nt
+                for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
@@ -123,7 +130,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         elseif nw == 2
             if isbloch
                 # 1. At locations except for the positive end of the y-direction
-                for t = 1:Nt
+                for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
@@ -143,7 +150,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
-                for t = 1:Nt
+                for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
@@ -171,8 +178,8 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         else  # nw == 3
             if isbloch
                 # 1. At locations except for the positive end of the z-direction
-                kₑ[Nt] = Nz-1  # initially kₑ[Nt] = Nz
-                for t = 1:Nt
+                kₑ[Nₜ] = Nz-1  # initially kₑ[Nₜ] = Nz
+                for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
@@ -193,8 +200,8 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # 1. At the locations except for the positive and negative ends of the
                 # z-direction
                 kₛ[1] = 2  # initially kₛ[1] = 1
-                kₑ[Nt] = Nz-1  # initially kₑ[Nt] = Nz
-                for t = 1:Nt
+                kₑ[Nₜ] = Nz-1  # initially kₑ[Nₜ] = Nz
+                for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
@@ -225,7 +232,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the x-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nt
+            for t = 1:Nₜ
                 kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                 let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                     @spawn for k = kₛₜ:kₑₜ
@@ -251,7 +258,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the y-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nt
+            for t = 1:Nₜ
                 kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                 let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                     @spawn for k = kₛₜ:kₑₜ
@@ -278,7 +285,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
             kₛ[1] = 2  # initially kₛ[1] = 1
-            for t = 1:Nt
+            for t = 1:Nₜ
                 kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                 let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                     @spawn for k = kₛₜ:kₑₜ
@@ -303,6 +310,10 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         end  # if nw == ...
     end  # if isfwd
 
+    # Recover the original values of the potentially changed kₛ[1] and kₑ[Nt].
+    kₛ[1] = 1
+    kₑ[Nₜ] = Nz
+
     return nothing
 end
 
@@ -314,21 +325,22 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
+                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0)  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     @assert(size(Gv)==size(Fu))
     @assert(1≤nw≤2)
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx, Ny = size(Fu)
-    jₛ, jₑ = calc_boundary_indices(Ny)
-    Nt = length(jₛ)
+    jₛ, jₑ = n_bounds
+    Nₜ = length(jₛ)
 
     # Make sure not to include branches inside for loops.
     @sync if isfwd
         if nw == 1
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
-                for t = 1:Nt
+                for t = 1:Nₜ
                     jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
@@ -348,7 +360,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
-                for t = 1:Nt
+                for t = 1:Nₜ
                     jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
@@ -376,8 +388,8 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
         else  # nw == 2
             if isbloch
                 # 1. At locations except for the positive end of the y-direction
-                jₑ[Nt] = Ny-1  # initially jₑ[Nt] = Ny
-                for t = 1:Nt
+                jₑ[Nₜ] = Ny-1  # initially jₑ[Nₜ] = Ny
+                for t = 1:Nₜ
                     jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
@@ -398,8 +410,8 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
                 jₛ[1] = 2  # initially jₛ[1] = 1
-                jₑ[Nt] = Ny-1  # initially jₑ[Nt] = Ny
-                for t = 1:Nt
+                jₑ[Nₜ] = Ny-1  # initially jₑ[Nₜ] = Ny
+                for t = 1:Nₜ
                     jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
@@ -430,7 +442,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the x-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nt
+            for t = 1:Nₜ
                 jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                 let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                     @spawn for j = jₛₜ:jₑₜ
@@ -457,7 +469,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
             jₛ[1] = 2  # initially jₛ[1] = 1
-            for t = 1:Nt
+            for t = 1:Nₜ
                 jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                 let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                     @spawn for j = jₛₜ:jₑₜ
@@ -482,10 +494,14 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
         end  # if nw == ...
     end  # if isfwd
 
+    # Recover the original values of the potentially changed jₛ[1] and jₑ[Nt].
+    jₛ[1] = 1
+    jₑ[Nₜ] = Ny
+
     return nothing
 end
 
-# For 1D (not parallelized)
+# For 1D
 function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
                   Fu::AbsArrNumber{1},  # u-component of input field (u = x)
                   nw::Integer,  # 1 for x
@@ -493,19 +509,28 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
+                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0)  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
     @assert(size(Gv)==size(Fu))
     @assert(nw==1)
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
+    iₛ, iₑ = n_bounds
+    Nₜ = length(iₛ)
 
     # Make sure not to include branches inside for loops.
-    if isfwd
+    @sync if isfwd
         if isbloch
             # At locations except for the positive end of the x-direction
-            for i = 1:Nx-1
-                @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i])
+            iₑ[Nₜ] = Nx-1  # initially iₑ[Nₜ] = Nx
+            for t = 1:Nₜ
+                iₛₜ, iₑₜ = iₛ[t], iₑ[t]
+                let iₛₜ=iₛₜ, iₑₜ=iₑₜ
+                    @spawn for i = iₛₜ:iₑₜ
+                        @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i])
+                    end
+                end
             end
 
             # At the positive end of the x-direction (where the boundary fields are taken
@@ -514,8 +539,15 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
             Gv[Nx] += β * (e⁻ⁱᵏᴸ*Fu[1] - Fu[Nx])  # Fu[Nx+1] = exp(-i kx Lx) * Fu[1]
         else  # symmetry boundary
             # At the locations except for the positive and negative ends of the x-direction
-            for i = 2:Nx-1
-                @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i])
+            iₛ[1] = 2  # initially iₛ[1] = 1
+            iₑ[Nₜ] = Nx-1  # initially iₑ[Nₜ] = Nx
+            for t = 1:Nₜ
+                iₛₜ, iₑₜ = iₛ[t], iₑ[t]
+                let iₛₜ=iₛₜ, iₑₜ=iₑₜ
+                    @spawn for i = iₛₜ:iₑₜ
+                        @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i])
+                    end
+                end
             end
 
             # At the negative end of the x-direction (where the boundary fields are assumed
@@ -532,8 +564,14 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
         # At the locations except for the negative end of the x-direction; unlike for the
         # forward difference, for the backward difference this part of the code is common
         # for both the Bloch and symmetry boundary conditions.
-        for i = 2:Nx  # not i = 2:Nx-1
-            @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i] - Fu[i-1])
+        iₛ[1] = 2  # initially iₛ[1] = 1
+        for t = 1:Nₜ
+            iₛₜ, iₑₜ = iₛ[t], iₑ[t]
+            let iₛₜ=iₛₜ, iₑₜ=iₑₜ
+                @spawn for i = iₛₜ:iₑₜ
+                    @inbounds Gv[i] += (α * ∆w⁻¹[i]) * (Fu[i] - Fu[i-1])
+                end
+            end
         end
 
         if isbloch
@@ -546,6 +584,10 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
             # zero.
         end
     end  # if isfwd
+
+    # Recover the original values of the potentially changed iₛ[1] and iₑ[Nt].
+    iₛ[1] = 1
+    iₑ[Nₜ] = Nx
 
     return nothing
 end
