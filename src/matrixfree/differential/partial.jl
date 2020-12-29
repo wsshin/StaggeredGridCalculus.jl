@@ -13,7 +13,7 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w⁻¹::Number,  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
+         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
          α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
          ) where {OP} =
     (N = size(Fu); apply_∂!(Gv, Fu, Val(OP), nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w⁻¹
@@ -27,7 +27,7 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w⁻¹::AbsVecNumber=ones(size(Fu)[nw]),  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
+         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
          α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
          ) where {OP} =
     (N = size(Fu); apply_∂!(Gv, Fu, Val(OP), nw, isfwd, ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w⁻¹
@@ -44,7 +44,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
+                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -308,7 +308,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
+                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -496,7 +496,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): stand and end indices of chunks in last dimension to be processed in parallel
+                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
