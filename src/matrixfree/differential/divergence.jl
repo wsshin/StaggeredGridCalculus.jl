@@ -8,6 +8,7 @@
 
 export apply_divg!
 
+# Wrapper for converting AbstractVector's to SVector's
 apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
             F::AbsArrNumber,  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
@@ -21,6 +22,7 @@ apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at 
             ) where {OP} =
     (K = length(isfwd); apply_divg!(g, F, Val(OP), SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), permute∂=SVector{K}(permute∂), scale∂=SVector{K}(scale∂), α=α))
 
+# Concrete implementation
 function apply_divg!(g::AbsArrNumber{K},  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
                      F::AbsArrNumber{K₊₁},  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
                      ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use

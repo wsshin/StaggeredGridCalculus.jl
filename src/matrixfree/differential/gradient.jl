@@ -8,6 +8,7 @@
 
 export apply_grad!
 
+# Wrapper for converting AbstractVector's to SVector's
 apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
             f::AbsArrNumber,  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
@@ -21,6 +22,7 @@ apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component o
             ) where {OP} =
     (K = length(isfwd); apply_grad!(G, f, Val(OP), SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), permute∂=SVector{K}(permute∂), scale∂=SVector{K}(scale∂), α=α))
 
+# Concrete implementation
 function apply_grad!(G::AbsArrNumber{K₊₁},  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
                      f::AbsArrNumber{K},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
                      ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use

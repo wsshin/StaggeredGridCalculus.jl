@@ -2,11 +2,13 @@
 # Therefore, if the derivative values themselves are desired, pass the output array
 # initialized with zeros.
 
-export apply_curl!
-
 # To-dos
 # - Test if using a separate index vector (which is an identity map) to iterate over a 3D
 # array makes iteration significantly slower.  This is to simulate the case of FEM.
+
+export apply_curl!
+
+# Wrapper for converting AbstractVector's to SVector's
 apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
@@ -26,6 +28,7 @@ apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G 
     # because sometimes I would want to even create an integral curl operator.
     (K = length(isfwd); apply_curl!(G, F, Val(OP), SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
 
+# Concrete implementation
 function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
                      ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
