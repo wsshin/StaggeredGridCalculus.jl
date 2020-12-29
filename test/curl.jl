@@ -50,12 +50,11 @@ g = zeros(Complex{Float64}, 3M)
         # Test apply_curl!.
         f = F[:]
         mul!(g, Curl, f)
-        G .= 0
-        apply_curl!(G, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)
+        apply_curl!(G, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)
         @test G[:] ≈ g
 
         # print("matrix: "); @btime mul!($g, $Curl, $f)
-        # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆l⁻¹, $isbloch, $e⁻ⁱᵏᴸ)
+        # print("matrix-free: "); @btime apply_curl!($G, $F, Val(:(=)), $isfwd, $∆l⁻¹, $isbloch, $e⁻ⁱᵏᴸ)
     end
 end  # @testset "create_curl and apply_curl!"
 

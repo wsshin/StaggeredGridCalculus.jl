@@ -1,2 +1,47 @@
+# Usage:
+# - set_or_add(t, i, j, k, s, Val(:(+=)))
+# - set_or_add(t, i, j, k, s, Val(:(=)))
+@generated function set_or_add!(t::AbsArrNumber, i::Integer, j::Integer, k::Integer, s::Number, ::Val{OP}) where {OP}
+    return Expr(OP, :(t[i,j,k]), :s)
+end
+
+@generated function set_or_add!(t::AbsArrNumber, i::Integer, j::Integer, s::Number, ::Val{OP}) where {OP}
+    return Expr(OP, :(t[i,j]), :s)
+end
+
+@generated function set_or_add!(t::AbsArrNumber, i::Integer, s::Number, ::Val{OP}) where {OP}
+    return Expr(OP, :(t[i]), :s)
+end
+
+function calc_boundary_indices(N::Tuple{Vararg{Int}})  # range of index: 1 through N
+    Nₜ = nthreads()
+
+    Nₑ = N[end]
+    L = prod(N) ÷ Nₑ
+
+    ∆n₀ = Nₑ ÷ Nₜ  # default value of entries of ∆n
+    min_L∆n₀ = 50 * 50 * 3  # want ∆n₀ to satisfy L * ∆n₀ ≥ 50 * 50 * 3
+    if L*∆n₀ < min_L∆n₀
+        Nₜ = Int(cld(Nₑ, min_L∆n₀/L))  # cld to make Nₜ ≥ 1; min_L∆n₀/L is target number of entries in each chuck in last dimension
+        ∆n₀ = Nₑ ÷ Nₜ
+    end
+
+    ∆n = fill(∆n₀, Nₜ)  # N÷Nₜ is repeated Nₜ times.
+    @view(∆n[1:Nₑ%Nₜ]) .+= 1  # first N%Nₜ entries of ∆n is increased by 1
+    @assert(sum(∆n)==Nₑ)
+
+    nₛ = ones(Int, Nₜ)
+    for j = 2:Nₜ, i = 1:j-1
+        nₛ[j] += ∆n[i]  # nₛ[1] = 1, nₛ[2] = 1 + ∆n[1], nₛ[3] = 1 + ∆n[1] + ∆n[2], ...
+    end
+
+    nₑ = zeros(Int, Nₜ)
+    for j = 1:Nₜ, i = 1:j
+        nₑ[j] += ∆n[i]  # nₑ[1] = ∆n[1], nₑ[2] = ∆n[1] + ∆n[2], nₑ[3] = ∆n[1] + ∆n[2] + ∆n[3], ...
+    end
+
+    return (nₛ, nₑ)
+end
+
 include("differential/differential.jl")
 include("mean.jl")

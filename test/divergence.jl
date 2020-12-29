@@ -56,18 +56,15 @@ gvec = zeros(Complex{Float64}, M)  # column vector representation of g
         # Test apply_divg!.
         f = F[:]
         mul!(gvec, Divg, f)
-        g .= 0
-        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
         @test g[:] ≈ gvec
 
         mul!(gvec, Divg_cmpfirst, f[r])
-        g .= 0
-        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
         @test g[:] ≈ gvec
 
         mul!(gvec, Divg_permute_cmpfirst, f[r])
-        g .= 0
-        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂)
+        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂)
         @test g[:] ≈ gvec
     end
 end  # @testset "create_divg and apply_divg!"

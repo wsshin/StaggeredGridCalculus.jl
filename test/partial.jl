@@ -1,4 +1,4 @@
-@testset "differential" begin
+@testset "partial" begin
 
 @testset "create_∂ and apply_∂!, 1D" begin
     N = (10,)
@@ -66,8 +66,7 @@
             # Test apply_∂!.
             fu = Fu[:]
             mul!(gv, ∂ws, fu)
-            Gv .= 0
-            apply_∂!(Gv, Fu, nw, ns==1, ∆w⁻¹, isbloch)
+            apply_∂!(Gv, Fu, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
@@ -143,8 +142,7 @@ end  # @testset "create_∂ and apply_∂!, 1D"
             # Test apply_∂!.
             fu = Fu[:]
             mul!(gv, ∂ws, fu)
-            Gv .= 0
-            apply_∂!(Gv, Fu, nw, ns==1, ∆w⁻¹, isbloch)
+            apply_∂!(Gv, Fu, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
@@ -220,8 +218,7 @@ end  # @testset "create_∂ and apply_∂!, 2D"
             # Test apply_∂!.
             fu = Fu[:]
             mul!(gv, ∂ws, fu)
-            Gv .= 0
-            apply_∂!(Gv, Fu, nw, ns==1, ∆w⁻¹, isbloch)
+            apply_∂!(Gv, Fu, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # print("matrix: "); @btime mul!($gv, $∂ws, $fu)

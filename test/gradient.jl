@@ -56,18 +56,15 @@ g = zeros(Complex{Float64}, 2M)  # column vector representation of G
         # Test apply_grad!.
         fvec = f[:]
         mul!(g, Grad, fvec)
-        G .= 0
-        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
         @test G[:] ≈ g
 
         mul!(g, Grad_cmpfirst, fvec)
-        G .= 0
-        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
         @test G[:][r] ≈ g
 
         mul!(g, Grad_permute_cmpfirst, fvec)
-        G .= 0
-        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂)
+        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂)
         @test G[:][r] ≈ g
     end
 end  # @testset "create_grad and apply_grad!"
