@@ -38,7 +38,7 @@ function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-compon
                      e⁻ⁱᵏᴸ::SNumber{3};  # Bloch phase factor in x, y, z
                      α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
                      ) where {OP}
-    n_bounds = calc_boundary_indices(size(G)[1:end-1])
+    n_bounds = calc_boundary_indices(size(G)[1:3])
     for nv = 1:3  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field
 
