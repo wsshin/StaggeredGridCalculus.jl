@@ -85,8 +85,7 @@
             # Test apply_m!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
-            Gv .= 0
-            apply_m!(Gv, Fu, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
@@ -98,7 +97,9 @@
         @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
-        mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK); @test G[:] ≈ g
+        mul!(g, Mdiag, f)
+        apply_mean!(G, F, Val(:(=)), isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 1D"
 
@@ -187,8 +188,7 @@ end  # @testset "create_mean and apply_mean! 1D"
             # Test apply_m!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
-            Gv .= 0
-            apply_m!(Gv, Fu, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
@@ -200,7 +200,9 @@ end  # @testset "create_mean and apply_mean! 1D"
         @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
-        mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK); @test G[:] ≈ g
+        mul!(g, Mdiag, f)
+        apply_mean!(G, F, Val(:(=)), isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 2D"
 
@@ -289,8 +291,7 @@ end  # @testset "create_mean and apply_mean! 2D"
             # Test apply_m!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
-            Gv .= 0
-            apply_m!(Gv, Fu, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
@@ -302,7 +303,9 @@ end  # @testset "create_mean and apply_mean! 2D"
         @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
-        mul!(g, Mdiag, f); G .= 0; apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK); @test G[:] ≈ g
+        mul!(g, Mdiag, f)
+        apply_mean!(G, F, Val(:(=)), isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 3D"
 
