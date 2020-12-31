@@ -45,8 +45,12 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx, Ny, Nz = size(Fu)
+
     kₛ, kₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(kₛ)
+
+    ∆kₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
+    ∆kₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
 
     # Make sure not to include branches inside for loops.
     @sync if isfwd
@@ -149,7 +153,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         else  # nw == 3
             if isbloch
                 # 1. At locations except for the positive end of the z-direction
-                kₑ[Nₜ] = Nz-1  # initially kₑ[Nₜ] = Nz
+                kₑ = kₑ - ∆kₑ  # initially kₑ[Nₜ] = Nz; now kₑ[Nₜ] = Nz-1
                 for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
@@ -170,8 +174,8 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # z-direction
-                kₛ[1] = 2  # initially kₛ[1] = 1
-                kₑ[Nₜ] = Nz-1  # initially kₑ[Nₜ] = Nz
+                kₛ = kₛ + ∆kₛ  # initially kₛ[1] = 1; now kₛ[1] = 2
+                kₑ = kₑ - ∆kₑ  # initially kₑ[Nₜ] = Nz; now kₑ[Nₜ] = Nz-1
                 for t = 1:Nₜ
                     kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
@@ -257,7 +261,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the z-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            kₛ[1] = 2  # initially kₛ[1] = 1
+            kₛ = kₛ + ∆kₛ  # initially kₛ[1] = 1; now kₛ[1] = 2
             for t = 1:Nₜ
                 kₛₜ, kₑₜ = kₛ[t], kₑ[t]
                 let kₛₜ=kₛₜ, kₑₜ=kₑₜ
@@ -284,10 +288,6 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         end  # if nw == ...
     end  # if isfwd
 
-    # Recover the original values of the potentially changed kₛ[1] and kₑ[Nt].
-    kₛ[1] = 1
-    kₑ[Nₜ] = Nz
-
     return nothing
 end
 
@@ -308,8 +308,12 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx, Ny = size(Fu)
+
     jₛ, jₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(jₛ)
+
+    ∆jₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
+    ∆jₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
 
     # Make sure not to include branches inside for loops.
     @sync if isfwd
@@ -364,7 +368,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
         else  # nw == 2
             if isbloch
                 # 1. At locations except for the positive end of the y-direction
-                jₑ[Nₜ] = Ny-1  # initially jₑ[Nₜ] = Ny
+                jₑ = jₑ - ∆jₑ  # initially jₑ[Nₜ] = Ny; now jₑ[Nₜ] = Ny-1
                 for t = 1:Nₜ
                     jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
@@ -385,8 +389,8 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
-                jₛ[1] = 2  # initially jₛ[1] = 1
-                jₑ[Nₜ] = Ny-1  # initially jₑ[Nₜ] = Ny
+                jₛ = jₛ + ∆jₛ  # initially jₛ[1] = 1; now jₛ[1] = 2
+                jₑ = jₑ - ∆jₑ  # initially jₑ[Nₜ] = Ny; now jₑ[Nₜ] = Ny-1
                 for t = 1:Nₜ
                     jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
@@ -445,7 +449,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the y-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            jₛ[1] = 2  # initially jₛ[1] = 1
+            jₛ = jₛ + ∆jₛ  # initially jₛ[1] = 1; now jₛ[1] = 2
             for t = 1:Nₜ
                 jₛₜ, jₑₜ = jₛ[t], jₑ[t]
                 let jₛₜ=jₛₜ, jₑₜ=jₑₜ
@@ -472,10 +476,6 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
         end  # if nw == ...
     end  # if isfwd
 
-    # Recover the original values of the potentially changed jₛ[1] and jₑ[Nt].
-    jₛ[1] = 1
-    jₑ[Nₜ] = Ny
-
     return nothing
 end
 
@@ -495,14 +495,18 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
+
     iₛ, iₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(iₛ)
+
+    ∆iₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
+    ∆iₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
 
     # Make sure not to include branches inside for loops.
     @sync if isfwd
         if isbloch
             # 1. At locations except for the positive end of the x-direction
-            iₑ[Nₜ] = Nx-1  # initially iₑ[Nₜ] = Nx
+            iₑ = iₑ - ∆iₑ  # initially iₑ[Nₜ] = Nx; now iₑ[Nₜ] = Nx-1
             for t = 1:Nₜ
                 iₛₜ, iₑₜ = iₛ[t], iₑ[t]
                 let iₛₜ=iₛₜ, iₑₜ=iₑₜ
@@ -518,8 +522,8 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
             set_or_add!(Gv, Nx, β * (e⁻ⁱᵏᴸ*Fu[1] - Fu[Nx]), Val(OP))  # Fu[Nx+1] = exp(-i kx Lx) * Fu[1]
         else  # symmetry boundary
             # 1. At the locations except for the positive and negative ends of the x-direction
-            iₛ[1] = 2  # initially iₛ[1] = 1
-            iₑ[Nₜ] = Nx-1  # initially iₑ[Nₜ] = Nx
+            iₛ = iₛ + ∆iₛ  # initially iₛ[1] = 1; now iₛ[1] = 2
+            iₑ = iₑ - ∆iₑ  # initially iₑ[Nₜ] = Nx; now iₑ[Nₜ] = Nx-1
             for t = 1:Nₜ
                 iₛₜ, iₑₜ = iₛ[t], iₑ[t]
                 let iₛₜ=iₛₜ, iₑₜ=iₑₜ
@@ -543,7 +547,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
         # 1. At the locations except for the negative end of the x-direction; unlike for the
         # forward difference, for the backward difference this part of the code is common
         # for both the Bloch and symmetry boundary conditions.
-        iₛ[1] = 2  # initially iₛ[1] = 1
+        iₛ = iₛ + ∆iₛ  # initially iₛ[1] = 1; now iₛ[1] = 2
         for t = 1:Nₜ
             iₛₜ, iₑₜ = iₛ[t], iₑ[t]
             let iₛₜ=iₛₜ, iₑₜ=iₑₜ
@@ -562,10 +566,6 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
             set_or_add!(Gv, 1, 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
         end
     end  # if isfwd
-
-    # Recover the original values of the potentially changed iₛ[1] and iₑ[Nt].
-    iₛ[1] = 1
-    iₑ[Nₜ] = Nx
 
     return nothing
 end
