@@ -1,10 +1,10 @@
 # Average fields along the field directions (i.e., Fw along the w-direction).  See the
-# description of create_m() below.
+# description of create_m̂() below.
 
 # Assumes the space dimension and field dimension are the same.  In other words, when the
 # space coordinate indices are (i,j,k), then the field has three vector components.
 # Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.
-export create_m, create_mean
+export create_m̂, create_mean
 
 # Assumption: we don't calculate averages for interpolated fields.  In other words, we
 # calculate averages for the original fields defined on Yee's grid.  (There are exceptions;
@@ -37,13 +37,17 @@ export create_m, create_mean
 # (-1) × backward averaging operators are not the transpose of each other). See my notes
 # entitled [Beginning of the part added on Aug/14/2018] in RN - Subpixel Smoothing.nb.
 
+# Wrapper to create the arithmetic averaging operator by default
+# This corresponds to the wrappers to create discrete versions of differential operators,
+# but the nonzero enries in the matrix are 0.5 rather than 1.0.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
             isbloch::AbsVecBool=fill(true,length(N)),  # for length(N) = 3, boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for length(N) = 3, Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (∆l = ones.((N...,)); ∆l′⁻¹ = ones.((N...,)); create_mean(isfwd, N, ∆l, ∆l′⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst))
+    create_mean(isfwd, N, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst)
 
+# Wrapper to convert AbstractVector's to SVector's.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
@@ -52,7 +56,7 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for K = 3, Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
-    (create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst))
+    create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -111,14 +115,14 @@ end
 # the fields along the direction normal to the fields, the field-averaging operators average
 # fields along the field direction.  As a result, backward (rather than forward) averaging
 # is for primal fields.
-create_m(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
+create_m̂(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          isfwd::Bool,  # true|false for forward|backward averaging
          N::AbsVecInteger,  # size of grid
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
-    (K = length(N); ∆w = ones(N[nw]); ∆w′⁻¹ = ones(N[nw]); create_m(nw, isfwd, SInt{K}(N), ∆w, ∆w′⁻¹, isbloch, e⁻ⁱᵏᴸ))
+    (K = length(N); ∆w = ones(N[nw]); ∆w′⁻¹ = ones(N[nw]); create_m̂(nw, isfwd, SInt{K}(N), ∆w, ∆w′⁻¹, isbloch, e⁻ⁱᵏᴸ))
 
-create_m(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
+create_m̂(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          isfwd::Bool,  # true|false for forward|backward averaging
          N::AbsVecInteger,  # size of grid
          ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]

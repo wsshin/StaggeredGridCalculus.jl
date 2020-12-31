@@ -1,10 +1,11 @@
 export create_curl
 
+# Wrapper to create the discrete curl by default
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
-            ∆l⁻¹::Tuple3{AbsVecNumber}=ones.((N...,)),  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-            isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
+            ∆l⁻¹::Tuple3{Number}=(1.0,1.0,1.0),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+            isbloch::AbsVecBool=fill(true,3),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(3);  # Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -14,7 +15,16 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    (K = length(N); create_curl(SVector{K}(isfwd), SVector{K,Int}(N), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst))
+    create_curl(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst)
+
+# Wrapper to convert AbstractVector's to SVector's
+create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            N::AbsVecInteger,  # size of grid
+            ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+            isbloch::AbsVecBool=fill(true,3),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(3);  # Bloch phase factor in x, y, z
+            order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    create_curl(SVector{3}(isfwd), SInt{3}(N), ∆l⁻¹, SVector{3}(isbloch), SVector{3}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
 
 function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{3},  # size of grid

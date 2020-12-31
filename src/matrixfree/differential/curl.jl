@@ -8,16 +8,28 @@
 
 export apply_curl!
 
+# Wrapper to apply the discrete curl by default
+apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+            F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
+            ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
+            isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            ∆l⁻¹::Tuple3{Number}=(1.0,1.0,1.0),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
+            ) where {OP} =
+    (N = size(G)[1:3]; apply_curl!(G, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ, α=α))
+
 # Wrapper for converting AbstractVector's to SVector's
 apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l⁻¹::Tuple3{AbsVecNumber}=ones.(size(F)[1:3]),  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
+            ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
-            ) where {OP} =
+            ) where {K,OP} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -26,7 +38,7 @@ apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G 
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    (K = length(isfwd); apply_curl!(G, F, Val(OP), SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
+    apply_curl!(G, F, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α)
 
 # Concrete implementation
 function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)

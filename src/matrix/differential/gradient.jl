@@ -3,14 +3,27 @@
 # Therefore, for the output field array G[i,j,k,w], we assume w = 1:3.
 export create_grad
 
+# Wrapper to create the discrete gradient by default
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
-            ∆l⁻¹::Tuple{Vararg{AbsVecNumber}}=ones.((N...,)),  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-            isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            permute∂::AbsVecInteger=1:length(N),  # permute∂[w]: location of ∂w block
-            scale∂::AbsVecNumber=ones(length(N)),  # scale∂[w]: scale factor to multiply to ∂w
+            ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            permute∂::AbsVecInteger=1:length(isfwd),  # permute∂[w]: location of ∂w block
+            scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    create_grad(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=order_cmpfirst)
+
+# Wrapper to convert AbstractVector's to SVector's
+create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            N::AbsVecInteger,  # size of grid
+            ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            permute∂::AbsVecInteger=1:length(isfwd),  # permute∂[w]: location of ∂w block
+            scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
+            order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -19,8 +32,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    (K = length(N); create_grad(SVector{K}(isfwd), SVector{K,Int}(N), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ),
-                                permute∂=SVector{K}(permute∂), scale∂=SVector{K}(scale∂), order_cmpfirst=order_cmpfirst))
+    create_grad(SBool{K}(isfwd), SInt{K}(N), ∆l⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), permute∂=SInt{K}(permute∂), scale∂=SVector{K}(scale∂), order_cmpfirst=order_cmpfirst)
 
 function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{K},  # size of grid

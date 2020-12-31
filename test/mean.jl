@@ -80,12 +80,12 @@
             end
 
             # Test create_m.
-            @test create_m(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
+            @test create_m̂(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
-            # Test apply_m!.
+            # Test apply_m̂!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
-            apply_m!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m̂!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
@@ -183,12 +183,12 @@ end  # @testset "create_mean and apply_mean! 1D"
             end
 
             # Test create_m.
-            @test create_m(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
+            @test create_m̂(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
-            # Test apply_m!.
+            # Test apply_m̂!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
-            apply_m!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m̂!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
@@ -286,12 +286,12 @@ end  # @testset "create_mean and apply_mean! 2D"
             end
 
             # Test create_m.
-            @test create_m(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
+            @test create_m̂(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
-            # Test apply_m!.
+            # Test apply_m̂!.
             fu = Fu[:]
             mul!(gv, Mws, fu)
-            apply_m!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m̂!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gv[:] ≈ gv
 
             # Construct Mdiag, Msup, Msub.
