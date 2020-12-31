@@ -38,7 +38,6 @@ function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-compon
                      e⁻ⁱᵏᴸ::SNumber{3};  # Bloch phase factor in x, y, z
                      α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
                      ) where {OP}
-    n_bounds = calc_boundary_indices(size(G)[1:3])
     for nv = 1:3  # Cartesian compotent of output field
         Gv = @view G[:,:,:,nv]  # v-component of output field
 
@@ -47,7 +46,7 @@ function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-compon
         nu = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
         Fu = @view F[:,:,:,nu]  # u-component of input field
 
-        apply_∂!(Gv, Fu, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], n_bounds=n_bounds, α=parity*α)  # Gv += α (±∂Fu/∂w)
+        apply_∂!(Gv, Fu, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
     end
 
     for nv = 1:3  # Cartesian compotent of output field
@@ -58,19 +57,19 @@ function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-compon
         nu = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
         Fu = @view F[:,:,:,nu]  # u-component of input field
 
-        apply_∂!(Gv, Fu, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], n_bounds=n_bounds, α=parity*α)  # Gv += α (±∂Fu/∂w)
+        apply_∂!(Gv, Fu, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
     end
 
     # @sync begin
-    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,3]), Val(OP), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], n_bounds=n_bounds, α=α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,1]), Val(OP), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], n_bounds=n_bounds, α=α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,2]), Val(OP), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], n_bounds=n_bounds, α=α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,3]), Val(OP), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,1]), Val(OP), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,2]), Val(OP), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=α)  # Gv += α (±∂Fu/∂w)
     # end
     #
     # @sync begin
-    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,2]), Val(:(+=)), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], n_bounds=n_bounds, α=-α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,3]), Val(:(+=)), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], n_bounds=n_bounds, α=-α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,1]), Val(:(+=)), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], n_bounds=n_bounds, α=-α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,2]), Val(:(+=)), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=-α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,3]), Val(:(+=)), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=-α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,1]), Val(:(+=)), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=-α)  # Gv += α (±∂Fu/∂w)
     # end
 
     return nothing

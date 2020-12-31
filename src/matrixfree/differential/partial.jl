@@ -16,10 +16,9 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w⁻¹::Number,  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
          α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
          ) where {OP} =
-    (N = size(Fu); apply_∂!(Gv, Fu, Val(OP), nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w⁻¹
+    (N = size(Fu); apply_∂!(Gv, Fu, Val(OP), nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
 
 # Wrapper apply_∂! for Gv and Fu of arbitrary dimension
 apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
@@ -30,10 +29,9 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w⁻¹::AbsVecNumber=ones(size(Fu)[nw]),  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
          α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
          ) where {OP} =
-    (N = size(Fu); apply_∂!(Gv, Fu, Val(OP), nw, isfwd, ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w⁻¹
+    (N = size(Fu); apply_∂!(Gv, Fu, Val(OP), nw, isfwd, ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
 
 # The field arrays Fu (and Gv) represents a K-D array of a specific Cartesian component of the
 # field, and indexed as Fu[i,j,k], where (i,j,k) is the grid cell location.
@@ -47,7 +45,6 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -55,7 +52,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx, Ny, Nz = size(Fu)
-    kₛ, kₑ = n_bounds
+    kₛ, kₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(kₛ)
 
     # Make sure not to include branches inside for loops.
@@ -311,7 +308,6 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -319,7 +315,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx, Ny = size(Fu)
-    jₛ, jₑ = n_bounds
+    jₛ, jₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(jₛ)
 
     # Make sure not to include branches inside for loops.
@@ -499,7 +495,6 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
                   ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor: L = Lw
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -507,7 +502,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
     @assert(size(Fu,nw)==length(∆w⁻¹))
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
-    iₛ, iₑ = n_bounds
+    iₛ, iₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(iₛ)
 
     # Make sure not to include branches inside for loops.

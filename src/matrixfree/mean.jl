@@ -52,7 +52,6 @@ function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
                      α::Number=1  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      ) where {K,K₊₁,OP}  #  K is space dimension; K₊₁ = K + 1
     @assert(K₊₁==K+1)
-    n_bounds = calc_boundary_indices(size(G)[1:K])
     for nw = 1:K  # direction of averaging
         nv = nw
         Gv = selectdim(G, K₊₁, nv)  # nv-th component of output field
@@ -60,7 +59,7 @@ function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
         nu = nw  # component of input field to feed to w-directional averaging
         Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
 
-        apply_m!(Gv, Fu, Val(OP), nv, isfwd[nv], ∆l[nv], ∆l′⁻¹[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv], n_bounds=n_bounds, α=α)
+        apply_m!(Gv, Fu, Val(OP), nv, isfwd[nv], ∆l[nv], ∆l′⁻¹[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv], α=α)
     end
 end
 
@@ -76,10 +75,9 @@ apply_m!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w::Number,  # line segments to multiply with; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
          α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
          ) where {OP} =
-    (N = size(Fu); ∆w_vec = fill(∆w, N[nw]); ∆w′⁻¹_vec = fill(1/∆w, N[nw]); apply_m!(Gv, Fu, Val(OP), nw, isfwd, ∆w_vec, ∆w′⁻¹_vec, isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w
+    (N = size(Fu); ∆w_vec = fill(∆w, N[nw]); ∆w′⁻¹_vec = fill(1/∆w, N[nw]); apply_m!(Gv, Fu, Val(OP), nw, isfwd, ∆w_vec, ∆w′⁻¹_vec, isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w
 
 apply_m!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          Fu::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
@@ -90,10 +88,9 @@ apply_m!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
          ∆w′⁻¹::AbsVecNumber=ones(size(Fu)[nw]),  # inverse of line segments to divide by; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
          e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-         n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
          α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
          ) where {OP} =
-    (N = size(Fu); ∆w_vec = fill(∆w, N[nw]); ∆w′⁻¹_vec = fill(1/∆w, N[nw]); apply_m!(Gv, Fu, Val(OP), nw, isfwd, ∆w_vec, ∆w′⁻¹_vec, isbloch, e⁻ⁱᵏᴸ, n_bounds=n_bounds, α=α))  # fill: create vector of ∆w
+    (N = size(Fu); ∆w_vec = fill(∆w, N[nw]); ∆w′⁻¹_vec = fill(1/∆w, N[nw]); apply_m!(Gv, Fu, Val(OP), nw, isfwd, ∆w_vec, ∆w′⁻¹_vec, isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w
 
 # Concrete apply_m! for 3D
 function apply_m!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
@@ -105,7 +102,6 @@ function apply_m!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, y,
                   ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -113,7 +109,7 @@ function apply_m!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, y,
     @assert(length(∆w)==length(∆w′⁻¹))
 
     Nx, Ny, Nz = size(Fu)
-    kₛ, kₑ = n_bounds
+    kₛ, kₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(kₛ)
 
     α2 = 0.5 * α
@@ -374,7 +370,6 @@ function apply_m!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, y)
                   ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -382,7 +377,7 @@ function apply_m!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, y)
     @assert(length(∆w)==length(∆w′⁻¹))
 
     Nx, Ny = size(Fu)
-    jₛ, jₑ = n_bounds
+    jₛ, jₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(jₛ)
 
     α2 = 0.5 * α
@@ -567,7 +562,6 @@ function apply_m!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, y)
                   ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number;  # Bloch phase factor
-                  n_bounds::Tuple2{AbsVecInteger}=calc_boundary_indices(size(Gv)),  # (nₛ,nₑ): start and end indices of chunks in last dimension to be processed in parallel
                   α::Number=1  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
     @assert(size(Gv)==size(Fu))
@@ -575,7 +569,7 @@ function apply_m!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, y)
     @assert(length(∆w)==length(∆w′⁻¹))
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
-    iₛ, iₑ = n_bounds
+    iₛ, iₑ = calc_boundary_indices(size(Gv))
     Nₜ = length(iₛ)
 
     α2 = 0.5 * α
