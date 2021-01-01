@@ -3,16 +3,8 @@ export set_or_add!, calc_boundary_indices
 # Usage:
 # - set_or_add(t, i, j, k, s, Val(:(+=)))
 # - set_or_add(t, i, j, k, s, Val(:(=)))
-@generated function set_or_add!(t::AbsArrNumber, i::Integer, j::Integer, k::Integer, s::Number, ::Val{OP}) where {OP}
-    return Expr(OP, :(t[i,j,k]), :s)
-end
-
-@generated function set_or_add!(t::AbsArrNumber, i::Integer, j::Integer, s::Number, ::Val{OP}) where {OP}
-    return Expr(OP, :(t[i,j]), :s)
-end
-
-@generated function set_or_add!(t::AbsArrNumber, i::Integer, s::Number, ::Val{OP}) where {OP}
-    return Expr(OP, :(t[i]), :s)
+@generated function set_or_add!(t::AbsArrNumber, ci::CartesianIndex, s::Number, ::Val{OP}) where {OP}
+    return Expr(OP, :(t[ci]), :s)
 end
 
 function calc_boundary_indices(N::Tuple{Vararg{Int}})  # range of index: 1 through N
