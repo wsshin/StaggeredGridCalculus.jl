@@ -1,4 +1,4 @@
-export calc_boundary_indices
+export set_or_add!, calc_boundary_indices
 
 # Usage:
 # - set_or_add(t, i, j, k, s, Val(:(+=)))
