@@ -112,7 +112,6 @@ struct Grid{K}
     L::SVector{K,Float}  # L[k] = length of grid (domain) in k-direction
     l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction
     ∆l::Tuple2{NTuple{K,VecFloat}}  # ∆l[PRIM][k] = (∆l at primal vertices in w) == diff(l[DUAL][k] including ghost point)
-    ∆l⁻¹::Tuple2{NTuple{K,VecFloat}}  # reciprocals of entries of ∆l; used in constructing derivative operators
     isbloch::SVector{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
     σ::Tuple2{NTuple{K,VecBool}}  # false only for non-ghost points exactly on symmetry boundary (= first point in primal grid)
     bounds::Tuple2{SVector{K,Float}}  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
@@ -151,7 +150,6 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
     ∆lprim = diff.(ldual)  # NTuple{K,VecFloat}; length(∆lprim[k]) = N[k]
     ∆ldual = diff.(lprim)  # NTuple{K,VecFloat}; length(∆ldual[k]) = N[k]
     ∆l = (∆lprim, ∆ldual)
-    ∆l⁻¹ = (map(v->(1 ./ v), ∆lprim), map(v->(1 ./ v), ∆ldual))
 
     # Set N (number of grid cells along the axis).
     @assert length.(∆l[nPR]) == length.(∆l[nDL])  # lprim, ldual, ∆lprim, ∆ldual have the same length
@@ -208,7 +206,7 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
     @assert length.(lprim) == length.(ldual) == N.data  # lprim, ldual, ∆lprim, ∆ldual have the same length
     l = (lprim, ldual)
 
-    return Grid{K}(N, L, l, ∆l, ∆l⁻¹, isbloch, σ, bounds, ghosted)
+    return Grid{K}(N, L, l, ∆l, isbloch, σ, bounds, ghosted)
 end
 
 # To-do
