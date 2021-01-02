@@ -62,7 +62,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
                             for j = 1:Ny, i = 1:Nx-1
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[i]) * (Fu[i+1,j,k] - Fu[i,j,k]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[i]) * (Fu[i+1,j,k] - Fu[i,j,k]), Val(OP))
                             end
                         end
                     end
@@ -72,7 +72,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Nx]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(Nx,j,k), β * (e⁻ⁱᵏᴸ*Fu[1,j,k] - Fu[Nx,j,k]), Val(OP))  # Fu[Nx+1,j,k] = exp(-i kx Lx) * Fu[1,j,k]
+                    @inbounds set_or_add!(Gv, (Nx,j,k), β * (e⁻ⁱᵏᴸ*Fu[1,j,k] - Fu[Nx,j,k]), Val(OP))  # Fu[Nx+1,j,k] = exp(-i kx Lx) * Fu[1,j,k]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
@@ -82,7 +82,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
                             for j = 1:Ny, i = 2:Nx-1
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[i]) * (Fu[i+1,j,k] - Fu[i,j,k]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[i]) * (Fu[i+1,j,k] - Fu[i,j,k]), Val(OP))
                             end
                         end
                     end
@@ -92,14 +92,14 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # assumed zero)
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(1,j,k), β * Fu[2,j,k], Val(OP))  # Fu[1,j,k] == 0
+                    @inbounds set_or_add!(Gv, (1,j,k), β * Fu[2,j,k], Val(OP))  # Fu[1,j,k] == 0
                 end
 
                 # 3. At the positive end of the x-direction (where the boundary fields are
                 # assumed zero)
                 β = -α * ∆w⁻¹[Nx]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(Nx,j,k), β * Fu[Nx,j,k], Val(OP))  # Fu[Nx+1,j,k] == 0
+                    @inbounds set_or_add!(Gv, (Nx,j,k), β * Fu[Nx,j,k], Val(OP))  # Fu[Nx+1,j,k] == 0
                 end
             end
         elseif nw == 2
@@ -110,7 +110,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
                             for j = 1:Ny-1, i = 1:Nx
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[j]) * (Fu[i,j+1,k] - Fu[i,j,k]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[j]) * (Fu[i,j+1,k] - Fu[i,j,k]), Val(OP))
                             end
                         end
                     end
@@ -120,7 +120,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Ny]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,Ny,k), β * (e⁻ⁱᵏᴸ*Fu[i,1,k] - Fu[i,Ny,k]), Val(OP))  # Fu[i,Ny+1,k] = exp(-i ky Ly) * Fu[i,1,k]
+                    @inbounds set_or_add!(Gv, (i,Ny,k), β * (e⁻ⁱᵏᴸ*Fu[i,1,k] - Fu[i,Ny,k]), Val(OP))  # Fu[i,Ny+1,k] = exp(-i ky Ly) * Fu[i,1,k]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
@@ -130,7 +130,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
                             for j = 2:Ny-1, i = 1:Nx
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[j]) * (Fu[i,j+1,k] - Fu[i,j,k]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[j]) * (Fu[i,j+1,k] - Fu[i,j,k]), Val(OP))
                             end
                         end
                     end
@@ -140,14 +140,14 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # assumed zero)
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,1,k), β * Fu[i,2,k], Val(OP))  # Fu[i,1,k] == 0
+                    @inbounds set_or_add!(Gv, (i,1,k), β * Fu[i,2,k], Val(OP))  # Fu[i,1,k] == 0
                 end
 
                 # 3. At the positive end of the y-direction (where the boundary fields are
                 # assumed zero)
                 β = -α * ∆w⁻¹[Ny]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,Ny,k), β * Fu[i,Ny,k], Val(OP))  # Fu[i,Ny+1,k] == 0
+                    @inbounds set_or_add!(Gv, (i,Ny,k), β * Fu[i,Ny,k], Val(OP))  # Fu[i,Ny+1,k] == 0
                 end
             end
         else  # nw == 3
@@ -159,7 +159,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
                             for j = 1:Ny, i = 1:Nx
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[k]) * (Fu[i,j,k+1] - Fu[i,j,k]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[k]) * (Fu[i,j,k+1] - Fu[i,j,k]), Val(OP))
                             end
                         end
                     end
@@ -169,7 +169,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Nz]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,j,Nz), β * (e⁻ⁱᵏᴸ*Fu[i,j,1] - Fu[i,j,Nz]), Val(OP))  # Fu[i,j,Nz+1] = exp(-i kz Lz) * Fu[i,j,1]
+                    @inbounds set_or_add!(Gv, (i,j,Nz), β * (e⁻ⁱᵏᴸ*Fu[i,j,1] - Fu[i,j,Nz]), Val(OP))  # Fu[i,j,Nz+1] = exp(-i kz Lz) * Fu[i,j,1]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
@@ -181,7 +181,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                     let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                         @spawn for k = kₛₜ:kₑₜ
                             for j = 1:Ny, i = 1:Nx
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[k]) * (Fu[i,j,k+1] - Fu[i,j,k]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[k]) * (Fu[i,j,k+1] - Fu[i,j,k]), Val(OP))
                             end
                         end
                     end
@@ -191,14 +191,14 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 # assumed zero)
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,j,1), β * Fu[i,j,2], Val(OP))  # Fu[i,j,1] == 0
+                    @inbounds set_or_add!(Gv, (i,j,1), β * Fu[i,j,2], Val(OP))  # Fu[i,j,1] == 0
                 end
 
                 # 3. At the positive end of the z-direction (where the boundary fields are
                 # assumed zero)
                 β = -α * ∆w⁻¹[Nz]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,j,Nz), β * Fu[i,j,Nz], Val(OP))  # Fu[i,j,Nz+1] == 0
+                    @inbounds set_or_add!(Gv, (i,j,Nz), β * Fu[i,j,Nz], Val(OP))  # Fu[i,j,Nz+1] == 0
                 end
             end
         end  # if nw == ...
@@ -212,7 +212,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                     @spawn for k = kₛₜ:kₑₜ
                         for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
-                            @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[i]) * (Fu[i,j,k] - Fu[i-1,j,k]), Val(OP))
+                            @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[i]) * (Fu[i,j,k] - Fu[i-1,j,k]), Val(OP))
                         end
                     end
                 end
@@ -223,11 +223,11 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             if isbloch
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(1,j,k), β * (Fu[1,j,k] - Fu[Nx,j,k]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[0,j,k] = Fu[Nx,j,k] / exp(-i kx Lx)
+                    @inbounds set_or_add!(Gv, (1,j,k), β * (Fu[1,j,k] - Fu[Nx,j,k]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[0,j,k] = Fu[Nx,j,k] / exp(-i kx Lx)
                 end
             else  # symmetry boundary
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(1,j,k), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
+                    @inbounds set_or_add!(Gv, (1,j,k), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
                 end
             end
         elseif nw == 2
@@ -239,7 +239,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                     @spawn for k = kₛₜ:kₑₜ
                         for j = 2:Ny, i = 1:Nx  # not j = 2:Ny-1
-                            @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[j]) * (Fu[i,j,k] - Fu[i,j-1,k]), Val(OP))
+                            @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[j]) * (Fu[i,j,k] - Fu[i,j-1,k]), Val(OP))
                         end
                     end
                 end
@@ -250,11 +250,11 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             if isbloch
                 β = α * ∆w⁻¹[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,1,k), β * (Fu[i,1,k] - Fu[i,Ny,k]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[i,0,k] = Fu[i,Ny,k] / exp(-i ky Ly)
+                    @inbounds set_or_add!(Gv, (i,1,k), β * (Fu[i,1,k] - Fu[i,Ny,k]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[i,0,k] = Fu[i,Ny,k] / exp(-i ky Ly)
                 end
             else  # symmetry boundary
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,1,k), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
+                    @inbounds set_or_add!(Gv, (i,1,k), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
                 end
             end
         else  # nw == 3
@@ -267,7 +267,7 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                 let kₛₜ=kₛₜ, kₑₜ=kₑₜ
                     @spawn for k = kₛₜ:kₑₜ
                         for j = 1:Ny, i = 1:Nx
-                            @inbounds set_or_add!(Gv, CartesianIndex(i,j,k), (α * ∆w⁻¹[k]) * (Fu[i,j,k] - Fu[i,j,k-1]), Val(OP))
+                            @inbounds set_or_add!(Gv, (i,j,k), (α * ∆w⁻¹[k]) * (Fu[i,j,k] - Fu[i,j,k-1]), Val(OP))
                         end
                     end
                 end
@@ -278,11 +278,11 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             if isbloch
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,j,1), β * (Fu[i,j,1] - Fu[i,j,Nz]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[i,j,0] = Fu[i,j,Nz] / exp(-i kz Lz)
+                    @inbounds set_or_add!(Gv, (i,j,1), β * (Fu[i,j,1] - Fu[i,j,Nz]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[i,j,0] = Fu[i,j,Nz] / exp(-i kz Lz)
                 end
             else  # symmetry boundary
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,j,1), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
+                    @inbounds set_or_add!(Gv, (i,j,1), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
                 end
             end
         end  # if nw == ...
@@ -325,7 +325,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
                             for i = 1:Nx-1
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j), (α * ∆w⁻¹[i]) * (Fu[i+1,j] - Fu[i,j]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j), (α * ∆w⁻¹[i]) * (Fu[i+1,j] - Fu[i,j]), Val(OP))
                             end
                         end
                     end
@@ -335,7 +335,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 # taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Nx]
                 for j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(Nx,j), β * (e⁻ⁱᵏᴸ*Fu[1,j] - Fu[Nx,j]), Val(OP))  # Fu[Nx+1,j] = exp(-i kx Lx) * Fu[1,j]
+                    @inbounds set_or_add!(Gv, (Nx,j), β * (e⁻ⁱᵏᴸ*Fu[1,j] - Fu[Nx,j]), Val(OP))  # Fu[Nx+1,j] = exp(-i kx Lx) * Fu[1,j]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
@@ -345,7 +345,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
                             for i = 2:Nx-1
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j), (α * ∆w⁻¹[i]) * (Fu[i+1,j] - Fu[i,j]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j), (α * ∆w⁻¹[i]) * (Fu[i+1,j] - Fu[i,j]), Val(OP))
                             end
                         end
                     end
@@ -355,14 +355,14 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 # assumed zero)
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(1,j), β * Fu[2,j], Val(OP))  # Fu[1,j] == 0
+                    @inbounds set_or_add!(Gv, (1,j), β * Fu[2,j], Val(OP))  # Fu[1,j] == 0
                 end
 
                 # 3. At the positive end of the x-direction (where the boundary fields are
                 # assumed zero)
                 β = -α * ∆w⁻¹[Nx]
                 for j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(Nx,j), β * Fu[Nx,j], Val(OP))  # Fu[Nx+1,j] == 0
+                    @inbounds set_or_add!(Gv, (Nx,j), β * Fu[Nx,j], Val(OP))  # Fu[Nx+1,j] == 0
                 end
             end
         else  # nw == 2
@@ -374,7 +374,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
                             for i = 1:Nx
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j), (α * ∆w⁻¹[j]) * (Fu[i,j+1] - Fu[i,j]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j), (α * ∆w⁻¹[j]) * (Fu[i,j+1] - Fu[i,j]), Val(OP))
                             end
                         end
                     end
@@ -384,7 +384,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 # taken from the negative-end boundary)
                 β = α * ∆w⁻¹[Ny]
                 for i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,Ny), β * (e⁻ⁱᵏᴸ*Fu[i,1] - Fu[i,Ny]), Val(OP))  # Fu[i,Ny+1] = exp(-i ky Ly) * Fu[i,1]
+                    @inbounds set_or_add!(Gv, (i,Ny), β * (e⁻ⁱᵏᴸ*Fu[i,1] - Fu[i,Ny]), Val(OP))  # Fu[i,Ny+1] = exp(-i ky Ly) * Fu[i,1]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
@@ -396,7 +396,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                     let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                         @spawn for j = jₛₜ:jₑₜ
                             for i = 1:Nx
-                                @inbounds set_or_add!(Gv, CartesianIndex(i,j), (α * ∆w⁻¹[j]) * (Fu[i,j+1] - Fu[i,j]), Val(OP))
+                                @inbounds set_or_add!(Gv, (i,j), (α * ∆w⁻¹[j]) * (Fu[i,j+1] - Fu[i,j]), Val(OP))
                             end
                         end
                     end
@@ -406,14 +406,14 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 # assumed zero)
                 β = α * ∆w⁻¹[1]
                 for i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,1), β * Fu[i,2], Val(OP))  # Fu[i,1] == 0
+                    @inbounds set_or_add!(Gv, (i,1), β * Fu[i,2], Val(OP))  # Fu[i,1] == 0
                 end
 
                 # 3. At the positive end of the y-direction (where the boundary fields are
                 # assumed zero)
                 β = -α * ∆w⁻¹[Ny]
                 for i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,Ny), β * Fu[i,Ny], Val(OP))  # Fu[i,Ny+1] == 0
+                    @inbounds set_or_add!(Gv, (i,Ny), β * Fu[i,Ny], Val(OP))  # Fu[i,Ny+1] == 0
                 end
             end
         end  # if nw == ...
@@ -427,7 +427,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                     @spawn for j = jₛₜ:jₑₜ
                         for i = 2:Nx  # not i = 2:Nx-1
-                            @inbounds set_or_add!(Gv, CartesianIndex(i,j), (α * ∆w⁻¹[i]) * (Fu[i,j] - Fu[i-1,j]), Val(OP))
+                            @inbounds set_or_add!(Gv, (i,j), (α * ∆w⁻¹[i]) * (Fu[i,j] - Fu[i-1,j]), Val(OP))
                         end
                     end
                 end
@@ -438,11 +438,11 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             if isbloch
                 β = α * ∆w⁻¹[1]
                 for j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(1,j), β * (Fu[1,j] - Fu[Nx,j]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[0,j] = Fu[Nx,j] / exp(-i kx Lx)
+                    @inbounds set_or_add!(Gv, (1,j), β * (Fu[1,j] - Fu[Nx,j]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[0,j] = Fu[Nx,j] / exp(-i kx Lx)
                 end
             else  # symmetry boundary
                 for j = 1:Ny
-                    @inbounds set_or_add!(Gv, CartesianIndex(1,j), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
+                    @inbounds set_or_add!(Gv, (1,j), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
                 end
             end
         else  # nw == 2
@@ -455,7 +455,7 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                 let jₛₜ=jₛₜ, jₑₜ=jₑₜ
                     @spawn for j = jₛₜ:jₑₜ
                         for i = 1:Nx
-                            @inbounds set_or_add!(Gv, CartesianIndex(i,j), (α * ∆w⁻¹[j]) * (Fu[i,j] - Fu[i,j-1]), Val(OP))
+                            @inbounds set_or_add!(Gv, (i,j), (α * ∆w⁻¹[j]) * (Fu[i,j] - Fu[i,j-1]), Val(OP))
                         end
                     end
                 end
@@ -466,11 +466,11 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             if isbloch
                 β = α * ∆w⁻¹[1]
                 for i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,1), β * (Fu[i,1] - Fu[i,Ny]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[i,0] = Fu[i,Ny] / exp(-i ky Ly)
+                    @inbounds set_or_add!(Gv, (i,1), β * (Fu[i,1] - Fu[i,Ny]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[i,0] = Fu[i,Ny] / exp(-i ky Ly)
                 end
             else  # symmetry boundary
                 for i = 1:Nx
-                    @inbounds set_or_add!(Gv, CartesianIndex(i,1), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
+                    @inbounds set_or_add!(Gv, (i,1), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
                 end
             end
         end  # if nw == ...
@@ -511,7 +511,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
                 iₛₜ, iₑₜ = iₛ[t], iₑ[t]
                 let iₛₜ=iₛₜ, iₑₜ=iₑₜ
                     @spawn for i = iₛₜ:iₑₜ
-                        @inbounds set_or_add!(Gv, CartesianIndex(i), (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i]), Val(OP))
+                        @inbounds set_or_add!(Gv, (i,), (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i]), Val(OP))
                     end
                 end
             end
@@ -519,7 +519,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
             # 2. At the positive end of the x-direction (where the boundary fields are taken
             # from the negative-end boundary)
             β = α * ∆w⁻¹[Nx]
-            set_or_add!(Gv, CartesianIndex(Nx), β * (e⁻ⁱᵏᴸ*Fu[1] - Fu[Nx]), Val(OP))  # Fu[Nx+1] = exp(-i kx Lx) * Fu[1]
+            set_or_add!(Gv, (Nx,), β * (e⁻ⁱᵏᴸ*Fu[1] - Fu[Nx]), Val(OP))  # Fu[Nx+1] = exp(-i kx Lx) * Fu[1]
         else  # symmetry boundary
             # 1. At the locations except for the positive and negative ends of the x-direction
             iₛ = iₛ + ∆iₛ  # initially iₛ[1] = 1; now iₛ[1] = 2
@@ -528,7 +528,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
                 iₛₜ, iₑₜ = iₛ[t], iₑ[t]
                 let iₛₜ=iₛₜ, iₑₜ=iₑₜ
                     @spawn for i = iₛₜ:iₑₜ
-                        @inbounds set_or_add!(Gv, CartesianIndex(i), (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i]), Val(OP))
+                        @inbounds set_or_add!(Gv, (i,), (α * ∆w⁻¹[i]) * (Fu[i+1] - Fu[i]), Val(OP))
                     end
                 end
             end
@@ -536,12 +536,12 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
             # 2. At the negative end of the x-direction (where the boundary fields are assumed
             # zero)
             β = α * ∆w⁻¹[1]
-            set_or_add!(Gv, CartesianIndex(1), β * Fu[2], Val(OP))  # Fu[1] == 0
+            set_or_add!(Gv, (1,), β * Fu[2], Val(OP))  # Fu[1] == 0
 
             # 3. At the positive end of the y-direction (where the boundary fields are assumed
             # zero)
             β = -α * ∆w⁻¹[Nx]
-            set_or_add!(Gv, CartesianIndex(Nx), β * Fu[Nx], Val(OP))  # Fu[Nx+1] == 0
+            set_or_add!(Gv, (Nx,), β * Fu[Nx], Val(OP))  # Fu[Nx+1] == 0
         end
     else  # backward difference
         # 1. At the locations except for the negative end of the x-direction; unlike for the
@@ -552,7 +552,7 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
             iₛₜ, iₑₜ = iₛ[t], iₑ[t]
             let iₛₜ=iₛₜ, iₑₜ=iₑₜ
                 @spawn for i = iₛₜ:iₑₜ
-                    @inbounds set_or_add!(Gv, CartesianIndex(i), (α * ∆w⁻¹[i]) * (Fu[i] - Fu[i-1]), Val(OP))
+                    @inbounds set_or_add!(Gv, (i,), (α * ∆w⁻¹[i]) * (Fu[i] - Fu[i-1]), Val(OP))
                 end
             end
         end
@@ -561,9 +561,9 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
         # from the positive-end boundary for the Bloch boundary condition)
         if isbloch
             β = α * ∆w⁻¹[1]
-            set_or_add!(Gv, CartesianIndex(1), β * (Fu[1] - Fu[Nx]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[0] = Fu[Nx] / exp(-i kx Lx)
+            set_or_add!(Gv, (1,), β * (Fu[1] - Fu[Nx]/e⁻ⁱᵏᴸ), Val(OP))  # Fu[0] = Fu[Nx] / exp(-i kx Lx)
         else  # symmetry boundary
-            set_or_add!(Gv, CartesianIndex(1), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
+            set_or_add!(Gv, (1,), 0, Val(OP))  # derivatives of dual fields at symmetry boundary are zero
         end
     end  # if isfwd
 
@@ -585,10 +585,10 @@ end
 #     @assert(size(Fu,nw)==length(∆w⁻¹))
 #
 #     # Make sure not to include branches inside for loops.
-#     ciₛ₀ = CartesianIndex(ntuple(k->1, Val(K)))  # start indices; (1,1,1) in 3D
-#     ciₑ₀ = CartesianIndex(size(Fu))  # end indices; (Nx,Ny,Nz) in 3D
-#     δci = CartesianIndex(ntuple(k->k==nw, Val(K)))  # 1 at w-component; 0 elsewhere
-#     ∆ci = CartesianIndex(ciₑ₀.I .* δci.I) - δci  # Nw-1 at w-component; 0 elsewhere
+#     ciₛ₀ = (ntuple(k->1, Val(K)))  # start indices; (1,1,1) in 3D
+#     ciₑ₀ = (size(Fu))  # end indices; (Nx,Ny,Nz) in 3D
+#     δci = (ntuple(k->k==nw, Val(K)))  # 1 at w-component; 0 elsewhere
+#     ∆ci = (ciₑ₀.I .* δci.I) - δci  # Nw-1 at w-component; 0 elsewhere
 #     if isfwd  # forward difference
 #         if isbloch  # Bloch boundary condition
 #             # At locations except for the positive end of the w-direction
