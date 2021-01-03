@@ -10,7 +10,7 @@
 # values stored in the output array.  Therefore, if the derivative values themselves are
 # desired, pass the output array initialized with zeros.
 
-# Inside @spawn, avoid defining β, which requires another let block to avoid unnecessary
+# Inside @threads, avoid defining β, which requires another let block to avoid unnecessary
 # allocations.
 
 export apply_m̂!, apply_mean!
@@ -111,28 +111,16 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
     @assert(size(Gv)==size(Fu))
 
     Nx, Ny, Nz = size(Fu)
-
-    kₛ, kₑ = calc_boundary_indices(size(Gv))
-    Nₜ = length(kₛ)
-
-    ∆kₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
-    ∆kₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
-
     α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
-    @sync if isfwd
+    if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 1:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i+1,j,k] + Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 1:Ny, i = 1:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i+1,j,k] + Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -144,14 +132,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 2:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i+1,j,k] + Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 1:Ny, i = 2:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i+1,j,k] + Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -170,14 +153,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         elseif nw == 2  # w = y
             if isbloch
                 # 1. At locations except for the positive end of the y-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny-1, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j+1,k] + Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 1:Ny-1, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j+1,k] + Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -189,14 +167,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 2:Ny-1, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j+1,k] + Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 2:Ny-1, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j+1,k] + Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -215,15 +188,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         else  # nw == 3; w = z
             if isbloch
                 # 1. At locations except for the positive end of the z-direction
-                kₑ = kₑ - ∆kₑ  # initially kₑ[Nₜ] = Nz; now kₑ[Nₜ] = Nz-1
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k+1] + Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz-1
+                    for j = 1:Ny, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k+1] + Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -235,16 +202,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # z-direction
-                kₛ = kₛ + ∆kₛ  # initially kₛ[1] = 1; now kₛ[1] = 2
-                kₑ = kₑ - ∆kₑ  # initially kₑ[Nₜ] = Nz; now kₑ[Nₜ] = Nz-1
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k+1] + Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 2:Nz-1
+                    for j = 1:Ny, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k+1] + Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -266,14 +226,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the x-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nₜ
-                kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                    @spawn for k = kₛₜ:kₑₜ
-                        for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
-                            @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k] + Fu[i-1,j,k]), Val(OP))
-                        end
-                    end
+            @threads for k = 1:Nz
+                for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
+                    @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k] + Fu[i-1,j,k]), Val(OP))
                 end
             end
 
@@ -292,14 +247,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the y-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nₜ
-                kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                    @spawn for k = kₛₜ:kₑₜ
-                        for j = 2:Ny, i = 1:Nx  # not j = 2:Ny-1
-                            @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k] + Fu[i,j-1,k]), Val(OP))
-                        end
-                    end
+            @threads for k = 1:Nz
+                for j = 2:Ny, i = 1:Nx  # not j = 2:Ny-1
+                    @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k] + Fu[i,j-1,k]), Val(OP))
                 end
             end
 
@@ -318,15 +268,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the z-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            kₛ = kₛ + ∆kₛ  # initially kₛ[1] = 1; now kₛ[1] = 2
-            for t = 1:Nₜ
-                kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                    @spawn for k = kₛₜ:kₑₜ
-                        for j = 1:Ny, i = 1:Nx
-                            @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k] + Fu[i,j,k-1]), Val(OP))
-                        end
-                    end
+            @threads for k = 2:Nz
+                for j = 1:Ny, i = 1:Nx
+                    @inbounds set_or_add!(Gv, (i,j,k), α2 * (Fu[i,j,k] + Fu[i,j,k-1]), Val(OP))
                 end
             end
 
@@ -360,28 +304,16 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
     @assert(size(Gv)==size(Fu))
 
     Nx, Ny = size(Fu)
-
-    jₛ, jₑ = calc_boundary_indices(size(Gv))
-    Nₜ = length(jₛ)
-
-    ∆jₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
-    ∆jₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
-
     α2 = 0.5 * α
 
     # Make sure not to include branches inside for loops.
-    @sync if isfwd
+    if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 1:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i+1,j] + Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 1:Ny
+                    for i = 1:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i+1,j] + Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -393,14 +325,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 2:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i+1,j] + Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 1:Ny
+                    for i = 2:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i+1,j] + Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -419,15 +346,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
         else  # nw == 2; w = y
             if isbloch
                 # 1. At locations except for the positive end of the y-direction
-                jₑ = jₑ - ∆jₑ  # initially jₑ[Nₜ] = Ny; now jₑ[Nₜ] = Ny-1
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j+1] + Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 1:Ny-1
+                    for i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j+1] + Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -439,16 +360,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
-                jₛ = jₛ + ∆jₛ  # initially jₛ[1] = 1; now jₛ[1] = 2
-                jₑ = jₑ - ∆jₑ  # initially jₑ[Nₜ] = Ny; now jₑ[Nₜ] = Ny-1
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j+1] + Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 2:Ny-1
+                    for i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j+1] + Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -470,14 +384,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the x-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nₜ
-                jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                    @spawn for j = jₛₜ:jₑₜ
-                        for i = 2:Nx  # not i = 2:Nx-1
-                            @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j] + Fu[i-1,j]), Val(OP))
-                        end
-                    end
+            @threads for j = 1:Ny
+                for i = 2:Nx  # not i = 2:Nx-1
+                    @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j] + Fu[i-1,j]), Val(OP))
                 end
             end
 
@@ -496,15 +405,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the y-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            jₛ = jₛ + ∆jₛ  # initially jₛ[1] = 1; now jₛ[1] = 2
-            for t = 1:Nₜ
-                jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                    @spawn for j = jₛₜ:jₑₜ
-                        for i = 1:Nx
-                            @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j] + Fu[i,j-1]), Val(OP))
-                        end
-                    end
+            @threads for j = 2:Ny
+                for i = 1:Nx
+                    @inbounds set_or_add!(Gv, (i,j), α2 * (Fu[i,j] + Fu[i,j-1]), Val(OP))
                 end
             end
 
@@ -538,27 +441,14 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
     @assert(size(Gv)==size(Fu))
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
-
-    iₛ, iₑ = calc_boundary_indices(size(Gv))
-    Nₜ = length(iₛ)
-
-    ∆iₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
-    ∆iₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
-
     α2 = 0.5 * α
 
     # Make sure not to include branches inside for loops.
-    @sync if isfwd
+    if isfwd
         if isbloch
             # 1. At locations except for the positive end of the x-direction
-            iₑ = iₑ - ∆iₑ  # initially iₑ[Nₜ] = Nx; now iₑ[Nₜ] = Nx-1
-            for t = 1:Nₜ
-                iₛₜ, iₑₜ = iₛ[t], iₑ[t]
-                let iₛₜ=iₛₜ, iₑₜ=iₑₜ
-                    @spawn for i = iₛₜ:iₑₜ
-                        @inbounds set_or_add!(Gv, (i,), α2 * (Fu[i+1] + Fu[i]), Val(OP))
-                    end
-                end
+            @threads for i = 1:Nx-1
+                @inbounds set_or_add!(Gv, (i,), α2 * (Fu[i+1] + Fu[i]), Val(OP))
             end
 
             # 2. At the positive end of the x-direction (where the boundary fields are taken
@@ -566,15 +456,8 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
             @inbounds set_or_add!(Gv, (Nx,), α2 * (e⁻ⁱᵏᴸ*Fu[1] + Fu[Nx]), Val(OP))  # Fu[Nx+1] = exp(-i kx Lx) * Fu[1]
         else  # symmetry boundary
             # 1. At the locations except for the positive and negative ends of the x-direction
-            iₛ = iₛ + ∆iₛ  # initially iₛ[1] = 1; now iₛ[1] = 2
-            iₑ = iₑ - ∆iₑ  # initially iₑ[Nₜ] = Nx; now iₑ[Nₜ] = Nx-1
-            for t = 1:Nₜ
-                iₛₜ, iₑₜ = iₛ[t], iₑ[t]
-                let iₛₜ=iₛₜ, iₑₜ=iₑₜ
-                    @spawn for i = iₛₜ:iₑₜ
-                        @inbounds set_or_add!(Gv, (i,), α2 * (Fu[i+1] + Fu[i]), Val(OP))
-                    end
-                end
+            @threads for i = 2:Nx-1
+                @inbounds set_or_add!(Gv, (i,), α2 * (Fu[i+1] + Fu[i]), Val(OP))
             end
 
             # 2. At the negative end of the x-direction (where the boundary fields are assumed
@@ -589,14 +472,8 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
         # 1. At the locations except for the negative end of the x-direction; unlike for the
         # forward difference, for the backward difference this part of the code is common
         # for both the Bloch and symmetry boundary conditions.
-        iₛ = iₛ + ∆iₛ  # initially iₛ[1] = 1; now iₛ[1] = 2
-        for t = 1:Nₜ
-            iₛₜ, iₑₜ = iₛ[t], iₑ[t]
-            let iₛₜ=iₛₜ, iₑₜ=iₑₜ
-                @spawn for i = iₛₜ:iₑₜ
-                    @inbounds set_or_add!(Gv, (i,), α2 * (Fu[i] + Fu[i-1]), Val(OP))
-                end
-            end
+        @threads for i = 2:Nx
+            @inbounds set_or_add!(Gv, (i,), α2 * (Fu[i] + Fu[i-1]), Val(OP))
         end
 
         # 2. At the negative end of the x-direction (where the boundary fields are taken
@@ -629,28 +506,16 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
     @assert(length(∆w)==length(∆w′⁻¹))
 
     Nx, Ny, Nz = size(Fu)
-
-    kₛ, kₑ = calc_boundary_indices(size(Gv))
-    Nₜ = length(kₛ)
-
-    ∆kₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
-    ∆kₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
-
     α2 = 0.5 * α
 
     # Make sure not to include branches inside for loops.
-    @sync if isfwd
+    if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 1:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j,k] + ∆w[i]*Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 1:Ny, i = 1:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j,k] + ∆w[i]*Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -663,14 +528,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 2:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j,k] + ∆w[i]*Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 1:Ny, i = 2:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j,k] + ∆w[i]*Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -691,14 +551,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         elseif nw == 2  # w = y
             if isbloch
                 # 1. At locations except for the positive end of the y-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny-1, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1,k] + ∆w[j]*Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 1:Ny-1, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1,k] + ∆w[j]*Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -711,14 +566,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 2:Ny-1, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1,k] + ∆w[j]*Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz
+                    for j = 2:Ny-1, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1,k] + ∆w[j]*Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -739,15 +589,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
         else  # nw == 3; w = z
             if isbloch
                 # 1. At locations except for the positive end of the z-direction
-                kₑ = kₑ - ∆kₑ  # initially kₑ[Nₜ] = Nz; now kₑ[Nₜ] = Nz-1
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fu[i,j,k+1] + ∆w[k]*Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 1:Nz-1
+                    for j = 1:Ny, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fu[i,j,k+1] + ∆w[k]*Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -760,16 +604,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # z-direction
-                kₛ = kₛ + ∆kₛ  # initially kₛ[1] = 1; now kₛ[1] = 2
-                kₑ = kₑ - ∆kₑ  # initially kₑ[Nₜ] = Nz; now kₑ[Nₜ] = Nz-1
-                for t = 1:Nₜ
-                    kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                    let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                        @spawn for k = kₛₜ:kₑₜ
-                            for j = 1:Ny, i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fu[i,j,k+1] + ∆w[k]*Fu[i,j,k]), Val(OP))
-                            end
-                        end
+                @threads for k = 2:Nz-1
+                    for j = 1:Ny, i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fu[i,j,k+1] + ∆w[k]*Fu[i,j,k]), Val(OP))
                     end
                 end
 
@@ -793,14 +630,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the x-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nₜ
-                kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                    @spawn for k = kₛₜ:kₑₜ
-                        for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
-                            @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fu[i,j,k] + ∆w[i-1]*Fu[i-1,j,k]), Val(OP))
-                        end
-                    end
+            @threads for k = 1:Nz
+                for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
+                    @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fu[i,j,k] + ∆w[i-1]*Fu[i-1,j,k]), Val(OP))
                 end
             end
 
@@ -821,14 +653,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the y-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nₜ
-                kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                    @spawn for k = kₛₜ:kₑₜ
-                        for j = 2:Ny, i = 1:Nx  # not j = 2:Ny-1
-                            @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fu[i,j,k] + ∆w[j-1]*Fu[i,j-1,k]), Val(OP))
-                        end
-                    end
+            @threads for k = 1:Nz
+                for j = 2:Ny, i = 1:Nx  # not j = 2:Ny-1
+                    @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fu[i,j,k] + ∆w[j-1]*Fu[i,j-1,k]), Val(OP))
                 end
             end
 
@@ -849,15 +676,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the z-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            kₛ = kₛ + ∆kₛ  # initially kₛ[1] = 1; now kₛ[1] = 2
-            for t = 1:Nₜ
-                kₛₜ, kₑₜ = kₛ[t], kₑ[t]
-                let kₛₜ=kₛₜ, kₑₜ=kₑₜ
-                    @spawn for k = kₛₜ:kₑₜ
-                        for j = 1:Ny, i = 1:Nx
-                            @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[k]) * (∆w[k]*Fu[i,j,k] + ∆w[k-1]*Fu[i,j,k-1]), Val(OP))
-                        end
-                    end
+            @threads for k = 2:Nz
+                for j = 1:Ny, i = 1:Nx
+                    @inbounds set_or_add!(Gv, (i,j,k), (α2 * ∆w′⁻¹[k]) * (∆w[k]*Fu[i,j,k] + ∆w[k-1]*Fu[i,j,k-1]), Val(OP))
                 end
             end
 
@@ -897,28 +718,16 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
     @assert(length(∆w)==length(∆w′⁻¹))
 
     Nx, Ny = size(Fu)
-
-    jₛ, jₑ = calc_boundary_indices(size(Gv))
-    Nₜ = length(jₛ)
-
-    ∆jₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
-    ∆jₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
-
     α2 = 0.5 * α
 
     # Make sure not to include branches inside for loops.
-    @sync if isfwd
+    if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 1:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j] + ∆w[i]*Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 1:Ny
+                    for i = 1:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j] + ∆w[i]*Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -931,14 +740,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 2:Nx-1
-                                @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j] + ∆w[i]*Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 1:Ny
+                    for i = 2:Nx-1
+                        @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1,j] + ∆w[i]*Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -959,15 +763,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
         else  # nw == 2; w = y
             if isbloch
                 # 1. At locations except for the positive end of the y-direction
-                jₑ = jₑ - ∆jₑ  # initially jₑ[Nₜ] = Ny; now jₑ[Nₜ] = Ny-1
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1] + ∆w[j]*Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 1:Ny-1
+                    for i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1] + ∆w[j]*Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -980,16 +778,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
-                jₛ = jₛ + ∆jₛ  # initially jₛ[1] = 1; now jₛ[1] = 2
-                jₑ = jₑ - ∆jₑ  # initially jₑ[Nₜ] = Ny; now jₑ[Nₜ] = Ny-1
-                for t = 1:Nₜ
-                    jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                    let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                        @spawn for j = jₛₜ:jₑₜ
-                            for i = 1:Nx
-                                @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1] + ∆w[j]*Fu[i,j]), Val(OP))
-                            end
-                        end
+                @threads for j = 2:Ny-1
+                    for i = 1:Nx
+                        @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fu[i,j+1] + ∆w[j]*Fu[i,j]), Val(OP))
                     end
                 end
 
@@ -1013,14 +804,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the x-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            for t = 1:Nₜ
-                jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                    @spawn for j = jₛₜ:jₑₜ
-                        for i = 2:Nx  # not i = 2:Nx-1
-                            @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fu[i,j] + ∆w[i-1]*Fu[i-1,j]), Val(OP))
-                        end
-                    end
+            @threads for j = 1:Ny
+                for i = 2:Nx  # not i = 2:Nx-1
+                    @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fu[i,j] + ∆w[i-1]*Fu[i-1,j]), Val(OP))
                 end
             end
 
@@ -1041,15 +827,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
             # 1. At the locations except for the negative end of the y-direction; unlike for
             # the forward difference, for the backward difference this part of the code is
             # common for both the Bloch and symmetry boundary conditions.
-            jₛ = jₛ + ∆jₛ  # initially jₛ[1] = 1; now jₛ[1] = 2
-            for t = 1:Nₜ
-                jₛₜ, jₑₜ = jₛ[t], jₑ[t]
-                let jₛₜ=jₛₜ, jₑₜ=jₑₜ
-                    @spawn for j = jₛₜ:jₑₜ
-                        for i = 1:Nx
-                            @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fu[i,j] + ∆w[j-1]*Fu[i,j-1]), Val(OP))
-                        end
-                    end
+            @threads for j = 2:Ny
+                for i = 1:Nx
+                    @inbounds set_or_add!(Gv, (i,j), (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fu[i,j] + ∆w[j-1]*Fu[i,j-1]), Val(OP))
                 end
             end
 
@@ -1089,27 +869,14 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
     @assert(length(∆w)==length(∆w′⁻¹))
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
-
-    iₛ, iₑ = calc_boundary_indices(size(Gv))
-    Nₜ = length(iₛ)
-
-    ∆iₛ = SVector(ntuple(n->(n==1 ? 1 : 0), Val(Nₜ)))
-    ∆iₑ = SVector(ntuple(n->(n==Nₜ ? 1 : 0), Val(Nₜ)))
-
     α2 = 0.5 * α
 
     # Make sure not to include branches inside for loops.
-    @sync if isfwd
+    if isfwd
         if isbloch
             # 1. At locations except for the positive end of the x-direction
-            iₑ = iₑ - ∆iₑ  # initially iₑ[Nₜ] = Nx; now iₑ[Nₜ] = Nx-1
-            for t = 1:Nₜ
-                iₛₜ, iₑₜ = iₛ[t], iₑ[t]
-                let iₛₜ=iₛₜ, iₑₜ=iₑₜ
-                    @spawn for i = iₛₜ:iₑₜ
-                        @inbounds set_or_add!(Gv, (i,), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1] + ∆w[i]*Fu[i]), Val(OP))
-                    end
-                end
+            @threads for i = 1:Nx-1
+                @inbounds set_or_add!(Gv, (i,), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1] + ∆w[i]*Fu[i]), Val(OP))
             end
 
             # 2. At the positive end of the x-direction (where the boundary fields are taken
@@ -1118,15 +885,8 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
             @inbounds set_or_add!(Gv, (Nx,), β * (∆w[1]*e⁻ⁱᵏᴸ*Fu[1] + ∆w[Nx]*Fu[Nx]), Val(OP))  # Fu[Nx+1] = exp(-i kx Lx) * Fu[1]
         else  # symmetry boundary
             # 1. At the locations except for the positive and negative ends of the x-direction
-            iₛ = iₛ + ∆iₛ  # initially iₛ[1] = 1; now iₛ[1] = 2
-            iₑ = iₑ - ∆iₑ  # initially iₑ[Nₜ] = Nx; now iₑ[Nₜ] = Nx-1
-            for t = 1:Nₜ
-                iₛₜ, iₑₜ = iₛ[t], iₑ[t]
-                let iₛₜ=iₛₜ, iₑₜ=iₑₜ
-                    @spawn for i = iₛₜ:iₑₜ
-                        @inbounds set_or_add!(Gv, (i,), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1] + ∆w[i]*Fu[i]), Val(OP))
-                    end
-                end
+            @threads for i = 2:Nx-1
+                @inbounds set_or_add!(Gv, (i,), (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fu[i+1] + ∆w[i]*Fu[i]), Val(OP))
             end
 
             # 2. At the negative end of the x-direction (where the boundary fields are assumed
@@ -1143,14 +903,8 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
         # 1. At the locations except for the negative end of the x-direction; unlike for the
         # forward difference, for the backward difference this part of the code is common
         # for both the Bloch and symmetry boundary conditions.
-        iₛ = iₛ + ∆iₛ  # initially iₛ[1] = 1; now iₛ[1] = 2
-        for t = 1:Nₜ
-            iₛₜ, iₑₜ = iₛ[t], iₑ[t]
-            let iₛₜ=iₛₜ, iₑₜ=iₑₜ
-                @spawn for i = iₛₜ:iₑₜ
-                    @inbounds set_or_add!(Gv, (i,), (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fu[i] + ∆w[i-1]*Fu[i-1]), Val(OP))
-                end
-            end
+        @threads for i = 2:Nx
+            @inbounds set_or_add!(Gv, (i,), (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fu[i] + ∆w[i-1]*Fu[i-1]), Val(OP))
         end
 
         # 2. At the negative end of the x-direction (where the boundary fields are taken
