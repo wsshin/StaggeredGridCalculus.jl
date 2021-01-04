@@ -21,7 +21,7 @@ function calc_boundary_indices(N::Tuple{Vararg{Int}})  # range of index: 1 throu
     end
 
     ∆n = SVector(ntuple(i->(i≤Nₑ%Nₜ ? ∆n₀+1 : ∆n₀), Nₜ))  # first N%Nₜ entries are ∆n₀+1; remaining entries are ∆n₀
-    @assert(sum(∆n)==Nₑ)
+    @assert sum(∆n)==Nₑ
 
     # nₛ = @MVector ones(Int, Nₜ)
     # for j = 2:Nₜ, i = 1:j-1

@@ -48,7 +48,7 @@ function apply_divg!(g::AbsArrNumber{K},  # output array of scalar; in 3D, g[i,j
                      scale∂::SNumber{K}=SVector(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
                      α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
                      ) where {K,K₊₁,OP}
-    @assert(K₊₁==K+1)
+    @assert K₊₁==K+1
 
     # First partial derivative
     nw = 1

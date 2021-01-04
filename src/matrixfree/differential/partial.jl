@@ -40,9 +40,9 @@ function apply_∂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor: L = Lw
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
-    @assert(1≤nw≤3)
-    @assert(size(Fu,nw)==length(∆w⁻¹))
+    @assert size(Gv)==size(Fu)
+    @assert 1≤nw≤3
+    @assert size(Fu,nw)==length(∆w⁻¹)
 
     Nx, Ny, Nz = size(Fu)
 
@@ -248,9 +248,9 @@ function apply_∂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor: L = Lw
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
-    @assert(1≤nw≤2)
-    @assert(size(Fu,nw)==length(∆w⁻¹))
+    @assert size(Gv)==size(Fu)
+    @assert 1≤nw≤2
+    @assert size(Fu,nw)==length(∆w⁻¹)
 
     Nx, Ny = size(Fu)
 
@@ -395,9 +395,9 @@ function apply_∂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x)
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor: L = Lw
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
-    @assert(nw==1)
-    @assert(size(Fu,nw)==length(∆w⁻¹))
+    @assert size(Gv)==size(Fu)
+    @assert nw==1
+    @assert size(Fu,nw)==length(∆w⁻¹)
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
 
@@ -460,9 +460,9 @@ end
 #                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor: L = Lw
 #                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α ∂Fu/∂w
 #                   ) where {K}  # space dimension (field dimension Kf does not show up as we deal with single component)
-#     @assert(size(Gv)==size(Fu))
-#     @assert(1≤nw≤K)
-#     @assert(size(Fu,nw)==length(∆w⁻¹))
+#     @assert size(Gv)==size(Fu)
+#     @assert 1≤nw≤K
+#     @assert size(Fu,nw)==length(∆w⁻¹)
 #
 #     # Make sure not to include branches inside for loops.
 #     ciₛ₀ = (ntuple(k->1, Val(K)))  # start indices; (1,1,1) in 3D

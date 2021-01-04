@@ -52,7 +52,7 @@ function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factor in x, y, z
                      α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      ) where {K,K₊₁,OP}  #  K is space dimension; K₊₁ = K + 1
-    @assert(K₊₁==K+1)
+    @assert K₊₁==K+1
     for nw = 1:K  # direction of averaging
         nv = nw
         Gv = selectdim(G, K₊₁, nv)  # nv-th component of output field
@@ -76,7 +76,7 @@ function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factor in x, y, z
                      α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      ) where {K,K₊₁,OP}  #  K is space dimension; K₊₁ = K + 1
-    @assert(K₊₁==K+1)
+    @assert K₊₁==K+1
     for nw = 1:K  # direction of averaging
         nv = nw
         Gv = selectdim(G, K₊₁, nv)  # nv-th component of output field
@@ -108,7 +108,7 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
+    @assert size(Gv)==size(Fu)
 
     Nx, Ny, Nz = size(Fu)
     α2 = 0.5α
@@ -301,7 +301,7 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
+    @assert size(Gv)==size(Fu)
 
     Nx, Ny = size(Fu)
     α2 = 0.5 * α
@@ -438,7 +438,7 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
+    @assert size(Gv)==size(Fu)
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
     α2 = 0.5 * α
@@ -501,9 +501,9 @@ function apply_m̂!(Gv::AbsArrNumber{3},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
-    @assert(size(Fu,nw)==length(∆w))
-    @assert(length(∆w)==length(∆w′⁻¹))
+    @assert size(Gv)==size(Fu)
+    @assert size(Fu,nw)==length(∆w)
+    @assert length(∆w)==length(∆w′⁻¹)
 
     Nx, Ny, Nz = size(Fu)
     α2 = 0.5 * α
@@ -713,9 +713,9 @@ function apply_m̂!(Gv::AbsArrNumber{2},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
-    @assert(size(Fu,nw)==length(∆w))
-    @assert(length(∆w)==length(∆w′⁻¹))
+    @assert size(Gv)==size(Fu)
+    @assert size(Fu,nw)==length(∆w)
+    @assert length(∆w)==length(∆w′⁻¹)
 
     Nx, Ny = size(Fu)
     α2 = 0.5 * α
@@ -864,9 +864,9 @@ function apply_m̂!(Gv::AbsArrNumber{1},  # v-component of output field (v = x, 
                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
                   α::Number=1.0  # scale factor to multiply to result before adding it to Gv: Gv += α m(Fu)
                   ) where {OP}
-    @assert(size(Gv)==size(Fu))
-    @assert(size(Fu,nw)==length(∆w))
-    @assert(length(∆w)==length(∆w′⁻¹))
+    @assert size(Gv)==size(Fu)
+    @assert size(Fu,nw)==length(∆w)
+    @assert length(∆w)==length(∆w′⁻¹)
 
     Nx = length(Fu)  # not size(Fu) unlike code for 2D and 3D
     α2 = 0.5 * α
