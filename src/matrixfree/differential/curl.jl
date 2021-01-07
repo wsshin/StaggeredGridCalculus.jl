@@ -54,8 +54,8 @@ function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-compon
         Gv = @view G[:,:,:,nv]  # v-component of output field
 
         parity = 1
-        nw = next1(nv)  # direction of differentiation
-        nu = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
+        nw = mod1(nv+1, 3)  # direction of differentiation
+        nu = 6 - nv - nw  # Cantesian component of input field; 6 = 1 + 2 + 3
         Fu = @view F[:,:,:,nu]  # u-component of input field
 
         apply_∂!(Gv, Fu, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
@@ -65,8 +65,8 @@ function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-compon
         Gv = @view G[:,:,:,nv]  # v-component of output field
 
         parity = -1
-        nw = prev1(nv)  # direction of differentiation
-        nu = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
+        nw = mod1(nv-1, 3)  # direction of differentiation
+        nu = 6 - nv - nw  # Cantesian component of input field; 6 = 1 + 2 + 3
         Fu = @view F[:,:,:,nu]  # u-component of input field
 
         apply_∂!(Gv, Fu, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)

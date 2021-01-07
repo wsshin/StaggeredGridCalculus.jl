@@ -69,8 +69,8 @@ end  # @testset "create_curl and apply_curl!"
     Cv = create_curl([false,false,false], [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
     # Test symmetry of each block.
-    for i = nXYZ
-        for j = next2(i)
+    for i = 1:3
+        for j = mod1.(i .+ [1,2], 3)
             -Cv[(i-1)*M+1:i*M,(j-1)*M+1:j*M]' == Cu[(i-1)*M+1:i*M,(j-1)*M+1:j*M]
         end
     end
@@ -102,8 +102,8 @@ end  # @testset "curl of curl"
     Cv = create_curl(.!isfwd, [N...], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
     # Test symmetry of each block.
-    for i = nXYZ
-        for j = next2(i)
+    for i = 1:3
+        for j = mod1.(i .+ [1,2], 3)
             -Cv[(i-1)*M+1:i*M,(j-1)*M+1:j*M]' == Cu[(i-1)*M+1:i*M,(j-1)*M+1:j*M]
         end
     end

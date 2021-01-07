@@ -165,9 +165,9 @@ end  # @testset "comp_lprim1d"
     @test xprim == yprim
 
     # Entries of diff(wprim) can exceed max∆l(domain)[w], but not much.  See gridgen.jl:fill_constant
-    @test all(diff(xprim) .< max∆l(domain)[nX]*rmax)
-    @test all(diff(yprim) .< max∆l(domain)[nY]*rmax)
-    @test all(diff(zprim) .< max∆l(domain)[nZ]*rmax)
+    @test all(diff(xprim) .< max∆l(domain)[1]*rmax)
+    @test all(diff(yprim) .< max∆l(domain)[2]*rmax)
+    @test all(diff(zprim) .< max∆l(domain)[3]*rmax)
 
     @test MaxwellFDM.issmooth(diff(xprim), rmax)
     @test MaxwellFDM.issmooth(diff(yprim), rmax)

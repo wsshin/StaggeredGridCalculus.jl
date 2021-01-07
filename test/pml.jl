@@ -57,8 +57,8 @@ end  # @testset "get_pml_loc"
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
     ldual = StaggeredGridCalculus.movingavg.(lprim)
 
-    lpml = (SVector{3}((w->lprim[w][1+Npml[nN][w]]).(nXYZ)), SVector{3}((w->lprim[w][end-Npml[nP][w]]).(nXYZ)))
-    Lpml = (lpml[nN].-SVector{3}((w->lprim[w][1]).(nXYZ)), SVector{3}((w->lprim[w][end]).(nXYZ)).-lpml[nP])
+    lpml = (SVector{3}((w->lprim[w][1+Npml[nN][w]]).(1:3)), SVector{3}((w->lprim[w][end-Npml[nP][w]]).(1:3)))
+    Lpml = (lpml[nN].-SVector{3}((w->lprim[w][1]).(1:3)), SVector{3}((w->lprim[w][end]).(1:3)).-lpml[nP])
 
     @test get_pml_loc(lprim, Npml) == (lpml, Lpml)
 
@@ -66,8 +66,8 @@ end  # @testset "get_pml_loc"
     pml = PMLParam()
     σmax = (-(pml.m+1) * log(pml.R) / 2 ./ Lpml[nN], -(pml.m+1) * log(pml.R) / 2 ./ Lpml[nP])  # see calc_stretch_factor
     f(l, nw) = l≤lpml[nN][nw] ? (1 + σmax[nN][nw] * ((lpml[nN][nw]-l)/Lpml[nN][nw])^pml.m / (im*ω)) : (l≥lpml[nP][nw] ? (1 + σmax[nP][nw] * ((l-lpml[nP][nw])/Lpml[nP][nw])^pml.m / (im*ω)) : 1)
-    sprim = (f.(lprim[nX][1:end-1],nX), f.(lprim[nY][1:end-1],nY), f.(lprim[nZ][1:end-1],nZ))
-    sdual = (f.(ldual[nX],nX), f.(ldual[nY],nY), f.(ldual[nZ],nZ))
+    sprim = (f.(lprim[1][1:end-1],1), f.(lprim[2][1:end-1],2), f.(lprim[3][1:end-1],3))
+    sdual = (f.(ldual[1],1), f.(ldual[2],2), f.(ldual[3],3))
 
     @test gen_stretch_factor(ω, ((l->l[1:end-1]).(lprim), ldual), lpml, Lpml) == (sprim, sdual)
 end

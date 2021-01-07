@@ -72,23 +72,23 @@ end  # @testset "Grid{1}, primal boundary"
     pop!.(lprim)
     @test g3.l ≈ (lprim, ldual)
     ∆lprim = diff.(ldual)
-    prepend!(∆lprim[nX], 2(ldual[nX][1]-lprim[nX][1]))
-    prepend!(∆lprim[nY], 2(ldual[nY][1]-lprim[nY][1]))
-    prepend!(∆lprim[nZ], ldual[nZ][1]+L[nZ]-ldual[nZ][end])
+    prepend!(∆lprim[1], 2(ldual[1][1]-lprim[1][1]))
+    prepend!(∆lprim[2], 2(ldual[2][1]-lprim[2][1]))
+    prepend!(∆lprim[3], ldual[3][1]+L[3]-ldual[3][end])
     @test g3.∆l ≈ (∆lprim, ∆ldual)
     @test g3.isbloch == isbloch
     # @test g3.Npml == Npml
     # @test g3.Lpml ≈ (
-    #     [sum(∆ldual[d][1:Npml[nN][d]]) for d = nXYZ],
-    #     [sum(∆ldual[d][end-Npml[nP][d]+1:end]) for d = nXYZ],
+    #     [sum(∆ldual[d][1:Npml[nN][d]]) for d = 1:3],
+    #     [sum(∆ldual[d][end-Npml[nP][d]+1:end]) for d = 1:3],
     # )
     # @test g3.lpml ≈ (
-    #     [sum(∆ldual[d][1:Npml[nN][d]]) - l₀[d] for d = nXYZ],
-    #     [sum(∆ldual[d]) - sum(∆ldual[d][end-Npml[nP][d]+1:end]) - l₀[d] for d = nXYZ]
+    #     [sum(∆ldual[d][1:Npml[nN][d]]) - l₀[d] for d = 1:3],
+    #     [sum(∆ldual[d]) - sum(∆ldual[d][end-Npml[nP][d]+1:end]) - l₀[d] for d = 1:3]
     # )
     @test g3.bounds ≈ (
-        [lprim[d][1] for d = nXYZ],
-        [lprim[d][end] + ∆ldual[d][end] for d = nXYZ]
+        [lprim[d][1] for d = 1:3],
+        [lprim[d][end] + ∆ldual[d][end] for d = 1:3]
     )
     @test -l₀ ∈ g3
     @test all(g3.bounds .∈ Ref(g3))
@@ -98,13 +98,13 @@ end  # @testset "Grid{1}, primal boundary"
     @test pop!.(lprim_g)≈lg[nPR].data && popfirst!.(ldual_g)≈lg[nDL].data && lprim_g≈lprim && ldual_g≈ldual
     τlprim_g = g3.ghosted.τl[nPR]
     τldual_g = g3.ghosted.τl[nDL]
-    @test pop!.(τlprim_g)≈lg[nPR].data.-(0,0,L[nZ]) && popfirst!.(τldual_g)≈(ldual[nX][1],ldual[nY][1],lg[nDL][nZ]+L[nZ]) && τlprim_g≈lprim && τldual_g≈ldual
+    @test pop!.(τlprim_g)≈lg[nPR].data.-(0,0,L[3]) && popfirst!.(τldual_g)≈(ldual[1][1],ldual[2][1],lg[nDL][3]+L[3]) && τlprim_g≈lprim && τldual_g≈ldual
     τindprim_g = g3.ghosted.τind[nPR]
     τinddual_g = g3.ghosted.τind[nDL]
-    @test pop!.(τindprim_g)==(N[nX]+1,N[nY]+1,1) && popfirst!.(τinddual_g)==(2,2,N[nZ]+1) && τindprim_g==map(m->collect(1:m), tuple(N...)) && τinddual_g==map(m->collect(2:m+1), tuple(N...))
+    @test pop!.(τindprim_g)==(N[1]+1,N[2]+1,1) && popfirst!.(τinddual_g)==(2,2,N[3]+1) && τindprim_g==map(m->collect(1:m), tuple(N...)) && τinddual_g==map(m->collect(2:m+1), tuple(N...))
     ∆τprim_g = g3.ghosted.∆τ[nPR]
     ∆τdual_g = g3.ghosted.∆τ[nDL]
-    @test pop!.(∆τprim_g)≈(0,0,-L[nZ]) && popfirst!.(∆τdual_g)≈(0,0,L[nZ]) && all(iszero.(∆τprim_g)) && all(iszero.(∆τdual_g))
+    @test pop!.(∆τprim_g)≈(0,0,-L[3]) && popfirst!.(∆τdual_g)≈(0,0,L[3]) && all(iszero.(∆τprim_g)) && all(iszero.(∆τdual_g))
 end  # @testset "Grid{3}"
 
 # @testset "Grid{2}" begin

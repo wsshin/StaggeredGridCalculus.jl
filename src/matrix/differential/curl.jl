@@ -45,8 +45,8 @@ function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by f
     for nv = 1:3  # Cartesian compotent of output field
         istr, ioff = order_cmpfirst ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
         parity = 1
-        for nw = next2(nv)  # direction of differentiation
-            nu = 6 - nv - nw  # Cantesian component of input field; 6 = nX + nY + nZ
+        for nw = mod1.(nv .+ SVector(1,2), 3)  # direction of differentiation
+            nu = 6 - nv - nw  # Cantesian component of input field; 6 = 1 + 2 + 3
             jstr, joff = order_cmpfirst ? (3, nu-3) : (1, M*(nu-1))  # (column stride, column offset)
             I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
