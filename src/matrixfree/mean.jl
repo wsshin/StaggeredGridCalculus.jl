@@ -15,7 +15,7 @@
 
 export apply_m̂!, apply_mean!
 
-# Wrapper for converting AbstractVector's to SVector's for arithmetic averaging
+# Wrapper for converting AbstractVector's to SVec's for arithmetic averaging
 # This corresponds to the wrappers to create discrete versions of differential operators,
 # but the nonzero enries in the matrix are 0.5 rather than 1.0.
 apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
@@ -26,9 +26,9 @@ apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at 
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
             ) where {OP} =
-    (K = length(isfwd); apply_mean!(G, F, Val(OP), SBool{K}(isfwd), SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
+    (K = length(isfwd); apply_mean!(G, F, Val(OP), SBool{K}(isfwd), SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α))
 
-# Wrapper for converting AbstractVector's to SVector's for weighted averaging
+# Wrapper for converting AbstractVector's to SVec's for weighted averaging
 apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
@@ -39,7 +39,7 @@ apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at 
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
             ) where {OP} =
-    (K = length(isfwd); apply_mean!(G, F, Val(OP), SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α))
+    (K = length(isfwd); apply_mean!(G, F, Val(OP), SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α))
 
 # Concrete implementation for arithmetic averaging
 # Initially this was implemented by passing a tuple of ones() os ∆l and ∆l′⁻¹, but because

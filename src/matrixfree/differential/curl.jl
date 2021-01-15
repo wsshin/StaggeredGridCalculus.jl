@@ -20,7 +20,7 @@ apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G 
             ) where {OP} =
     (N = size(G)[1:3]; apply_curl!(G, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ, α=α))
 
-# Wrapper for converting AbstractVector's to SVector's
+# Wrapper for converting AbstractVector's to SVec's
 apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
@@ -38,7 +38,7 @@ apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G 
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    apply_curl!(G, F, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), α=α)
+    apply_curl!(G, F, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α)
 
 # Concrete implementation
 function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)

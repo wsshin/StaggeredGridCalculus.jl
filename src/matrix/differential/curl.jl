@@ -17,14 +17,14 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     # because sometimes I would want to even create an integral curl operator.
     create_curl(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst)
 
-# Wrapper to convert AbstractVector's to SVector's
+# Wrapper to convert AbstractVector's to SVec's
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,3),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(3);  # Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    create_curl(SVector{3}(isfwd), SInt{3}(N), ∆l⁻¹, SVector{3}(isbloch), SVector{3}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
+    create_curl(SVec{3}(isfwd), SInt{3}(N), ∆l⁻¹, SVec{3}(isbloch), SVec{3}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
 
 function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{3},  # size of grid
@@ -45,7 +45,7 @@ function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by f
     for nv = 1:3  # Cartesian compotent of output field
         istr, ioff = order_cmpfirst ? (3, nv-3) : (1, M*(nv-1))  # (row stride, row offset)
         parity = 1
-        for nw = mod1.(nv .+ SVector(1,2), 3)  # direction of differentiation
+        for nw = mod1.(nv .+ SVec(1,2), 3)  # direction of differentiation
             nu = 6 - nv - nw  # Cantesian component of input field; 6 = 1 + 2 + 3
             jstr, joff = order_cmpfirst ? (3, nu-3) : (1, M*(nu-1))  # (column stride, column offset)
             I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])

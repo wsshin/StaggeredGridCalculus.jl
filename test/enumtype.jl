@@ -11,8 +11,8 @@ end
 end
 
 @testset "integers" begin
-    @test Int.(SVector(instances(GridType))) == nPD == [nPR, nDL]
-    @test Int.(SVector(instances(Sign))) == nNP == [nN, nP]
+    @test Int.(SVec(instances(GridType))) == nPD == [nPR, nDL]
+    @test Int.(SVec(instances(Sign))) == nNP == [nN, nP]
 end
 
 @testset "next and alter" begin

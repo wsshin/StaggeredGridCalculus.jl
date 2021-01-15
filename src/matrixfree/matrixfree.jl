@@ -20,20 +20,20 @@ function calc_boundary_indices(N::Tuple{Vararg{Int}})  # range of index: 1 throu
         ∆n₀ = Nₑ ÷ Nₜ
     end
 
-    ∆n = SVector(ntuple(i->(i≤Nₑ%Nₜ ? ∆n₀+1 : ∆n₀), Nₜ))  # first N%Nₜ entries are ∆n₀+1; remaining entries are ∆n₀
+    ∆n = SVec(ntuple(i->(i≤Nₑ%Nₜ ? ∆n₀+1 : ∆n₀), Nₜ))  # first N%Nₜ entries are ∆n₀+1; remaining entries are ∆n₀
     @assert sum(∆n)==Nₑ
 
     # nₛ = @MVector ones(Int, Nₜ)
     # for j = 2:Nₜ, i = 1:j-1
     #     nₛ[j] += ∆n[i]  # nₛ[1] = 1, nₛ[2] = 1 + ∆n[1], nₛ[3] = 1 + ∆n[1] + ∆n[2], ...
     # end
-    nₛ = SVector(ntuple(i->1+sum(@view(∆n[1:i-1])), Nₜ))  # nₛ[1] = 1, nₛ[2] = 1 + ∆n[1], nₛ[3] = 1 + ∆n[1] + ∆n[2], ...
+    nₛ = SVec(ntuple(i->1+sum(@view(∆n[1:i-1])), Nₜ))  # nₛ[1] = 1, nₛ[2] = 1 + ∆n[1], nₛ[3] = 1 + ∆n[1] + ∆n[2], ...
 
     # nₑ = @MVector zeros(Int, Nₜ)
     # for j = 1:Nₜ, i = 1:j
     #     nₑ[j] += ∆n[i]  # nₑ[1] = ∆n[1], nₑ[2] = ∆n[1] + ∆n[2], nₑ[3] = ∆n[1] + ∆n[2] + ∆n[3], ...
     # end
-    nₑ = SVector(ntuple(i->sum(@view(∆n[1:i])), Nₜ))  # nₑ[1] = ∆n[1], nₑ[2] = ∆n[1] + ∆n[2], nₑ[3] = ∆n[1] + ∆n[2] + ∆n[3], ...
+    nₑ = SVec(ntuple(i->sum(@view(∆n[1:i])), Nₜ))  # nₑ[1] = ∆n[1], nₑ[2] = ∆n[1] + ∆n[2], nₑ[3] = ∆n[1] + ∆n[2] + ∆n[3], ...
 
     return (nₛ, nₑ)
 end

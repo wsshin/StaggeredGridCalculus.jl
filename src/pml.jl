@@ -76,15 +76,15 @@ end
 # The primal grid plane locations with the ghost plane locations are passed, from which the
 # boundaries of the computational domain are retrieved.
 function get_pml_loc(lg_prim::AbsVecReal, Npml::Tuple2{Integer})  # convenience method for K = 1
-    lpml, Lpml = get_pml_loc((lg_prim,), SVector{1}.(Npml))
+    lpml, Lpml = get_pml_loc((lg_prim,), SVec{1}.(Npml))
 
     return (lpml[nN][1],lpml[nP][1]), (Lpml[nN][1],Lpml[nP][1])
 end
-get_pml_loc(lg_prim::NTuple{K,AbsVecReal}, Npml::Tuple2{AbsVecInteger}) where {K} = get_pml_loc(lg_prim, SVector{K}.(Npml))
+get_pml_loc(lg_prim::NTuple{K,AbsVecReal}, Npml::Tuple2{AbsVecInteger}) where {K} = get_pml_loc(lg_prim, SVec{K}.(Npml))
 
 function get_pml_loc(lg_prim::NTuple{K,AbsVecReal},  # lg_prim[k] = primal vertex locations in k-direction (including ghost location at (+) end)
-                     Npml::Tuple2{SVector{K,<:Integer}}) where {K}  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
-    bounds = (SVector{K}(getindex.(lg_prim,1)), SVector{K}(getindex.(lg_prim,lastindex.(lg_prim))))  # Tuple2{SVector{K,<:Real}}
+                     Npml::Tuple2{SVec{K,<:Integer}}) where {K}  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
+    bounds = (SVec{K}(getindex.(lg_prim,1)), SVec{K}(getindex.(lg_prim,lastindex.(lg_prim))))  # Tuple2{SVec{K,<:Real}}
     lprim = (l->@view(l[1:end-1])).(lg_prim)
 
     return get_pml_loc(lprim, bounds, Npml)
@@ -95,21 +95,21 @@ end
 # positive-end boundaries of the computational domain cannot be retrieved from them.
 # Therefore, the boundary information is passed separately.
 function get_pml_loc(lprim::AbsVecReal, bounds::Tuple2{Real}, Npml::Tuple2{Integer})  # convenience method for K = 1
-    lpml, Lpml = get_pml_loc((lprim,), SVector{1}.(bounds), SVector{1}.(Npml))
+    lpml, Lpml = get_pml_loc((lprim,), SVec{1}.(bounds), SVec{1}.(Npml))
 
     return (lpml[nN][1],lpml[nP][1]), (Lpml[nN][1],Lpml[nP][1])
 end
 get_pml_loc(lprim::NTuple{K,AbsVecReal}, bounds::Tuple2{AbsVecReal}, Npml::Tuple2{AbsVecInteger}) where {K} =
-    get_pml_loc(lprim, SVector{K}.(bounds), SVector{K}.(Npml))
+    get_pml_loc(lprim, SVec{K}.(bounds), SVec{K}.(Npml))
 
 function get_pml_loc(lprim::NTuple{K,AbsVecReal},  # lprim[k] = primal vertex locations in k-direction (excluding ghost location at (+) end)
-                     bounds::Tuple2{SVector{K,<:Real}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
-                     Npml::Tuple2{SVector{K,<:Integer}}) where {K}  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
+                     bounds::Tuple2{SVec{K,<:Real}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
+                     Npml::Tuple2{SVec{K,<:Integer}}) where {K}  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
     # Below, if Npml[nP] = 0, lprim[end+1-Npml[nP]] = lprim[end+1] is out of bound.  Because
     # lprim[end+1] points to the ghost point, we return the positive-end boundary in this
     # case.
-    lpml = (map((v,n)->v[1+n], lprim, Npml[nN]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[nP], Npml[nP]))  # Tuple2{SVector{K,Float}}
-    Lpml = (lpml[nN]-bounds[nN], bounds[nP]-lpml[nP])  # Tuple2{SVector{K,Float}}
+    lpml = (map((v,n)->v[1+n], lprim, Npml[nN]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[nP], Npml[nP]))  # Tuple2{SVec{K,Float}}
+    Lpml = (lpml[nN]-bounds[nN], bounds[nP]-lpml[nP])  # Tuple2{SVec{K,Float}}
 
     return lpml, Lpml
 end
@@ -128,19 +128,19 @@ function calc_stretch_factor(ω::Number,  # angular frequency
 end
 
 function gen_stretch_factor(ω::Number, l::Tuple2{AbsVecReal}, lpml::Tuple2{Real}, Lpml::Tuple2{Real}, pml::PMLParam=PMLParam())
-    sfactor = gen_stretch_factor(ω, ((l[nPR],), (l[nDL],)), SVector{1}.(lpml), SVector{1}.(Lpml), pml)
+    sfactor = gen_stretch_factor(ω, ((l[nPR],), (l[nDL],)), SVec{1}.(lpml), SVec{1}.(Lpml), pml)
 
     return (sfactor[nPR][1], sfactor[nDL][1])
 end
 
 gen_stretch_factor(ω::Number, l::Tuple2{NTuple{K,AbsVecReal}}, lpml::Tuple2{AbsVecReal},
                    Lpml::Tuple2{AbsVecReal}, pml::PMLParam=PMLParam()) where {K} =
-    gen_stretch_factor(ω, l, SVector{K}.(lpml), SVector{K}.(Lpml), pml)
+    gen_stretch_factor(ω, l, SVec{K}.(lpml), SVec{K}.(Lpml), pml)
 
 function gen_stretch_factor(ω::Number,  # angular frequency
                             l::Tuple2{NTuple{K,AbsVecReal}},  # locations of primal and dual grid points
-                            lpml::Tuple2{SVector{K,<:Real}},  # locations of PML interfaces
-                            Lpml::Tuple2{SVector{K,<:Real}},  # thicknesses of PML
+                            lpml::Tuple2{SVec{K,<:Real}},  # locations of PML interfaces
+                            Lpml::Tuple2{SVec{K,<:Real}},  # thicknesses of PML
                             pml::PMLParam=PMLParam()  # PML parameters
                             ) where {K}
     N = length.(l[nPR])  # (Nx, Ny, Nz)

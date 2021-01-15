@@ -14,7 +14,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     create_grad(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=order_cmpfirst)
 
-# Wrapper to convert AbstractVector's to SVector's
+# Wrapper to convert AbstractVector's to SVec's
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
@@ -32,15 +32,15 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_grad(SBool{K}(isfwd), SInt{K}(N), ∆l⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), permute∂=SInt{K}(permute∂), scale∂=SVector{K}(scale∂), order_cmpfirst=order_cmpfirst)
+    create_grad(SBool{K}(isfwd), SInt{K}(N), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), permute∂=SInt{K}(permute∂), scale∂=SVec{K}(scale∂), order_cmpfirst=order_cmpfirst)
 
 function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
                      N::SInt{K},  # size of grid
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     permute∂::SInt{K}=SVector(ntuple(identity, Val(K))),  # permute∂[w]: location of ∂w block
-                     scale∂::SNumber{K}=SVector(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
+                     permute∂::SInt{K}=SVec(ntuple(identity, Val(K))),  # permute∂[w]: location of ∂w block
+                     scale∂::SNumber{K}=SVec(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous

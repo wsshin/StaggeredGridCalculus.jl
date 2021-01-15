@@ -22,7 +22,7 @@ apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component o
             ) where {OP} =
     (N = size(f); apply_grad!(G, f, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, α=α))
 
-# Wrapper for converting AbstractVector's to SVector's
+# Wrapper for converting AbstractVector's to SVec's
 apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
             f::AbsArrNumber,  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
@@ -34,7 +34,7 @@ apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component o
             scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
             α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             ) where {K,OP} =
-    apply_grad!(G, f, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), permute∂=SInt{K}(permute∂), scale∂=SVector{K}(scale∂), α=α)
+    apply_grad!(G, f, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), permute∂=SInt{K}(permute∂), scale∂=SVec{K}(scale∂), α=α)
 
 # Concrete implementation
 function apply_grad!(G::AbsArrNumber{K₊₁},  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
@@ -44,8 +44,8 @@ function apply_grad!(G::AbsArrNumber{K₊₁},  # output field; in 3D, G[i,j,k,w
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l[w]: inverse of distances between grid planes in x-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     permute∂::SInt{K}=SVector(ntuple(identity, Val(K))),  # permute∂[w]: location of ∂w block
-                     scale∂::SNumber{K}=SVector(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
+                     permute∂::SInt{K}=SVec(ntuple(identity, Val(K))),  # permute∂[w]: location of ∂w block
+                     scale∂::SNumber{K}=SVec(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
                      α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
                      ) where {K,K₊₁,OP}
     @assert K₊₁==K+1

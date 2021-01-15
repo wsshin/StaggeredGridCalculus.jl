@@ -52,13 +52,13 @@ end  # @testset "get_pml_loc"
     M = sum(Npml) + N
     ∆ldual = ntuple(d->rand(M[d]), length(N))
 
-    L = SVector(sum.(∆ldual))  # SFloat{3}
+    L = SVec(sum.(∆ldual))  # SFloat{3}
     l₀ = L ./ 2  # SFloat{3}
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
     ldual = StaggeredGridCalculus.movingavg.(lprim)
 
-    lpml = (SVector{3}((w->lprim[w][1+Npml[nN][w]]).(1:3)), SVector{3}((w->lprim[w][end-Npml[nP][w]]).(1:3)))
-    Lpml = (lpml[nN].-SVector{3}((w->lprim[w][1]).(1:3)), SVector{3}((w->lprim[w][end]).(1:3)).-lpml[nP])
+    lpml = (SVec{3}((w->lprim[w][1+Npml[nN][w]]).(1:3)), SVec{3}((w->lprim[w][end-Npml[nP][w]]).(1:3)))
+    Lpml = (lpml[nN].-SVec{3}((w->lprim[w][1]).(1:3)), SVec{3}((w->lprim[w][end]).(1:3)).-lpml[nP])
 
     @test get_pml_loc(lprim, Npml) == (lpml, Lpml)
 

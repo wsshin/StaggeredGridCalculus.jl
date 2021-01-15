@@ -21,8 +21,8 @@ apply_∂!(Gv::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
     (N = size(Gv); apply_∂!(Gv, Fu, Val(OP), nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ, α=α))  # fill: create vector of ∆w⁻¹
 
 # Unlike matrix/partial.jl, there is no need to create a wrapper to convert AbstractVector's
-# to SVector's, because the concrete implementation of apply_∂! below does not take any
-# SVector's.  I only need to set the default value for e⁻ⁱᵏᴸ below, even though I don't
+# to SVec's, because the concrete implementation of apply_∂! below does not take any
+# SVec's.  I only need to set the default value for e⁻ⁱᵏᴸ below, even though I don't
 # usually set default values for the arguments in concrete implementation (except for
 # keyword arguments, which require default values).
 

@@ -47,7 +47,7 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     create_mean(isfwd, N, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst)
 
-# Wrapper to convert AbstractVector's to SVector's.
+# Wrapper to convert AbstractVector's to SVec's.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
             N::AbsVecInteger,  # size of grid
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
@@ -56,7 +56,7 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for K = 3, Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
-    create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
+    create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -142,7 +142,7 @@ function create_minfo(nw::Integer,  # for K = 3, 1|2|3 for averaging along x|y|z
                       ) where {K}
     M = prod(N)
     Nw = N[nw]
-    ŵ = SVector(ntuple(identity,Val(K))) .== nw  # [0,true,0] for w == y
+    ŵ = SVec(ntuple(identity,Val(K))) .== nw  # [0,true,0] for w == y
     ns = isfwd ? 1.0 : -1.0  # number for sign
 
     # Below, when constructing I, J's, V's, note that a tuple of array subscripts (i,j,k)
