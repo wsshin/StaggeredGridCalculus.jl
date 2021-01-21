@@ -33,13 +33,13 @@ apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at 
             F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
             isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
-            ∆l::Tuple{Vararg{AbsVecNumber}},  # line segments to multiply with; vectors of length N
-            ∆l′⁻¹::Tuple{Vararg{AbsVecNumber}},  # inverse of line segments to divide by; vectors of length N
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
+            ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
+            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
-            ) where {OP} =
-    (K = length(isfwd); apply_mean!(G, F, Val(OP), SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α))
+            ) where {K,OP} =
+    apply_mean!(G, F, Val(OP), SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α)
 
 # Concrete implementation for arithmetic averaging
 # Initially this was implemented by passing a tuple of ones() os ∆l and ∆l′⁻¹, but because

@@ -28,10 +28,10 @@ apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component o
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in K dimensions
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factors in K dimensions
-            permute∂::AbsVecInt=1:length(isfwd),  # permute∂[w]: location of ∂w block
-            scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
+            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in K dimensions
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factors in K dimensions
+            permute∂::AbsVecInt=1:K,  # permute∂[w]: location of ∂w block
+            scale∂::AbsVecNumber=ones(K),  # scale∂[w]: scale factor to multiply to ∂w
             α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             ) where {K,OP} =
     apply_grad!(G, f, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), permute∂=SInt{K}(permute∂), scale∂=SVec{K}(scale∂), α=α)

@@ -18,10 +18,10 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
-            permute∂::AbsVecInteger=1:length(isfwd),  # permute∂[w]: location of ∂w block
-            scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
+            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            permute∂::AbsVecInteger=1:K,  # permute∂[w]: location of ∂w block
+            scale∂::AbsVecNumber=ones(K),  # scale∂[w]: scale factor to multiply to ∂w
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix

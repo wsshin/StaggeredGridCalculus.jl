@@ -7,10 +7,10 @@ export create_divg
 create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(N)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
-            isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            permute∂::AbsVecInteger=1:length(N),  # permute∂[w]: location of ∂w block
-            scale∂::AbsVecNumber=ones(length(N)),  # scale∂[w]: scale factor to multiply to ∂w
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            permute∂::AbsVecInteger=1:length(isfwd),  # permute∂[w]: location of ∂w block
+            scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     create_divg(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=order_cmpfirst)
 
@@ -18,10 +18,10 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
 create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-            isbloch::AbsVecBool=fill(true,length(N)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # Bloch phase factor in x, y, z
-            permute∂::AbsVecInteger=1:length(N),  # permute∂[w]: location of ∂w block
-            scale∂::AbsVecNumber=ones(length(N)),  # scale∂[w]: scale factor to multiply to ∂w
+            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            permute∂::AbsVecInteger=1:K,  # permute∂[w]: location of ∂w block
+            scale∂::AbsVecNumber=ones(K),  # scale∂[w]: scale factor to multiply to ∂w
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix

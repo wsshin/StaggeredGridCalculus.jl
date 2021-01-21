@@ -52,8 +52,8 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
             N::AbsVecInteger,  # size of grid
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
             ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-            isbloch::AbsVecBool=fill(true,length(N)),  # for K = 3, boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for K = 3, Bloch phase factor in x, y, z
+            isbloch::AbsVecBool=fill(true,K),  # for K = 3, boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # for K = 3, Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
