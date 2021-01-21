@@ -1,7 +1,7 @@
 export create_curl
 
 # Wrapper to create the discrete curl by default
-create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::Tuple3{Number}=(1.0,1.0,1.0),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,3),  # boundary conditions in x, y, z
@@ -18,7 +18,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     create_curl(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVec's
-create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,3),  # boundary conditions in x, y, z
@@ -26,7 +26,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     create_curl(SVec{3}(isfwd), SInt{3}(N), ∆l⁻¹, SVec{3}(isbloch), SVec{3}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
 
-function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+function create_curl(isfwd::SBool{3},  # isfwd[w] = true|false: ∂w is forward|backward difference
                      N::SInt{3},  # size of grid
                      ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
                      isbloch::SBool{3},  # boundary conditions in x, y, z

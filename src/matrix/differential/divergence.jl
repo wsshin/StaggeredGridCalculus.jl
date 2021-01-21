@@ -4,7 +4,7 @@
 export create_divg
 
 # Wrapper to create the discrete divergence by default
-create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(N)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
@@ -15,7 +15,7 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     create_divg(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=order_cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVec's
-create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
@@ -34,7 +34,7 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|
     # because sometimes I would want to even create an integral curl operator.
     create_divg(SBool{K}(isfwd), SInt{K}(N), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), permute∂=SVec{K}(permute∂), scale∂=SVec{K}(scale∂), order_cmpfirst=order_cmpfirst)
 
-function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
                      N::SInt{K},  # size of grid
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
@@ -56,7 +56,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by f
     for nw = 1:K  # direction of differentiation
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
-        nu = permute∂[nw]  # component of input field to feed to ∂w (index of matrix block)
+        nu = permute∂[nw]  # component of input field to feed to ∂w (column index of matrix block)
         jstr, joff = order_cmpfirst ? (K, nu-K) : (1, M*(nu-1))  # (column stride, column offset)
         @. J = jstr * J + joff
 
