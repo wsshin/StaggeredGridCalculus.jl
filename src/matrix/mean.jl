@@ -40,23 +40,31 @@ export create_m̂, create_mean
 # Wrapper to create the arithmetic averaging operator by default
 # This corresponds to the wrappers to create discrete versions of differential operators,
 # but the nonzero enries in the matrix are 0.5 rather than 1.0.
-create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
+create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
             N::AbsVecInteger,  # size of grid
-            isbloch::AbsVecBool=fill(true,length(N)),  # for length(N) = 3, boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # for length(N) = 3, Bloch phase factor in x, y, z
+            isbloch::AbsVecBool=fill(true,length(N)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            inpermutem̂::AbsVecInteger=1:length(isfwd),  # inpermutem̂[w]: column index of m̂_w block
+            outpermutem̂::AbsVecInteger=1:length(isfwd),  # outpermutem̂[w]: row index of m̂_w block
+            scalem̂::AbsVecNumber=ones(length(isfwd)),  # scalem̂[w]: scale factor to multiply to m̂_w
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    create_mean(isfwd, N, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=order_cmpfirst)
+    create_mean(isfwd, N, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ,
+                inpermutem̂=inpermutem̂, outpermutem̂=outpermutem̂, scalem̂=scalem̂, order_cmpfirst=order_cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVec's.
-create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
+create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
             N::AbsVecInteger,  # size of grid
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
             ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-            isbloch::AbsVecBool=fill(true,K),  # for K = 3, boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # for K = 3, Bloch phase factor in x, y, z
+            isbloch::AbsVecBool=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            inpermutem̂::AbsVecInteger=1:K,  # inpermutem̂[w]: column index of m̂_w block
+            outpermutem̂::AbsVecInteger=1:K,  # outpermutem̂[w]: row index of m̂_w block
+            scalem̂::AbsVecNumber=ones(K),  # scalem̂[w]: scale factor to multiply to m̂_w
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
-    create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), order_cmpfirst=order_cmpfirst)
+    create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ),
+                inpermutem̂=SInt{K}(inpermutem̂), outpermutem̂=SInt{K}(outpermutem̂), scalem̂=SVec{K}(scalem̂), order_cmpfirst=order_cmpfirst)
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -65,12 +73,15 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward ave
 # putting the material parameters at off-diagonal blocks.  Therefore, the field-averaging
 # operators always the diagonal blocks as nonzero blocks, as they perform averaging on the
 # already generated input and output fields.  See RN - Subpixel Smoothing > [Update (May/13/2018)].
-function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backward averaging
+function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
                      N::SInt{K},  # size of grid
                      ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-                     isbloch::SBool{K},  # for K = 3, boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SNumber{K};  # for K = 3, Bloch phase factor in x, y, z
+                     isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+                     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+                     inpermutem̂::SInt{K}=SVec(ntuple(identity, Val(K))),  # inpermutem̂[w]: column index of m̂_w block
+                     outpermutem̂::SInt{K}=SVec(ntuple(identity, Val(K))),  # outpermutem̂[w]: row index of m̂_w block
+                     scalem̂::SNumber{K}=SVec(ntuple(k->1.0, Val(K))),  # scalem̂[w]: scale factor to multiply to m̂_w
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l)..., eltype.(∆l′⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
@@ -82,15 +93,19 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backw
     Vtot = Vector{T}(undef, 2KM)
 
     indblk = 0  # index of matrix block
-    for nv = 1:K  # Cartesian compotents of output field
-        I, J, V = create_minfo(nv, isfwd[nv], N, ∆l[nv], ∆l′⁻¹[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv])  # averaging along nv-direction
+    for nw = 1:K  # direction of averaging
+        I, J, V = create_minfo(nw, isfwd[nw], N, ∆l[nw], ∆l′⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])  # averaging along nv-direction
 
+        nv = outpermutem̂[nw]  # component of output field generated by w-directional averaging operator m̂_w (row index of matrix block)
         istr, ioff = order_cmpfirst ? (K, nv-K) : (1, M*(nv-1))  # (row stride, row offset)
-        nw = nv  # Cartesian component of input field; same as output field's, because we set diagonal blocks
-        jstr, joff = order_cmpfirst ? (K, nw-K) : (1, M*(nw-1))  # (column stride, column offset)
+
+        nu = inpermutem̂[nw]  # component of input field to feed to w-directional averaging operator m̂_w (column index of matrix block)
+        jstr, joff = order_cmpfirst ? (K, nu-K) : (1, M*(nu-1))  # (column stride, column offset)
 
         @. I = istr * I + ioff
         @. J = jstr * J + joff
+
+        V .*= scalem̂[nw]
 
         # For some reason, using .= below is slower because it uses 1 allocatiotn.  On the
         # other hand, using = does not use allocation and therefore faster.
@@ -105,7 +120,7 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false for forward|backw
 end
 
 
-## Field-averaging operators "m" (as used in de Moerloose and de Zutter)
+## Field-averaging operators "m̂" (as used in de Moerloose and de Zutter)
 #
 # This creates the averaging operator for a single Cartesian component.  For the operator
 # for all three Cartesian components, use create_mean.

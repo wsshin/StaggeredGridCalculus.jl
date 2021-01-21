@@ -21,25 +21,33 @@ export apply_m̂!, apply_mean!
 apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
-            isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            inpermutem̂::AbsVecInteger=1:length(isfwd),  # inpermutem̂[w]: column index of m̂_w block
+            outpermutem̂::AbsVecInteger=1:length(isfwd),  # outpermutem̂[w]: row index of m̂_w block
+            scalem̂::AbsVecNumber=ones(length(isfwd)),  # scalem̂[w]: scale factor to multiply to m̂_w
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
             ) where {OP} =
-    (K = length(isfwd); apply_mean!(G, F, Val(OP), SBool{K}(isfwd), SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α))
+    (K = length(isfwd); apply_mean!(G, F, Val(OP), SBool{K}(isfwd), SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ),
+                                    inpermutem̂=SInt{K}(inpermutem̂), outpermutem̂=SInt{K}(outpermutem̂), scalem̂=SVec{K}(scalem̂), α=α))
 
 # Wrapper for converting AbstractVector's to SVec's for weighted averaging
 apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
-            isfwd::AbsVecBool,  # isfwd[w] = true|false for forward|backward averaging
+            isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
             ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            isbloch::AbsVecBool=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            inpermutem̂::AbsVecInteger=1:K,  # inpermutem̂[w]: column index of m̂_w block
+            outpermutem̂::AbsVecInteger=1:K,  # outpermutem̂[w]: row index of m̂_w block
+            scalem̂::AbsVecNumber=ones(K),  # scalem̂[w]: scale factor to multiply to m̂_w
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
             ) where {K,OP} =
-    apply_mean!(G, F, Val(OP), SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α)
+    apply_mean!(G, F, Val(OP), SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ),
+                inpermutem̂=SInt{K}(inpermutem̂), outpermutem̂=SInt{K}(outpermutem̂), scalem̂=SVec{K}(scalem̂), α=α)
 
 # Concrete implementation for arithmetic averaging
 # Initially this was implemented by passing a tuple of ones() os ∆l and ∆l′⁻¹, but because
@@ -47,20 +55,23 @@ apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at 
 function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::AbsArrNumber{K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
                      ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
-                     isfwd::SBool{K},  # isfwd[w] = true|false for forward|backward averaging
-                     isbloch::SBool{K},  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factor in x, y, z
+                     isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
+                     isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+                     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+                     inpermutem̂::SInt{K}=SVec(ntuple(identity, Val(K))),  # inpermutem̂[w]: column index of m̂_w block
+                     outpermutem̂::SInt{K}=SVec(ntuple(identity, Val(K))),  # outpermutem̂[w]: row index of m̂_w block
+                     scalem̂::SNumber{K}=SVec(ntuple(k->1.0, Val(K))),  # scalem̂[w]: scale factor to multiply to m̂_w
                      α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      ) where {K,K₊₁,OP}  #  K is space dimension; K₊₁ = K + 1
     @assert K₊₁==K+1
     for nw = 1:K  # direction of averaging
-        nv = nw
+        nv = outpermutem̂[nw]  # component of output field generated by w-directional averaging operator m̂_w (row index of matrix block)
         Gv = selectdim(G, K₊₁, nv)  # nv-th component of output field
 
-        nu = nw  # component of input field to feed to w-directional averaging
+        nu = inpermutem̂[nw]  # component of input field to feed to w-directional averaging operator m̂_w (column index of matrix block)
         Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
 
-        apply_m̂!(Gv, Fu, Val(OP), nv, isfwd[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv], α=α)
+        apply_m̂!(Gv, Fu, Val(OP), nw, isfwd[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=α*scalem̂[nw])
     end
 end
 
@@ -69,22 +80,25 @@ end
 function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::AbsArrNumber{K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
                      ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
-                     isfwd::SBool{K},  # isfwd[w] = true|false for forward|backward averaging
+                     isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
                      ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-                     isbloch::SBool{K},  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factor in x, y, z
+                     isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+                     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+                     inpermutem̂::SInt{K}=SVec(ntuple(identity, Val(K))),  # inpermutem̂[w]: column index of m̂_w block
+                     outpermutem̂::SInt{K}=SVec(ntuple(identity, Val(K))),  # outpermutem̂[w]: row index of m̂_w block
+                     scalem̂::SNumber{K}=SVec(ntuple(k->1.0, Val(K))),  # scalem̂[w]: scale factor to multiply to m̂_w
                      α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      ) where {K,K₊₁,OP}  #  K is space dimension; K₊₁ = K + 1
     @assert K₊₁==K+1
     for nw = 1:K  # direction of averaging
-        nv = nw
+        nv = outpermutem̂[nw]  # component of output field generated by w-directional averaging operator m̂_w (row index of matrix block)
         Gv = selectdim(G, K₊₁, nv)  # nv-th component of output field
 
-        nu = nw  # component of input field to feed to w-directional averaging
+        nu = inpermutem̂[nw]  # component of input field to feed to w-directional averaging operator m̂_w (column index of matrix block)
         Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
 
-        apply_m̂!(Gv, Fu, Val(OP), nv, isfwd[nv], ∆l[nv], ∆l′⁻¹[nv], isbloch[nv], e⁻ⁱᵏᴸ[nv], α=α)
+        apply_m̂!(Gv, Fu, Val(OP), nw, isfwd[nw], ∆l[nw], ∆l′⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=α*scalem̂[nw])
     end
 end
 

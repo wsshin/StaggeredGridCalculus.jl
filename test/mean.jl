@@ -309,4 +309,56 @@ end  # @testset "create_mean and apply_mean! 2D"
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 3D"
 
+@testset "permutem̂" begin
+    Nx, Ny = 8, 10
+    N = SVec(Nx,Ny)
+    M = prod(N)
+
+    K = length(N)
+    KM = K * M
+    F = Array{Float}(undef, N..., K)
+    Fx = repeat([1;-1], outer=(4,10))
+    Fy = repeat([1 -1], outer=(8,5))
+    F[:,:,1] .= Fx
+    F[:,:,2] .= Fy
+    f = [Fx[:]; Fy[:]]  # F[:]
+    f′ = [Fy[:]; Fx[:]]
+    G = similar(F)
+    g = zeros(KM)
+
+    isfwdK = fill(true, K)
+    isblochK = fill(true, K)
+
+    Mean = create_mean(isfwdK, N, isblochK, order_cmpfirst=false)  # [m̂x 0;0 m̂y]
+    mul!(g, Mean, f)
+    @test iszero(g)
+    apply_mean!(G, F, Val(:(=)), isfwdK, isblochK)
+    @test g == G[:]
+
+    Mean = create_mean(isfwdK, N, isblochK, inpermutem̂=[2,1], outpermutem̂=[2,1], order_cmpfirst=false)  # [m̂y 0;0 m̂x]
+    mul!(g, Mean, f)
+    @test g == f
+    apply_mean!(G, F, Val(:(=)), isfwdK, isblochK, inpermutem̂=[2,1], outpermutem̂=[2,1])
+    @test g == G[:]
+
+
+    Mean = create_mean(isfwdK, N, isblochK, inpermutem̂=[2,1], order_cmpfirst=false)  # [0 m̂x; m̂y 0]
+    mul!(g, Mean, f)
+    @test g == f′
+    apply_mean!(G, F, Val(:(=)), isfwdK, isblochK, inpermutem̂=[2,1])
+    @test g == G[:]
+
+    Mean = create_mean(isfwdK, N, isblochK, outpermutem̂=[2,1], order_cmpfirst=false)  # [0 m̂y; m̂x 0]
+    mul!(g, Mean, f)
+    @test iszero(g)
+    apply_mean!(G, F, Val(:(=)), isfwdK, isblochK, outpermutem̂=[2,1])
+    @test g == G[:]
+
+
+    # # Test apply_mean!.
+    # mul!(g, Mdiag, f)
+    # apply_mean!(G, F, Val(:(=)), isfwdK, ∆l, ∆l′⁻¹, isblochK)
+    # @test G[:] ≈ g
+end  # @testset "permutem̂"
+
 end  # @testset "mean"
