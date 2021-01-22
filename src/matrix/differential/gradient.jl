@@ -4,6 +4,11 @@
 export create_grad
 
 # Wrapper to create the discrete gradient by default
+#
+# Note that when the positional arguments are SVector's, this function may call the concrete
+# implementation directly instead of the next wrapper function taking ∆l⁻¹ even if the
+# keyword arguments are not SVector's, because methods are dispatched based only on the
+# types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
@@ -12,7 +17,8 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             permute∂::AbsVecInteger=1:length(isfwd),  # permute∂[w]: location of ∂w block
             scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    create_grad(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=order_cmpfirst)
+    (K = length(isfwd); create_grad(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ,
+                                    permute∂=SInt{K}(permute∂), scale∂=SVec{K}(scale∂), order_cmpfirst=order_cmpfirst))
 
 # Wrapper to convert AbstractVector's to SVec's
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference

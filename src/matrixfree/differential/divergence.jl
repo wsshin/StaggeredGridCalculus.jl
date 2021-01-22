@@ -9,6 +9,11 @@
 export apply_divg!
 
 # Wrapper to apply the discrete divergence by default
+#
+# Note that when the positional arguments are SVector's, this function may call the concrete
+# implementation directly instead of the next wrapper function taking ∆l⁻¹ even if the
+# keyword arguments are not SVector's, because methods are dispatched based only on the
+# types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
 apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
             F::AbsArrNumber,  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
@@ -20,7 +25,8 @@ apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at 
             scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
             α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             ) where {OP} =
-    (N = size(g); apply_divg!(g, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, α=α))
+    (N = size(g); K = length(isfwd); apply_divg!(g, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ,
+                                                 permute∂=SInt{K}(permute∂), scale∂=SVec{K}(scale∂), α=α))
 
 # Wrapper for converting AbstractVector's to SVec's
 apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)

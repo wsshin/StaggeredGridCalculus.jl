@@ -40,16 +40,21 @@ export create_m̂, create_mean
 # Wrapper to create the arithmetic averaging operator by default
 # This corresponds to the wrappers to create discrete versions of differential operators,
 # but the nonzero enries in the matrix are 0.5 rather than 1.0.
+#
+# Note that when the positional arguments are SVector's, this function may call the concrete
+# implementation directly instead of the next wrapper function taking ∆l and ∆l′⁻¹ even if
+# the keyword arguments are not SVector's, because methods are dispatched based only on the
+# types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
             N::AbsVecInteger,  # size of grid
-            isbloch::AbsVecBool=fill(true,length(N)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(N));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            isbloch::AbsVecBool=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
             inpermutem̂::AbsVecInteger=1:length(isfwd),  # inpermutem̂[w]: column index of m̂_w block
             outpermutem̂::AbsVecInteger=1:length(isfwd),  # outpermutem̂[w]: row index of m̂_w block
             scalem̂::AbsVecNumber=ones(length(isfwd)),  # scalem̂[w]: scale factor to multiply to m̂_w
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    create_mean(isfwd, N, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ,
-                inpermutem̂=inpermutem̂, outpermutem̂=outpermutem̂, scalem̂=scalem̂, order_cmpfirst=order_cmpfirst)
+    (K = length(isfwd); create_mean(isfwd, N, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ,
+                inpermutem̂=SInt{K}(inpermutem̂), outpermutem̂=SInt{K}(outpermutem̂), scalem̂=SVec{K}(scalem̂), order_cmpfirst=order_cmpfirst))
 
 # Wrapper to convert AbstractVector's to SVec's.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
