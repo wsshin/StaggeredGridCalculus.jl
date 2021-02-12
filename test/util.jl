@@ -24,6 +24,20 @@
 #     @test aa ≉ ta
 # end
 
+@testset "invert_∆l" begin
+    N = (8,9,10)
+    ∆lprim = rand.(N)
+    ∆ldual = rand.(N)
+    ∆l = (∆lprim, ∆ldual)
+
+    ∆l⁻¹ = invert_∆l(∆l)
+    @test ∆l⁻¹ == ((1 ./ ∆lprim[1], 1 ./ ∆lprim[2], 1 ./ ∆lprim[3]), (1 ./ ∆ldual[1], 1 ./ ∆ldual[2], 1 ./ ∆ldual[3]))
+
+    ∆xprim = rand(10)
+    ∆xdual = rand(10)
+    @test invert_∆l((∆xprim, ∆xdual)) == (1 ./ ∆xprim, 1 ./ ∆xdual)
+end
+
 @testset "newtsol" begin
     f(x) = x^2-1
     f′(x) = 2x

@@ -1,17 +1,19 @@
-# isapprox_kernel(x, y, rtol, atol) = norm2diff(x,y) ≤ atol + rtol * max(norm2(x), norm2(y))
-# isapprox(x, y; rtol::Real=Base.rtoldefault(Float), atol::Real=eps(Float)) = isapprox_kernel(x, y, rtol, atol)
+export invert_∆l
 
-# # Compare x and y with respect to some large number L.  Useful when x or y is zero.
-# # It is OK to use ≈ or ≉ for positive numbers (like ∆).
-isapprox_wrt(x, y, L::Number, rtol::Real=Base.rtoldefault(Float)) = norm(x-y) ≤ rtol * abs(L)
-# isapprox_wrt(x, y, L::Real, rtol::Real=Base.rtoldefault(Float)) = norm2diff(x,y) ≤ rtol * L
+# Convenience function for 1D
+function invert_∆l(∆l::Tuple2{AbsVecReal})
+    ∆l⁻¹ = invert_∆l((tuple(∆l[nPR]), tuple(∆l[nDL])))
 
-# # When this is enabled to support isapprox for arrays of tuples, gen_sublprim1d fails
-# # at the line where curr[1:2] ≈ prev[end-1:end].  Don't understand why, because
-# # the line uses isapprox for arrays of numbers.
-# function isapprox(x::AbsArr{NTuple{N,T}}, y::AbsArr{NTuple{N,T}}; rtol::Real=Base.rtoldefault(Float), atol::Real=eps(Float)) where {N,T<:Number}
-#     return isapprox_kernel(x, y, rtol, atol)
-# end
+    return (∆l⁻¹[nPR][1], ∆l⁻¹[nDL][1])
+end
+
+function invert_∆l(∆l::Tuple2{Tuple{Vararg{AbsVecReal}}})  # ∆l[PR][k]: grid point spacings at primal grid point locations on k-axis
+    ∆lprim, ∆ldual = ∆l
+    ∆lprim⁻¹ = map(v->(1 ./ v), ∆lprim)
+    ∆ldual⁻¹ = map(v->(1 ./ v), ∆ldual)
+
+    return (∆lprim⁻¹, ∆ldual⁻¹)
+end
 
 function movingavg(l::AbsVec{T}) where {T<:Number}
     # Return (l[1:end-1] + l[2:end]) / 2
@@ -127,6 +129,21 @@ function newtsol(x₀::Number, f::Function, f′::Function=(x,fₙ)->f′fwd(f,x
     return xₙ, isconverged
 end
 
+
+# isapprox_kernel(x, y, rtol, atol) = norm2diff(x,y) ≤ atol + rtol * max(norm2(x), norm2(y))
+# isapprox(x, y; rtol::Real=Base.rtoldefault(Float), atol::Real=eps(Float)) = isapprox_kernel(x, y, rtol, atol)
+
+# # Compare x and y with respect to some large number L.  Useful when x or y is zero.
+# # It is OK to use ≈ or ≉ for positive numbers (like ∆).
+isapprox_wrt(x, y, L::Number, rtol::Real=Base.rtoldefault(Float)) = norm(x-y) ≤ rtol * abs(L)
+# isapprox_wrt(x, y, L::Real, rtol::Real=Base.rtoldefault(Float)) = norm2diff(x,y) ≤ rtol * L
+
+# # When this is enabled to support isapprox for arrays of tuples, gen_sublprim1d fails
+# # at the line where curr[1:2] ≈ prev[end-1:end].  Don't understand why, because
+# # the line uses isapprox for arrays of numbers.
+# function isapprox(x::AbsArr{NTuple{N,T}}, y::AbsArr{NTuple{N,T}}; rtol::Real=Base.rtoldefault(Float), atol::Real=eps(Float)) where {N,T<:Number}
+#     return isapprox_kernel(x, y, rtol, atol)
+# end
 
 function consolidate_similar!(l::AbsVecNumber, L::Number)
     # Consolidate approximately equal points.  Assume l is sorted.
