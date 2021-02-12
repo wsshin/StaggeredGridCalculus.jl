@@ -3,7 +3,7 @@ uuid = "fead5d43-7759-5ac8-9dff-97135399d9eb"
 license = "MIT"
 desc = "Julia package for numerical differentiation and integration of vector fields on a staggered finite-difference grid"
 authors = ["Wonseok Shin <wsshin97@gmail.com> and contributors"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 AbbreviatedTypes = "1766def0-c946-4dda-a59e-d0d07f8410f7"
@@ -13,6 +13,7 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
+AbbreviatedTypes = "0.1.1"
 julia = "1.5"
 
 [extras]
