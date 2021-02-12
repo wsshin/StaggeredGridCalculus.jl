@@ -90,14 +90,14 @@ end
 create_stretched_∆l(ω::Number, grid::Grid{K}, Npml::Tuple2{AbsVecInteger}, pml::PMLParam=PMLParam()) where {K} =
     create_stretched_∆l(ω, grid, SVec{K}.(Npml), pml)
 
-create_stretched_∆l(ω::Number, grid::Grid{K}, Npml::Tuple2{SInteger{K}}, pml::PMLParam=PMLParam()) where {K} =
-    create_stretched_∆l(ω, grid.∆l, grid.l, grid.bounds, Npml, pml)
-
 create_stretched_∆l(ω::Number, ∆l::Tuple2{NTuple{K,AbsVecReal}}, l::Tuple2{NTuple{K,AbsVecReal}},
                     bounds::Tuple2{AbsVecReal}, Npml::Tuple2{AbsVecInteger}, pml::PMLParam=PMLParam()) where {K} =
     create_stretched_∆l(ω, ∆l, l, SVec{K}.(bounds), SVec{K}.(Npml), pml)
 
 # Create vectors containig a stretched version of a given ∆l.
+create_stretched_∆l(ω::Number, grid::Grid{K}, Npml::Tuple2{SInteger{K}}, pml::PMLParam=PMLParam()) where {K} =
+    create_stretched_∆l(ω, grid.∆l, grid.l, grid.bounds, Npml, pml)
+
 function create_stretched_∆l(ω::Number,  # angular frequency
                              ∆l::Tuple2{NTuple{K,AbsVecReal}},  # grid point spacings at primal and dual grid point locations
                              l::Tuple2{NTuple{K,AbsVecReal}},  # locations of primal and dual grid points w/o ghost points
