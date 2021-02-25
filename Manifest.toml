@@ -5,7 +5,7 @@ deps = ["Reexport", "StaticArrays"]
 git-tree-sha1 = "a853e5255ec6e65d887585afb5bdbd39ebfd08d7"
 repo-rev = "main"
 repo-url = "https://github.com/wsshin/AbbreviatedTypes.jl"
-uuid = "1766def0-c946-4dda-a59e-d0d07f8410f7"
+uuid = "3d2c826f65a90e404af973a125f7cdc3a480ea53"
 version = "0.1.0"
 
 [[Libdl]]
