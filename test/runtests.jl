@@ -17,6 +17,7 @@ include("curl.jl")
 include("divergence.jl")
 include("gradient.jl")
 include("mean.jl")
+include("permutation.jl")
 include("pml.jl")
 
 # end  # @testset "StaggeredGridCalculus"
