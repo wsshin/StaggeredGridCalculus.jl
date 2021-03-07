@@ -1,7 +1,10 @@
-export GridType, Sign  # enumerated types
+# enumerated types
+export GridType, Sign
 export NP, nN, nP, nNP
 export PD, nPR, nDL, nPD
-export gt_w, numel, alter  # functions
+
+# functions
+export gt_w, numel, alter
 
 # Signs
 const nN, nP = 1, 2  # negative, positive directions
