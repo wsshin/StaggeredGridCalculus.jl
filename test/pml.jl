@@ -8,7 +8,7 @@ end  # @testset "PMLParam"
 @testset "1D" begin
     Npmln = 5
     Npmlp = 7
-    Npml = (Npmln, Npmlp)
+    Npml = ([Npmln], [Npmlp])
     N = 10
     M = N + Npmln + Npmlp
     ∆ldual = rand(M)
@@ -17,66 +17,66 @@ end  # @testset "PMLParam"
     lprim = cumsum([-l₀; ∆ldual])
     ldual = StaggeredGridCalculus.movingavg(lprim)
 
-    lpml = (lprim[1+Npmln], lprim[end-Npmlp])
-    Lpml = (lpml[nN]-lprim[1], lprim[end]-lpml[nP])
+    lpml = ([lprim[1+Npmln]], [lprim[end-Npmlp]])
+    Lpml = ([lpml[nN][1]-lprim[1]], [lprim[end]-lpml[nP][1]])
 
-    bounds = (lprim[1], lprim[end])
+    bounds = ([lprim[1]], [lprim[end]])
     lprim = lprim[1:end-1]
 
-    @test StaggeredGridCalculus.pml_loc(lprim, bounds, Npml) == (lpml, Lpml)
+    @test StaggeredGridCalculus.pml_loc(tuple(lprim), bounds, Npml) == (lpml, Lpml)
 
     ω = rand()
     pml = PMLParam()
-    σmax = -(pml.m+1) * log(pml.R) / 2 ./ Lpml  # see calc_stretch_factor
-    f(l) = l≤lpml[nN] ? (1 + σmax[nN] * ((lpml[nN]-l)/Lpml[nN])^pml.m / (im*ω)) : (l≥lpml[nP] ? (1 + σmax[nP] * ((l-lpml[nP])/Lpml[nP])^pml.m / (im*ω)) : 1)
+    σmax = (-(pml.m+1) * log(pml.R) / 2 ./ Lpml[nN], -(pml.m+1) * log(pml.R) / 2 ./ Lpml[nP])  # see calc_stretch_factor
+    f(l) = l≤lpml[nN][1] ? (1 + σmax[nN][1] * ((lpml[nN][1]-l)/Lpml[nN][1])^pml.m / (im*ω)) : (l≥lpml[nP][1] ? (1 + σmax[nP][1] * ((l-lpml[nP][1])/Lpml[nP][1])^pml.m / (im*ω)) : 1)
     sprim = f.(lprim)
     sdual = f.(ldual)
 
-    l = (lprim, ldual)
+    l = (tuple(lprim), tuple(ldual))
     sfactor = StaggeredGridCalculus.create_sfactor(ω, l, lpml, Lpml)
-    @test sfactor == (sprim, sdual)
+    @test sfactor == (tuple(sprim), tuple(sdual))
 
     ∆lprim = diff(ldual)
     pushfirst!(∆lprim, ldual[1]+L-ldual[end])  # periodic boundary
 
-    ∆l = (∆lprim, ∆ldual)
+    ∆l = (tuple(∆lprim), tuple(∆ldual))
     s∆lprim = sprim .* ∆lprim
     s∆ldual = sdual .* ∆ldual
 
     s∆l = create_stretched_∆l(ω, ∆l, l, bounds, Npml)
-    @test s∆l == (s∆lprim, s∆ldual)
+    @test s∆l == (tuple(s∆lprim), tuple(s∆ldual))
 
-    isbloch = true
-    g1 = Grid([lprim..., bounds[nP]], isbloch)
+    isbloch = [true]
+    g1 = Grid(tuple([lprim..., bounds[nP][1]]), isbloch)
     @test s∆l ≈ create_stretched_∆l(ω, g1, Npml)
 end  # @testset "1D"
 
 @testset "1D, Npml = 0" begin
-    Npml = (0,0)
+    Npml = ([0],[0])
     lprim = [0.0, 1.0]  # with ghost point
     ldual = [0.5]  # without ghost point
 
-    lpml = (0.0, 1.0)
-    Lpml = (0.0, 0.0)
+    lpml = ([0.0], [1.0])
+    Lpml = ([0.0], [0.0])
 
-    bounds = (lprim[1], lprim[end])
+    bounds = ([lprim[1]], [lprim[end]])
     lprim = lprim[1:end-1]
 
-    @test StaggeredGridCalculus.pml_loc(lprim, bounds, Npml) == (lpml, Lpml)
+    @test StaggeredGridCalculus.pml_loc(tuple(lprim), bounds, Npml) == (lpml, Lpml)
 
     ω = rand()
-    l = (lprim, ldual)
+    l = (tuple(lprim), tuple(ldual))
     sfactor = StaggeredGridCalculus.create_sfactor(ω, l, lpml, Lpml)
-    @test sfactor == ([1.0], [1.0])
+    @test sfactor == (tuple([1.0]), tuple([1.0]))
 
     ∆lprim  = ∆ldual = [1.0]
-    ∆l = (∆lprim, ∆ldual)
+    ∆l = (tuple(∆lprim), tuple(∆ldual))
 
     s∆l = create_stretched_∆l(ω, ∆l, l, bounds, Npml)
-    @test s∆l == ([1.0], [1.0])
+    @test s∆l == (tuple([1.0]), tuple([1.0]))
 
-    isbloch = true
-    g1 = Grid([0.0,1.0], isbloch)
+    isbloch = [true]
+    g1 = Grid(tuple([0.0,1.0]), isbloch)
     @test s∆l ≈ create_stretched_∆l(ω, g1, Npml)
 end  # @testset "1D, Npml = 0"
 

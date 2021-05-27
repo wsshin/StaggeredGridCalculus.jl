@@ -118,9 +118,6 @@ struct Grid{K}
     ghosted::Ghosted{K}  # data related to ghost points
 end
 
-# Constructor for 1D grid: arguments don't have to be tuples.
-Grid(lprim::AbsVecReal, isbloch::Bool) = Grid((lprim,), SVec(isbloch))
-
 # Constructor taking non-static vectors.
 Grid(lprim::NTuple{K,AbsVecReal}, isbloch::AbsVecBool) where {K} = Grid(lprim, SVec{K}(isbloch))
 

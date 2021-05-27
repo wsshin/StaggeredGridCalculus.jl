@@ -39,13 +39,6 @@ export t_ind, invert_∆l
 @inline t_ind(t::NTuple{K,AbsVec}, ind::SVec{K,Int}) where {K} = map((tₖ,iₖ) -> tₖ[iₖ], SVec(t), ind)  # SVec{K}
 
 
-# Convenience function for 1D
-function invert_∆l(∆l::Tuple2{AbsVecNumber})
-    ∆l⁻¹ = invert_∆l((tuple(∆l[nPR]), tuple(∆l[nDL])))
-
-    return (∆l⁻¹[nPR][1], ∆l⁻¹[nDL][1])
-end
-
 function invert_∆l(∆l::Tuple2{Tuple{Vararg{AbsVecNumber}}})  # ∆l[PR][k]: grid point spacings at primal grid point locations on k-axis
     ∆lprim, ∆ldual = ∆l
     ∆lprim⁻¹ = map(v->(1 ./ v), ∆lprim)

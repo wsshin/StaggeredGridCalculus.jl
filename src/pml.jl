@@ -72,13 +72,6 @@ mutable struct PMLParam
     PMLParam() = new(4.0, exp(-16), 1.0, 0.0, 4.0)
 end
 
-# Convenience functions for 1D
-function create_stretched_∆l(ω::Number, grid::Grid{1}, Npml::Tuple2{Integer}, pml::PMLParam=PMLParam())
-    s∆l = create_stretched_∆l(ω, grid, (SVec{1}(Npml[nN]), SVec{1}(Npml[nP])), pml)
-
-    return (s∆l[nPR][1], s∆l[nDL][1])
-end
-
 function create_stretched_∆l(ω::Number, ∆l::Tuple2{AbsVecReal}, l::Tuple2{AbsVecReal},
                              bounds::Tuple2{Real}, Npml::Tuple2{Integer}, pml::PMLParam=PMLParam())
     s∆l = create_stretched_∆l(ω, tuple.(∆l), tuple.(l), SVec{1}.(bounds), SVec{1}.(Npml), pml)
@@ -114,13 +107,6 @@ function create_stretched_∆l(ω::Number,  # angular frequency
     s∆l = (s∆lprim, s∆ldual)
 
     return s∆l
-end
-
-# Convenience function for 1D
-function create_sfactor(ω::Number, l::Tuple2{AbsVecReal}, lpml::Tuple2{Real}, Lpml::Tuple2{Real}, pml::PMLParam=PMLParam())
-    sfactor = create_sfactor(ω, tuple.(l), SVec{1}.(lpml), SVec{1}.(Lpml), pml)
-
-    return (sfactor[nPR][1], sfactor[nDL][1])
 end
 
 # Wrapper for converting AbstractVector's to SVec's
@@ -164,13 +150,6 @@ function calc_sfactor(ω::Number,  # angular frequency
     a = pml.amax * (1 - d/Lpml)^pml.ma
 
     s_factor = κ + σ / (a + im*ω)  # s = κ + σ/(a + i ω ε), where ε = 1 in units of ε₀
-end
-
-# Convenience function for 1D
-function pml_loc(lprim::AbsVecReal, bounds::Tuple2{Real}, Npml::Tuple2{Integer})
-    lpml, Lpml = pml_loc(tuple(lprim), SVec{1}.(bounds), SVec{1}.(Npml))
-
-    return (lpml[nN][1], lpml[nP][1]), (Lpml[nN][1], Lpml[nP][1])
 end
 
 # Wrapper for converting AbstractVector's to SVec's

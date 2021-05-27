@@ -13,17 +13,17 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
 
 @testset "grid" begin
 
-@test isa(Grid(1:10, true), Any)
+@test isa(Grid(tuple(1:10), [true]), Any)
 
 @testset "Grid{1}, Bloch boundary" begin
-    isbloch = true
+    isbloch = [true]
     N = 22
     ∆ldual = rand(N)
     L = sum(∆ldual)
     l₀ = L / 2
     lprim = cumsum([-l₀; ∆ldual])
 
-    g1 = Grid(lprim, isbloch)
+    g1 = Grid(tuple(lprim), isbloch)
 
     @test g1.N == [N]
     @test g1.L ≈ [L]
@@ -33,13 +33,13 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
     @test g1.l ≈ ((lprim,), (ldual,))
     ∆lprim = [ldual[1]+L-ldual[end]; diff(ldual)]
     @test g1.∆l ≈ ((∆lprim,), (∆ldual,))
-    @test g1.isbloch == [isbloch]
+    @test g1.isbloch == isbloch
     # @test g1.Npml == ([Npmln], [Npmlp])
     # @test g1.Lpml ≈ ([sum(∆ldual[1:Npmln])], [sum(∆ldual[end-Npmlp+1:end])])
     # @test g1.lpml ≈ ([sum(∆ldual[1:Npmln])-l₀], [sum(∆ldual)-sum(∆ldual[end-Npmlp+1:end])-l₀])
     @test g1.bounds ≈ ([lprim[1]], [lprim[end]+∆ldual[end]])
     @test SVec(-l₀) ∈ g1  # `∈` supports only SVec
-    lg = lghost(((lprim,),(ldual,)), SVec(L), SVec(isbloch))
+    lg = lghost(((lprim,),(ldual,)), SVec(L), SVec{1}(isbloch))
     lprim_g = g1.ghosted.l[nPR][1]
     ldual_g = g1.ghosted.l[nDL][1]
     @test lprim_g[1:end-1]≈lprim && lprim_g[end]≈lg[nPR][1] && ldual_g[2:end]≈ldual && ldual_g[1]≈lg[nDL][1]

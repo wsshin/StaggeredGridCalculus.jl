@@ -60,7 +60,7 @@ end
 
     ∆xprim = rand(10)
     ∆xdual = rand(10)
-    @test invert_∆l((∆xprim, ∆xdual)) == (1 ./ ∆xprim, 1 ./ ∆xdual)
+    @test invert_∆l((tuple(∆xprim), tuple(∆xdual))) == (tuple(1 ./ ∆xprim), tuple(1 ./ ∆xdual))
 end
 
 @testset "newtsol" begin
