@@ -21,12 +21,9 @@ apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at 
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in K dimensions
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factors in K dimensions
-            permute∂::AbsVecInt=1:length(isfwd),  # permute∂[w]: location of ∂w block
-            scale∂::AbsVecNumber=ones(length(isfwd)),  # scale∂[w]: scale factor to multiply to ∂w
             α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             ) where {OP} =
-    (N = size(g); K = length(isfwd); apply_divg!(g, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ,
-                                                 permute∂=SInt{K}(permute∂), scale∂=SVec{K}(scale∂), α=α))
+    (N = size(g); K = length(isfwd); apply_divg!(g, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; α))
 
 # Wrapper for converting AbstractVector's to SVec's
 apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
@@ -36,11 +33,9 @@ apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at 
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in K dimensions
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factors in K dimensions
-            permute∂::AbsVecInt=1:K,  # permute∂[w]: location of ∂w block
-            scale∂::AbsVecNumber=ones(K),  # scale∂[w]: scale factor to multiply to ∂w
             α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             ) where {K,OP} =
-    apply_divg!(g, F, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), permute∂=SInt{K}(permute∂), scale∂=SVec{K}(scale∂), α=α)
+    apply_divg!(g, F, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α)
 
 # Concrete implementation
 function apply_divg!(g::AbsArrNumber{K},  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
@@ -50,23 +45,21 @@ function apply_divg!(g::AbsArrNumber{K},  # output array of scalar; in 3D, g[i,j
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l[w]: inverse of distances between grid planes in x-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     permute∂::SInt{K}=SVec(ntuple(identity, Val(K))),  # permute∂[w]: location of ∂w block
-                     scale∂::SNumber{K}=SVec(ntuple(k->1.0, Val(K))),  # scale∂[w]: scale factor to multiply to ∂w
                      α::Number=1.0  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
                      ) where {K,K₊₁,OP}
     @assert K₊₁==K+1
 
     # First partial derivative
     nw = 1
-    nu = permute∂[nw]  # component of input field to feed to ∂w
+    nu = nw  # component of input field to feed to ∂w
     Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
-    apply_∂!(g, Fu, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=α*scale∂[nw])  # g += (α scale∂[w]) ∂Fu/∂w
+    apply_∂!(g, Fu, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α)  # g += α ∂Fu/∂w
 
     # Remaining partial derivatives
     for nw = 2:K  # direction of differentiation
-        nu = permute∂[nw]  # component of input field to feed to ∂w
+        nu = nw  # component of input field to feed to ∂w
         Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
-        apply_∂!(g, Fu, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=α*scale∂[nw])  # g += (α scale∂[w]) ∂Fu/∂w
+        apply_∂!(g, Fu, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α)  # g += α ∂Fu/∂w
     end
 
     return nothing

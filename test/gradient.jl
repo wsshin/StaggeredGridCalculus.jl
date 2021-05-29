@@ -32,39 +32,26 @@ g = zeros(Complex{Float64}, 2M)  # column vector representation of G
         ∆l⁻¹ = rand.(tuple(N...))  # isfwd = true (false) uses ∆l⁻¹ at dual (primal) locations
         isbloch = [true, false]
         e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
-        scale∂ = [1, -1]
 
-        Grad = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
+        Grad = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
         # Test Grad.
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
         ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-        @test Grad == [scale∂[1].*∂x; scale∂[2].*∂y]
+        @test Grad == [∂x; ∂y]
 
         # Test Cartesian-component-first ordering.
-        Grad_cmpfirst = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
+        Grad_cmpfirst = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
         @test Grad_cmpfirst == Grad[r,:]
-
-        # Test permutation.
-        permute∂ = [2, 1]  # with scale∂ = [1,-1], create divergence operator [-∂y; ∂x]
-        Grad_permute = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
-        @test Grad_permute == [scale∂[2].*∂y; scale∂[1].*∂x]
-
-        Grad_permute_cmpfirst = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
-        @test Grad_permute_cmpfirst == Grad_permute[r,:]
 
         # Test apply_grad!.
         fvec = f[:]
         mul!(g, Grad, fvec)
-        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
         @test G[:] ≈ g
 
         mul!(g, Grad_cmpfirst, fvec)
-        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
-        @test G[:][r] ≈ g
-
-        mul!(g, Grad_permute_cmpfirst, fvec)
-        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂)
+        apply_grad!(G, f, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
         @test G[:][r] ≈ g
     end
 end  # @testset "create_grad and apply_grad!"

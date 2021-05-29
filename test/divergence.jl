@@ -32,39 +32,26 @@ gvec = zeros(Complex{Float64}, M)  # column vector representation of g
         ∆l⁻¹ = rand.(tuple(N...))  # isfwd = true (false) uses ∆l⁻¹ at dual (primal) locations
         isbloch = [true, false]
         e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
-        scale∂ = [1, -1]  # +∂x, -∂y
 
-        Divg = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=false)
+        Divg = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
         # Test Divg.
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
         ∂y = (nw = 2; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
-        @test Divg == [scale∂[1].*∂x scale∂[2].*∂y]
+        @test Divg == [∂x ∂y]
 
         # Test Cartesian-component-first ordering.
-        Divg_cmpfirst = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂, order_cmpfirst=true)
+        Divg_cmpfirst = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
         @test Divg_cmpfirst == Divg[:,r]
-
-        # Test permutation.
-        permute∂ = [2, 1]  # with scale∂ = [1,-1], create divergence operator [-∂y, ∂x]
-        Divg_permute = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=false)
-        @test Divg_permute == [scale∂[2].*∂y scale∂[1].*∂x]
-
-        Divg_permute_cmpfirst = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂, order_cmpfirst=true)
-        @test Divg_permute_cmpfirst == Divg_permute[:,r]
 
         # Test apply_divg!.
         f = F[:]
         mul!(gvec, Divg, f)
-        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
+        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
         @test g[:] ≈ gvec
 
         mul!(gvec, Divg_cmpfirst, f[r])
-        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, scale∂=scale∂)
-        @test g[:] ≈ gvec
-
-        mul!(gvec, Divg_permute_cmpfirst, f[r])
-        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, permute∂=permute∂, scale∂=scale∂)
+        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
         @test g[:] ≈ gvec
     end
 end  # @testset "create_divg and apply_divg!"
