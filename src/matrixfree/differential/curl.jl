@@ -9,27 +9,33 @@
 export apply_curl!
 
 # Wrapper to apply the discrete curl by default
-apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-            F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
+apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+            F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l⁻¹::Tuple3{Number}=(1.0,1.0,1.0),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            ∆l⁻¹::NTuple{K,Number}=ntuple(k->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            cmp_shp::AbsVecInteger=1:K,
+            cmp_out::AbsVecInteger=1:size(G,K₊₁),
+            cmp_in::AbsVecInteger=1:size(F,K₊₁),
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
-            ) where {OP} =
-    (N = size(G)[1:3]; apply_curl!(G, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ, α=α))
+            ) where {K,K₊₁,OP} =
+    (N = size(G)[1:K]; apply_curl!(G, F, Val(OP), isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, α))
 
 # Wrapper for converting AbstractVector's to SVec's
-apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-            F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
+apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+            F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
             ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            cmp_shp::AbsVecInteger=1:K,
+            cmp_out::AbsVecInteger=1:size(G,K₊₁),
+            cmp_in::AbsVecInteger=1:size(F,K₊₁),
             α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
-            ) where {K,OP} =
+            ) where {K,K₊₁,OP} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -38,38 +44,81 @@ apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G 
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    apply_curl!(G, F, Val(OP), SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ), α=α)
+    (Kout = length(cmp_out); Kin = length(cmp_in);
+     apply_curl!(G, F, Val(OP), SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
+                 cmp_shp=SInt{K}(cmp_shp), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), α))
 
 # Concrete implementation
-function apply_curl!(G::AbsArrNumber{4},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-                     F::AbsArrNumber{4},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
+function apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+                     F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
                      ::Val{OP},  # Val(:(=)) or Val(:(+=)): set (=) or add (+=) operator to use
-                     isfwd::SBool{3},  # isfwd[w] = true|false: create ∂w by forward|backward difference
-                     ∆l⁻¹::Tuple3{AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-                     isbloch::SBool{3},  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SNumber{3};  # Bloch phase factor in x, y, z
+                     isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+                     ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
+                     isbloch::SBool{K},  # boundary conditions in x, y, z
+                     e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factor in x, y, z
+                     cmp_shp::SInt{K}=SVec(ntuple(identity, Val(K))),
+                     cmp_out::SInt{Kout}=SVec(ntuple(identity, size(G,K₊₁))),
+                     cmp_in::SInt{Kin}=SVec(ntuple(identity, size(G,K₊₁))),
                      α::Number=1.0  # scale factor to multiply to result before adding it to G: G += α ∇×F
-                     ) where {OP}
-    for nv = 1:3  # Cartesian compotent of output field
-        Gv = @view G[:,:,:,nv]  # v-component of output field
+                     ) where {K,K₊₁,Kout,Kin,OP}
+    @assert K₊₁ == K+1
 
-        parity = 1
-        nw = mod1(nv+1, 3)  # direction of differentiation
-        nu = 6 - nv - nw  # Cantesian component of input field; 6 = 1 + 2 + 3
-        Fu = @view F[:,:,:,nu]  # u-component of input field
+    for ind_nv = 1:Kout
+        nv = cmp_out[ind_nv]  # Cartesian compotent of output field
+        Gv = selectdim(G, K₊₁, ind_nv)  # v-component of output field
 
-        apply_∂!(Gv, Fu, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
-    end
+        op = Val(OP)
+        for ind_nu = 1:Kin
+            nu = cmp_in[ind_nu]  # Cartesian compotent of input field
+            parity = CURL_BLK[nv,nu]  # CURL_BLK defined in matrix/curl.jl
 
-    for nv = 1:3  # Cartesian compotent of output field
-        Gv = @view G[:,:,:,nv]  # v-component of output field
+            if iszero(parity)
+                if op == Val(:(=))
+                    Gv .= 0
+                    op = Val(:(+=))
+                end
+                continue
+            end
 
-        parity = -1
-        nw = mod1(nv-1, 3)  # direction of differentiation
-        nu = 6 - nv - nw  # Cantesian component of input field; 6 = 1 + 2 + 3
-        Fu = @view F[:,:,:,nu]  # u-component of input field
+            nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
+            is_nw = cmp_shp.==nw
+            sum(is_nw)==1 || @error "cmp_shp = $cmp_shp does not have one and only one nw = $nw"
+            ind_nw = findfirst(is_nw)
 
-        apply_∂!(Gv, Fu, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            Fu = selectdim(F, K₊₁, ind_nu)  # u-component of input field
+            apply_∂!(Gv, Fu, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+
+            op = Val(:(+=))
+
+            # # Equivalent to the above code:
+            # if op == Val(:(=))
+            #     if iszero(parity)
+            #         Gv .= 0
+            #     else
+            #         nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
+            #         is_nw = cmp_shp.==nw
+            #         @assert sum(is_nw)==1  # in cmp_shp, one and only one entry is nw
+            #         ind_nw = findfirst(is_nw)
+            #
+            #         Fu = @view F[:,:,:,ind_nu]  # u-component of input field
+            #         apply_∂!(Gv, Fu, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            #     end
+            #
+            #     op = Val(:(+=))
+            # else  # op == Val(:(+=))
+            #     if iszero(parity)
+            #         # Do nothing.
+            #     else
+            #         nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
+            #         is_nw = cmp_shp.==nw
+            #         @assert sum(is_nw)==1  # in cmp_shp, one and only one entry is nw
+            #         ind_nw = findfirst(is_nw)
+            #
+            #         Fu = @view F[:,:,:,ind_nu]  # u-component of input field
+            #         apply_∂!(Gv, Fu, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            #     end
+            # end
+        end
     end
 
     # @sync begin
