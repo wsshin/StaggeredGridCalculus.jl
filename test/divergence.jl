@@ -33,7 +33,7 @@ gvec = zeros(Complex{Float64}, M)  # column vector representation of g
         isbloch = [true, false]
         e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
 
-        Divg = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+        Divg = create_divg(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
         # Test Divg.
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -41,7 +41,7 @@ gvec = zeros(Complex{Float64}, M)  # column vector representation of g
         @test Divg == [∂x ∂y]
 
         # Test Cartesian-component-first ordering.
-        Divg_cmpfirst = create_divg(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+        Divg_cmpfirst = create_divg(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
         @test Divg_cmpfirst == Divg[:,r]
 
         # Test apply_divg!.

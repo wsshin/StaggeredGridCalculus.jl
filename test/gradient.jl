@@ -33,7 +33,7 @@ g = zeros(Complex{Float64}, 2M)  # column vector representation of G
         isbloch = [true, false]
         e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
 
-        Grad = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+        Grad = create_grad(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
 
         # Test Grad.
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -41,7 +41,7 @@ g = zeros(Complex{Float64}, 2M)  # column vector representation of G
         @test Grad == [∂x; ∂y]
 
         # Test Cartesian-component-first ordering.
-        Grad_cmpfirst = create_grad(isfwd, N, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+        Grad_cmpfirst = create_grad(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
         @test Grad_cmpfirst == Grad[r,:]
 
         # Test apply_grad!.

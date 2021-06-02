@@ -19,11 +19,10 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_curl(isfwd, N, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, order_cmpfirst)
+    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, order_cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVec's
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
-            N::AbsVecInteger,  # size of grid
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
@@ -33,7 +32,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     (Kout = length(cmp_out); Kin = length(cmp_in);
-     create_curl(SVec{K}(isfwd), SInt{K}(N), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
+     create_curl(SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
                  cmp_shp=SInt{K}(cmp_shp), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), order_cmpfirst))
 
 # ∇×F = x̂ (∂y Fz - ∂z Fy) + ŷ (∂z Fx - ∂x Fz) + ẑ (∂x Fy - ∂y Fx)
@@ -49,7 +48,6 @@ const CURL_BLK = SSInt{3,9}(0,  1, -1,  # 1st column (not row)
                             1, -1,  0)  # 3rd column (not row)
 
 function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
-                     N::SInt{K},  # size of grid
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # isblock[w]: boundary conditions in w-direction
                      e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
@@ -59,6 +57,7 @@ function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,Kout,Kin}  # {space dimension, output field dimension, input field dimension}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
+    N = SVec(length.(∆l⁻¹))
     M = prod(N)
 
     num_blk = sum(abs, CURL_BLK[cmp_out,cmp_in])  # no allocations
