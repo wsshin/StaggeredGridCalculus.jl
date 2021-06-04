@@ -8,7 +8,7 @@ create_πcmp(N::AbsVecInteger,
             permute::AbsVecInteger;  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
             scale::AbsVecNumber=ones(length(permute)),  # scale[w]: scale factor to w-component of input field
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(N); Kf = length(permute); create_πcmp(SInt{K}(N), SInt{Kf}(permute), scale=SVec{Kf}(scale), order_cmpfirst=order_cmpfirst))
+    (K = length(N); Kf = length(permute); create_πcmp(SInt{K}(N), SInt{Kf}(permute), scale=SVec{Kf}(scale), order_cmpfirst))
 
 # Create the permutation matrix that permutes the order of Cartesian components of a vector
 # field.
