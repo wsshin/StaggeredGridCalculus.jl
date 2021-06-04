@@ -94,7 +94,7 @@
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
+        @test create_mean(isfwdK, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
         mul!(g, Mdiag, f)
@@ -197,7 +197,7 @@ end  # @testset "create_mean and apply_mean! 1D"
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
+        @test create_mean(isfwdK, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
         mul!(g, Mdiag, f)
@@ -300,7 +300,7 @@ end  # @testset "create_mean and apply_mean! 2D"
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, N, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
+        @test create_mean(isfwdK, ∆l, ∆l′⁻¹, isblochK, order_cmpfirst=false) == Mdiag
 
         # Test apply_mean!.
         mul!(g, Mdiag, f)

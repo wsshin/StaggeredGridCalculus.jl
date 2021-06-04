@@ -50,18 +50,17 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backwa
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(isfwd); create_mean(isfwd, N, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ; order_cmpfirst))
+    (K = length(isfwd); create_mean(isfwd, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ; order_cmpfirst))
 
 # Wrapper to convert AbstractVector's to SVec's.
 create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
-            N::AbsVecInteger,  # size of grid
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
             ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
             isbloch::AbsVecBool=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
-    create_mean(SBool{K}(isfwd), SInt{K}(N), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); order_cmpfirst)
+    create_mean(SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); order_cmpfirst)
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -71,7 +70,6 @@ create_mean(isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backwa
 # operators always the diagonal blocks as nonzero blocks, as they perform averaging on the
 # already generated input and output fields.  See RN - Subpixel Smoothing > [Update (May/13/2018)].
 function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
-                     N::SInt{K},  # size of grid
                      ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
                      ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
                      isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
@@ -79,6 +77,7 @@ function create_mean(isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
     T = promote_type(eltype.(∆l)..., eltype.(∆l′⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
+    N = SVec(length.(∆l))
     M = prod(N)
     KM = K * M
 
