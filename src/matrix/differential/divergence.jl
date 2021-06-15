@@ -30,7 +30,7 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     # of constructing it from k and L as exp.(-im .* k .* L), which is always complex even
     # if k = 0.
     #
-    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
+    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
     create_divg(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); order_cmpfirst)
 

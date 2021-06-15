@@ -5,9 +5,9 @@ M = prod(N)
 r = reshape(collect(1:2M), M, 2)'[:]  # index mapping from block matrix to narrowly banded matrix
 Z = spzeros(M,M)
 
-G = rand(Complex{Float64}, N..., 2)  # output array of vector field; make sure not to be confused with gradient operator
-f = zeros(Complex{Float64}, N...)  # input array of scalar
-g = zeros(Complex{Float64}, 2M)  # column vector representation of G
+G = rand(ComplexF64, N..., 2)  # output array of vector field; make sure not to be confused with gradient operator
+f = zeros(ComplexF64, N...)  # input array of scalar
+g = zeros(ComplexF64, 2M)  # column vector representation of G
 
 @testset "create_grad and apply_grad!" begin
     for ci = CartesianIndices((false:true,false:true))

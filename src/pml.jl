@@ -122,7 +122,7 @@ function create_sfactor(ω::Number,  # angular frequency
                         pml::PMLParam=PMLParam()  # PML parameters
                         ) where {K}
     N = length.(l[nPR])  # (Nx, Ny, Nz)
-    sfactor = (ones.(CFloat,N), ones.(CFloat,N))
+    sfactor = (ones.(ComplexF,N), ones.(ComplexF,N))
     for k = 1:K
         lpmlₙ, lpmlₚ = lpml[nN][k], lpml[nP][k]
         Lpmlₙ, Lpmlₚ = Lpml[nN][k], Lpml[nP][k]

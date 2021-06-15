@@ -12,10 +12,10 @@
 
     K = length(N)
     KM = K * M
-    F = rand(Complex{Float64}, N..., K)
+    F = rand(ComplexF64, N..., K)
     f = F[:]
     G = similar(F)
-    g = zeros(Complex{Float64}, KM)
+    g = zeros(ComplexF64, KM)
 
     for isfwd = (true,false), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
         ∆l = rand.(tuple(N...))
@@ -115,10 +115,10 @@ end  # @testset "create_mean and apply_mean! 1D"
 
     K = length(N)
     KM = K * M
-    F = rand(Complex{Float64}, N..., K)
+    F = rand(ComplexF64, N..., K)
     f = F[:]
     G = similar(F)
-    g = zeros(Complex{Float64}, KM)
+    g = zeros(ComplexF64, KM)
 
     for isfwd = (true,false), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
         ∆l = rand.(tuple(N...))
@@ -218,10 +218,10 @@ end  # @testset "create_mean and apply_mean! 2D"
 
     K = length(N)
     KM = K * M
-    F = rand(Complex{Float64}, N..., K)
+    F = rand(ComplexF64, N..., K)
     f = F[:]
     G = similar(F)
-    g = zeros(Complex{Float64}, KM)
+    g = zeros(ComplexF64, KM)
 
     for isfwd = (true,false), isbloch = (true,false)  # (backward,forward difference), (Bloch,symmetric)
         ∆l = rand.(tuple(N...))

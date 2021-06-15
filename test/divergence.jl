@@ -5,9 +5,9 @@ M = prod(N)
 r = reshape(collect(1:2M), M, 2)'[:]  # index mapping from block matrix to narrowly banded matrix
 Z = spzeros(M,M)
 
-F = rand(Complex{Float64}, N..., 2)  # input array of vector field
-g = zeros(Complex{Float64}, N...)  # output array of scalar
-gvec = zeros(Complex{Float64}, M)  # column vector representation of g
+F = rand(ComplexF64, N..., 2)  # input array of vector field
+g = zeros(ComplexF64, N...)  # output array of scalar
+gvec = zeros(ComplexF64, M)  # column vector representation of g
 
 @testset "create_divg and apply_divg!" begin
     for ci = CartesianIndices((false:true,false:true))

@@ -5,9 +5,9 @@ M = prod(N)
 r = reshape(collect(1:3M), M, 3)'[:]  # index mapping from block matrix to narrowly banded matrix
 Z = spzeros(M,M)
 
-F = rand(Complex{Float64}, N..., 3)
+F = rand(ComplexF64, N..., 3)
 G = similar(F)
-g = zeros(Complex{Float64}, 3M)
+g = zeros(ComplexF64, 3M)
 
 @testset "create_curl and apply_curl!" begin
     for ci = CartesianIndices((false:true,false:true,false:true))
@@ -106,9 +106,9 @@ g = zeros(Complex{Float64}, 3M)
 
                 @test Curl == Curl_blk
 
-                Fcmp = rand(Complex{Float64}, Ncmp..., length(cmp_in))
+                Fcmp = rand(ComplexF64, Ncmp..., length(cmp_in))
                 Gcmp = similar(Fcmp, Ncmp..., length(cmp_out))
-                gcmp = zeros(Complex{Float64}, length(Gcmp))
+                gcmp = zeros(ComplexF64, length(Gcmp))
 
                 fcmp = Fcmp[:]
                 mul!(gcmp, Curl, fcmp)

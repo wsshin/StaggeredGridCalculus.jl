@@ -42,7 +42,7 @@ apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component
     # of constructing it from k and L as exp.(-im .* k .* L), which is always complex even
     # if k = 0.
     #
-    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, CFloat), either,
+    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
     (Kout = length(cmp_out); Kin = length(cmp_in);
      apply_curl!(G, F, Val(OP), SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
