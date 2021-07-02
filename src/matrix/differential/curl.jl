@@ -43,7 +43,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
 # ⎣-∂y  ∂x  0 ⎦
 #
 # CURL_BLK takes only the signs of the blocks:
-const CURL_BLK = SSInt{3,9}(0,  1, -1,  # 1st column (not row)
+const CURL_BLK = S²Int{3,9}(0,  1, -1,  # 1st column (not row)
                            -1,  0,  1,  # 2nd column (not row)
                             1, -1,  0)  # 3rd column (not row)
 
