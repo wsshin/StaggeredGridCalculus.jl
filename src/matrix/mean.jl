@@ -1,9 +1,22 @@
 # Average fields along the field directions (i.e., Fw along the w-direction).  See the
 # description of create_m̂() below.
 
-# Assumes the space dimension and field dimension are the same.  In other words, when the
-# space coordinate indices are (i,j,k), then the field has three vector components.
-# Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.
+# create_mean() assumes the space dimension and field dimension are the same.  In other
+# words, when the space coordinate indices are (i,j,k), then the field has three vector
+# components.  Therefore, for the input field array F[i,j,k,w], we assume w = 1:3.  This
+# assumption is reasonable, because line-averaging the w-component of the field along the
+# w-direction requires the interpolation points to be a half-grid point away from the
+# original points along the w-direction, which means that the domain has a nonzero thickness
+# along the w-direction.  Therefore, if the field has the w-component, the domain should
+# have the w-dimension as well.
+#
+# There are cases where the averaging needs to be done in the direction orthogonal to the
+# field direciton.  For example, in the TM equation, we have Ez at pixel corners, and we may
+# want to know Ez at the pixel edges (at Hx- and Hy-points).  In this case the field
+# dimension is 1 and different from the shape dimension = 2.  However, it doesn't make sense
+# to have Ez at the Hx- and Hy-points simultaneously, because then the density of Ez points
+# is doubled.  We usually need to know Ez at either the Hx-points or the Hy-points, but not
+# both.  Then the needed operator can be easily generated using create_m̂().
 export create_m̂, create_mean
 
 # Assumption: we don't calculate averages for interpolated fields.  In other words, we
