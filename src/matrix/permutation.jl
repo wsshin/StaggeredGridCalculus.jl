@@ -14,9 +14,9 @@ create_πcmp(N::AbsVecInteger,
 # field.
 function create_πcmp(N::SInt{K},  # size of grid
                      permute::SInt{Kf};  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
-                     scale::SVec{Kf,T}=SFloat(ntuple(k->1.0, Val(Kf))),  # scale[w]: scale factor to w-component of input field
+                     scale::SVec{Kf,T}=SVec{Kf}(ntuple(k->1.0, Val(Kf))),  # scale[w]: scale factor to w-component of input field
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
-                     ) where {K,Kf,T}
+                     ) where {K,Kf,T<:Number}
     M = prod(N)
     KfM = Kf * M
 
