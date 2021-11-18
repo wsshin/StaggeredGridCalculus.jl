@@ -65,7 +65,7 @@ function apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
 
     for ind_nv = 1:Kout
         nv = cmp_out[ind_nv]  # Cartesian compotent of output field
-        Gv = selectdim(G, K₊₁, ind_nv)  # v-component of output field
+        Gᵥ = selectdim(G, K₊₁, ind_nv)  # v-component of output field
 
         op = Val(OP)
         for ind_nu = 1:Kin
@@ -74,7 +74,7 @@ function apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
 
             if iszero(parity)
                 if op == Val(:(=))
-                    Gv .= 0
+                    Gᵥ .= 0
                     op = Val(:(+=))
                 end
                 continue
@@ -85,23 +85,23 @@ function apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
             sum(is_nw)==1 || @error "cmp_shp = $cmp_shp does not have one and only one nw = $nw"
             ind_nw = findfirst(is_nw)
 
-            Fu = selectdim(F, K₊₁, ind_nu)  # u-component of input field
-            apply_∂!(Gv, Fu, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            Fᵤ = selectdim(F, K₊₁, ind_nu)  # u-component of input field
+            apply_∂!(Gᵥ, Fᵤ, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gᵥ += α (±∂Fᵤ/∂w)
 
             op = Val(:(+=))
 
             # # Equivalent to the above code:
             # if op == Val(:(=))
             #     if iszero(parity)
-            #         Gv .= 0
+            #         Gᵥ .= 0
             #     else
             #         nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
             #         is_nw = cmp_shp.==nw
             #         @assert sum(is_nw)==1  # in cmp_shp, one and only one entry is nw
             #         ind_nw = findfirst(is_nw)
             #
-            #         Fu = @view F[:,:,:,ind_nu]  # u-component of input field
-            #         apply_∂!(Gv, Fu, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            #         Fᵤ = @view F[:,:,:,ind_nu]  # u-component of input field
+            #         apply_∂!(Gᵥ, Fᵤ, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gᵥ += α (±∂Fᵤ/∂w)
             #     end
             #
             #     op = Val(:(+=))
@@ -114,23 +114,23 @@ function apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
             #         @assert sum(is_nw)==1  # in cmp_shp, one and only one entry is nw
             #         ind_nw = findfirst(is_nw)
             #
-            #         Fu = @view F[:,:,:,ind_nu]  # u-component of input field
-            #         apply_∂!(Gv, Fu, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gv += α (±∂Fu/∂w)
+            #         Fᵤ = @view F[:,:,:,ind_nu]  # u-component of input field
+            #         apply_∂!(Gᵥ, Fᵤ, op, ind_nw, isfwd[ind_nw], ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw], α=parity*α)  # Gᵥ += α (±∂Fᵤ/∂w)
             #     end
             # end
         end
     end
 
     # @sync begin
-    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,3]), Val(OP), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,1]), Val(OP), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,2]), Val(OP), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,3]), Val(OP), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=α)  # Gᵥ += α (±∂Fᵤ/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,1]), Val(OP), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=α)  # Gᵥ += α (±∂Fᵤ/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,2]), Val(OP), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=α)  # Gᵥ += α (±∂Fᵤ/∂w)
     # end
     #
     # @sync begin
-    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,2]), Val(:(+=)), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=-α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,3]), Val(:(+=)), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=-α)  # Gv += α (±∂Fu/∂w)
-    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,1]), Val(:(+=)), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=-α)  # Gv += α (±∂Fu/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,1]), @view(F[:,:,:,2]), Val(:(+=)), 3, isfwd[3], ∆l⁻¹[3], isbloch[3], e⁻ⁱᵏᴸ[3], α=-α)  # Gᵥ += α (±∂Fᵤ/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,2]), @view(F[:,:,:,3]), Val(:(+=)), 1, isfwd[1], ∆l⁻¹[1], isbloch[1], e⁻ⁱᵏᴸ[1], α=-α)  # Gᵥ += α (±∂Fᵤ/∂w)
+    #     @spawn apply_∂!(@view(G[:,:,:,3]), @view(F[:,:,:,1]), Val(:(+=)), 2, isfwd[2], ∆l⁻¹[2], isbloch[2], e⁻ⁱᵏᴸ[2], α=-α)  # Gᵥ += α (±∂Fᵤ/∂w)
     # end
 
     return nothing

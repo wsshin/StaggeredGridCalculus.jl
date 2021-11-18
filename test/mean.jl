@@ -4,11 +4,11 @@
     N = SVec(10,)
     M = prod(N)
 
-    Fu = rand(N...)
-    Gv = similar(Fu)
-    gv = zeros(M)
+    Fᵤ = rand(N...)
+    Gᵥ = similar(Fᵤ)
+    gᵥ = zeros(M)
 
-    Mask = similar(Fu)  # masking array
+    Mask = similar(Fᵤ)  # masking array
 
     K = length(N)
     KM = K * M
@@ -83,10 +83,10 @@
             @test create_m̂(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
             # Test apply_m̂!.
-            fu = Fu[:]
-            mul!(gv, Mws, fu)
-            apply_m̂!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
-            @test Gv[:] ≈ gv
+            fᵤ = Fᵤ[:]
+            mul!(gᵥ, Mws, fᵤ)
+            apply_m̂!(Gᵥ, Fᵤ, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
             Is = 1+(nw-1)*M:nw*M
@@ -107,11 +107,11 @@ end  # @testset "create_mean and apply_mean! 1D"
     N = SVec(8,9)
     M = prod(N)
 
-    Fu = rand(N...)
-    Gv = similar(Fu)
-    gv = zeros(M)
+    Fᵤ = rand(N...)
+    Gᵥ = similar(Fᵤ)
+    gᵥ = zeros(M)
 
-    Mask = similar(Fu)  # masking array
+    Mask = similar(Fᵤ)  # masking array
 
     K = length(N)
     KM = K * M
@@ -186,10 +186,10 @@ end  # @testset "create_mean and apply_mean! 1D"
             @test create_m̂(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
             # Test apply_m̂!.
-            fu = Fu[:]
-            mul!(gv, Mws, fu)
-            apply_m̂!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
-            @test Gv[:] ≈ gv
+            fᵤ = Fᵤ[:]
+            mul!(gᵥ, Mws, fᵤ)
+            apply_m̂!(Gᵥ, Fᵤ, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
             Is = 1+(nw-1)*M:nw*M
@@ -210,11 +210,11 @@ end  # @testset "create_mean and apply_mean! 2D"
     N = SVec(8,9,10)
     M = prod(N)
 
-    Fu = rand(N...)
-    Gv = similar(Fu)
-    gv = zeros(M)
+    Fᵤ = rand(N...)
+    Gᵥ = similar(Fᵤ)
+    gᵥ = zeros(M)
 
-    Mask = similar(Fu)  # masking array
+    Mask = similar(Fᵤ)  # masking array
 
     K = length(N)
     KM = K * M
@@ -289,10 +289,10 @@ end  # @testset "create_mean and apply_mean! 2D"
             @test create_m̂(nw, isfwd, N, ∆w, ∆w′⁻¹, isbloch) == Mws
 
             # Test apply_m̂!.
-            fu = Fu[:]
-            mul!(gv, Mws, fu)
-            apply_m̂!(Gv, Fu, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
-            @test Gv[:] ≈ gv
+            fᵤ = Fᵤ[:]
+            mul!(gᵥ, Mws, fᵤ)
+            apply_m̂!(Gᵥ, Fᵤ, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
             Is = 1+(nw-1)*M:nw*M

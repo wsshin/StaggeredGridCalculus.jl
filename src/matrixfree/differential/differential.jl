@@ -1,7 +1,7 @@
 # Conventions for Cartesian components
 # nw: direction of differentiation (∂w)
-# nu: component of the input field (Fu)
-# nv: component of the output field (Gv)
+# nu: component of the input field (Fᵤ)
+# nv: component of the output field (Gᵥ)
 
 include("partial.jl")
 include("curl.jl")

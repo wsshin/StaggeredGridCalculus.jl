@@ -52,14 +52,14 @@ function apply_divg!(g::AbsArrNumber{K},  # output array of scalar; in 3D, g[i,j
     # First partial derivative
     nw = 1
     nu = nw  # component of input field to feed to ∂w
-    Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
-    apply_∂!(g, Fu, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α)  # g += α ∂Fu/∂w
+    Fᵤ = selectdim(F, K₊₁, nu)  # nu-th component of input field
+    apply_∂!(g, Fᵤ, Val(OP), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α)  # g += α ∂Fᵤ/∂w
 
     # Remaining partial derivatives
     for nw = 2:K  # direction of differentiation
         nu = nw  # component of input field to feed to ∂w
-        Fu = selectdim(F, K₊₁, nu)  # nu-th component of input field
-        apply_∂!(g, Fu, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α)  # g += α ∂Fu/∂w
+        Fᵤ = selectdim(F, K₊₁, nu)  # nu-th component of input field
+        apply_∂!(g, Fᵤ, Val(:(+=)), nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α)  # g += α ∂Fᵤ/∂w
     end
 
     return nothing

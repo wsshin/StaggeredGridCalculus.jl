@@ -4,11 +4,11 @@
     N = (10,)
     M = prod(N)
 
-    Fu = rand(N...)
-    Gv = similar(Fu)
-    gv = zeros(M)
+    Fᵤ = rand(N...)
+    Gᵥ = similar(Fᵤ)
+    gᵥ = zeros(M)
 
-    Mask = similar(Fu)  # masking array
+    Mask = similar(Fᵤ)  # masking array
     for nw = 1:1
         sub = Vector{Int}(undef, 1)
         sub′ = Vector{Int}(undef, 1)
@@ -64,13 +64,13 @@
             @test create_∂(nw, ns==1, [N...], ∆w⁻¹, isbloch) == ∂ws
 
             # Test apply_∂!.
-            fu = Fu[:]
-            mul!(gv, ∂ws, fu)
-            apply_∂!(Gv, Fu, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
-            @test Gv[:] ≈ gv
+            fᵤ = Fᵤ[:]
+            mul!(gᵥ, ∂ws, fᵤ)
+            apply_∂!(Gᵥ, Fᵤ, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
-            # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
-            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w⁻¹)
+            # print("matrix: "); @btime mul!($gᵥ, $∂ws, $fᵤ)
+            # print("matrix-free: "); @btime apply_∂!($Gᵥ, $Fᵤ, $nw, $ns==1, $∆w⁻¹)
             # println()
         end
     end
@@ -80,11 +80,11 @@ end  # @testset "create_∂ and apply_∂!, 1D"
     N = (8,9)
     M = prod(N)
 
-    Fu = rand(N...)
-    Gv = similar(Fu)
-    gv = zeros(M)
+    Fᵤ = rand(N...)
+    Gᵥ = similar(Fᵤ)
+    gᵥ = zeros(M)
 
-    Mask = similar(Fu)  # masking array
+    Mask = similar(Fᵤ)  # masking array
     for nw = 1:2
         sub = Vector{Int}(undef, 2)
         sub′ = Vector{Int}(undef, 2)
@@ -140,13 +140,13 @@ end  # @testset "create_∂ and apply_∂!, 1D"
             @test create_∂(nw, ns==1, [N...], ∆w⁻¹, isbloch) == ∂ws
 
             # Test apply_∂!.
-            fu = Fu[:]
-            mul!(gv, ∂ws, fu)
-            apply_∂!(Gv, Fu, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
-            @test Gv[:] ≈ gv
+            fᵤ = Fᵤ[:]
+            mul!(gᵥ, ∂ws, fᵤ)
+            apply_∂!(Gᵥ, Fᵤ, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
-            # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
-            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w⁻¹)
+            # print("matrix: "); @btime mul!($gᵥ, $∂ws, $fᵤ)
+            # print("matrix-free: "); @btime apply_∂!($Gᵥ, $Fᵤ, $nw, $ns==1, $∆w⁻¹)
             # println()
         end
     end
@@ -156,11 +156,11 @@ end  # @testset "create_∂ and apply_∂!, 2D"
     N = (8,9,10)
     M = prod(N)
 
-    Fu = rand(N...)
-    Gv = similar(Fu)
-    gv = zeros(M)
+    Fᵤ = rand(N...)
+    Gᵥ = similar(Fᵤ)
+    gᵥ = zeros(M)
 
-    Mask = similar(Fu)  # masking array
+    Mask = similar(Fᵤ)  # masking array
     for nw = 1:3
         sub = Vector{Int}(undef, 3)
         sub′ = Vector{Int}(undef, 3)
@@ -216,13 +216,13 @@ end  # @testset "create_∂ and apply_∂!, 2D"
             @test create_∂(nw, ns==1, [N...], ∆w⁻¹, isbloch) == ∂ws
 
             # Test apply_∂!.
-            fu = Fu[:]
-            mul!(gv, ∂ws, fu)
-            apply_∂!(Gv, Fu, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
-            @test Gv[:] ≈ gv
+            fᵤ = Fᵤ[:]
+            mul!(gᵥ, ∂ws, fᵤ)
+            apply_∂!(Gᵥ, Fᵤ, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
-            # print("matrix: "); @btime mul!($gv, $∂ws, $fu)
-            # print("matrix-free: "); @btime apply_∂!($Gv, $Fu, $nw, $ns==1, $∆w⁻¹)
+            # print("matrix: "); @btime mul!($gᵥ, $∂ws, $fᵤ)
+            # print("matrix-free: "); @btime apply_∂!($Gᵥ, $Fᵤ, $nw, $ns==1, $∆w⁻¹)
             # println()
         end
     end
