@@ -158,7 +158,7 @@ struct Grid{K}
     N::SVec{K,Int}  # N[k] = number of grid cells in k-direction
     L::SVec{K,Float}  # L[k] = length of grid (domain) in k-direction
     l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction
-    ∆l::Tuple2{NTuple{K,VecFloat}}  # ∆l[PRIM][k] = (∆l at primal vertices in w) == diff(l[DUAL][k] including ghost point)
+    ∆l::Tuple2{NTuple{K,VecFloat}}  # ∆l[PRIM][k] = (∆l at primal vertices in k) == diff(l[DUAL][k] including ghost point)
     isbloch::SVec{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
     σ::Tuple2{NTuple{K,VecBool}}  # false only for non-ghost points exactly on symmetry boundary (= first point in primal grid)
     bounds::Tuple2{SVec{K,Float}}  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
