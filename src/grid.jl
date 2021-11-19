@@ -20,10 +20,10 @@
 #
 #       - On the other hand, for the Bloch boundary condition we can use the primal grid
 #       planes as either of the E- and H-field planes.  Note that Maxwell's equations are
-#       ∇_h × μ⁻¹ ∇_e × E - ω² ε E = -i ω J.  Once we decide that in the w-axis direciton
+#       ∇ₘ × μ⁻¹ ∇ₑ × E - ω² ε E = -i ω J.  Once we decide that in the w-axis direciton
 #       (w = x,y,z) we are going to use the primal grid planes as the E-field planes, we can
 #       simply use the forward difference (which is for primal fields) as ∂/∂w in
-#       constructing ∇_e.
+#       constructing ∇ₑ.
 #
 # - The notion of U, V, and ξ, η is now inappropriate.  I used to use U to indicate the
 # primal field, but there is no such thing like the primal field, because the E-field, for

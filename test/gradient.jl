@@ -57,16 +57,16 @@ g = zeros(ComplexF64, 2M)  # column vector representation of G
 end  # @testset "create_grad and apply_grad!"
 
 @testset "curl of gradient" begin
-    # Construct ∇˟ and ∇ for a uniform grid and periodic boundaries.
+    # Construct ∇̽ and ∇ for a uniform grid and periodic boundaries.
     N = [3,4,5]
     M = prod(N)
     isfwd = [true, true, true]  # curl(U) and gradient to generate U are differentiated forward
 
-    ∇˟ = create_curl(isfwd, N, order_cmpfirst=false)
+    ∇̽ = create_curl(isfwd, N, order_cmpfirst=false)
     ∇ = create_grad(isfwd, N, order_cmpfirst=false)
 
-    # Construct ∇˟ * ∇
-    A = ∇˟ * ∇
+    # Construct ∇̽ * ∇
+    A = ∇̽ * ∇
 
     # Test Divergence of curl.
     @test size(A) == (3M,M)
