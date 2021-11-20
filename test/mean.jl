@@ -85,7 +85,7 @@
             # Test apply_m̂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, Mws, fᵤ)
-            apply_m̂!(Gᵥ, Fᵤ, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
@@ -98,7 +98,7 @@
 
         # Test apply_mean!.
         mul!(g, Mdiag, f)
-        apply_mean!(G, F, Val(:(=)), isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
         @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 1D"
@@ -188,7 +188,7 @@ end  # @testset "create_mean and apply_mean! 1D"
             # Test apply_m̂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, Mws, fᵤ)
-            apply_m̂!(Gᵥ, Fᵤ, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
@@ -201,7 +201,7 @@ end  # @testset "create_mean and apply_mean! 1D"
 
         # Test apply_mean!.
         mul!(g, Mdiag, f)
-        apply_mean!(G, F, Val(:(=)), isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
         @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 2D"
@@ -291,7 +291,7 @@ end  # @testset "create_mean and apply_mean! 2D"
             # Test apply_m̂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, Mws, fᵤ)
-            apply_m̂!(Gᵥ, Fᵤ, Val(:(=)), nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
             @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
@@ -304,7 +304,7 @@ end  # @testset "create_mean and apply_mean! 2D"
 
         # Test apply_mean!.
         mul!(g, Mdiag, f)
-        apply_mean!(G, F, Val(:(=)), isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
         @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
 end  # @testset "create_mean and apply_mean! 3D"

@@ -47,11 +47,11 @@ gvec = zeros(ComplexF64, M)  # column vector representation of g
         # Test apply_divg!.
         f = F[:]
         mul!(gvec, ∇̇, f)
-        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
+        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
         @test g[:] ≈ gvec
 
         mul!(gvec, ∇̇_cmpfirst, f[r])
-        apply_divg!(g, F, Val(:(=)), isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
+        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
         @test g[:] ≈ gvec
     end
 end  # @testset "create_divg and apply_divg!"

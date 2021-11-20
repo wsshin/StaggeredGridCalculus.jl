@@ -66,7 +66,7 @@
             # Test apply_∂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, ∂ws, fᵤ)
-            apply_∂!(Gᵥ, Fᵤ, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
+            apply_∂!(Gᵥ, Fᵤ, nw, ns==1, ∆w⁻¹, isbloch)
             @test Gᵥ[:] ≈ gᵥ
 
             # print("matrix: "); @btime mul!($gᵥ, $∂ws, $fᵤ)
@@ -142,7 +142,7 @@ end  # @testset "create_∂ and apply_∂!, 1D"
             # Test apply_∂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, ∂ws, fᵤ)
-            apply_∂!(Gᵥ, Fᵤ, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
+            apply_∂!(Gᵥ, Fᵤ, nw, ns==1, ∆w⁻¹, isbloch)
             @test Gᵥ[:] ≈ gᵥ
 
             # print("matrix: "); @btime mul!($gᵥ, $∂ws, $fᵤ)
@@ -218,7 +218,7 @@ end  # @testset "create_∂ and apply_∂!, 2D"
             # Test apply_∂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, ∂ws, fᵤ)
-            apply_∂!(Gᵥ, Fᵤ, Val(:(=)), nw, ns==1, ∆w⁻¹, isbloch)
+            apply_∂!(Gᵥ, Fᵤ, nw, ns==1, ∆w⁻¹, isbloch)
             @test Gᵥ[:] ≈ gᵥ
 
             # print("matrix: "); @btime mul!($gᵥ, $∂ws, $fᵤ)
