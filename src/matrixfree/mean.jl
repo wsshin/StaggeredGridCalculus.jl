@@ -302,7 +302,7 @@ function apply_m̂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x
     @assert size(Gᵥ)==size(Fᵤ)
 
     Nx, Ny = size(Fᵤ)
-    α2 = 0.5 * α
+    α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
     overwrite && (Gᵥ .= 0)
@@ -439,7 +439,7 @@ function apply_m̂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x
     @assert size(Gᵥ)==size(Fᵤ)
 
     Nx = length(Fᵤ)  # not size(Fᵤ) unlike code for 2D and 3D
-    α2 = 0.5 * α
+    α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
     overwrite && (Gᵥ .= 0)
@@ -504,7 +504,7 @@ function apply_m̂!(Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x
     @assert length(∆w)==length(∆w′⁻¹)
 
     Nx, Ny, Nz = size(Fᵤ)
-    α2 = 0.5 * α
+    α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
     overwrite && (Gᵥ .= 0)
@@ -716,7 +716,7 @@ function apply_m̂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x
     @assert length(∆w)==length(∆w′⁻¹)
 
     Nx, Ny = size(Fᵤ)
-    α2 = 0.5 * α
+    α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
     overwrite && (Gᵥ .= 0)
@@ -867,7 +867,7 @@ function apply_m̂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x
     @assert length(∆w)==length(∆w′⁻¹)
 
     Nx = length(Fᵤ)  # not size(Fᵤ) unlike code for 2D and 3D
-    α2 = 0.5 * α
+    α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
     overwrite && (Gᵥ .= 0)
