@@ -83,9 +83,9 @@ end
 
 
 # Numerical differentiation by forward difference.
-f′fwd(f::Function, xₙ::Number, fₙ::Number=f(xₙ); h::Real=abs(xₙ)*Base.rtoldefault(Float)) = (f(xₙ+h) - fₙ) / h
+f′fwd(f::Function, xₙ::Number, fₙ::Number=f(xₙ); h::Real=abs(xₙ)*τᵣ₀) = (f(xₙ+h) - fₙ) / h
 
-function newtsol(x₀::Number, f::Function, f′::Function=(x,fₙ)->f′fwd(f,x,fₙ); rtol::Real=Base.rtoldefault(Float), atol::Real=eps(Float))
+function newtsol(x₀::Number, f::Function, f′::Function=(x,fₙ)->f′fwd(f,x,fₙ); rtol::Real=τᵣ₀, atol::Real=τₐ₀)
     # Solve f(x) = 0 using the Newton-Armijo method.
     # x₀: initial guess
     # f: function of x
@@ -96,8 +96,8 @@ function newtsol(x₀::Number, f::Function, f′::Function=(x,fₙ)->f′fwd(f,x
     maxit = 100    # maximum iterations
     maxitls = 20   # maximum iterations inside the line search
     α = 1e-4
-    maxs = 1 / Base.rtoldefault(Float)  # maximum step size
-    perturbls = eps(Float)^0.75  # ≈ 1e-12, between sqrt(eps) and eps; some perturbation allowed in line search
+    maxs = 1 / τᵣ₀  # maximum step size
+    perturbls = τₐ₀^0.75  # ≈ 1e-12, between sqrt(eps) and eps; some perturbation allowed in line search
 
     # Initialize.
     n = 0
@@ -163,17 +163,17 @@ end
 
 
 # isapprox_kernel(x, y, rtol, atol) = norm2diff(x,y) ≤ atol + rtol * max(norm2(x), norm2(y))
-# isapprox(x, y; rtol::Real=Base.rtoldefault(Float), atol::Real=eps(Float)) = isapprox_kernel(x, y, rtol, atol)
+# isapprox(x, y; rtol::Real=τᵣ₀, atol::Real=τₐ₀) = isapprox_kernel(x, y, rtol, atol)
 
 # # Compare x and y with respect to some large number L.  Useful when x or y is zero.
 # # It is OK to use ≈ or ≉ for positive numbers (like ∆).
-isapprox_wrt(x, y, L::Number, rtol::Real=Base.rtoldefault(Float)) = norm(x-y) ≤ rtol * abs(L)
-# isapprox_wrt(x, y, L::Real, rtol::Real=Base.rtoldefault(Float)) = norm2diff(x,y) ≤ rtol * L
+isapprox_wrt(x, y, L::Number, rtol::Real=τᵣ₀) = norm(x-y) ≤ rtol * abs(L)
+# isapprox_wrt(x, y, L::Real, rtol::Real=τᵣ₀) = norm2diff(x,y) ≤ rtol * L
 
 # # When this is enabled to support isapprox for arrays of tuples, gen_sublprim1d fails
 # # at the line where curr[1:2] ≈ prev[end-1:end].  Don't understand why, because
 # # the line uses isapprox for arrays of numbers.
-# function isapprox(x::AbsArr{NTuple{N,T}}, y::AbsArr{NTuple{N,T}}; rtol::Real=Base.rtoldefault(Float), atol::Real=eps(Float)) where {N,T<:Number}
+# function isapprox(x::AbsArr{NTuple{N,T}}, y::AbsArr{NTuple{N,T}}; rtol::Real=τᵣ₀, atol::Real=τₐ₀) where {N,T<:Number}
 #     return isapprox_kernel(x, y, rtol, atol)
 # end
 
