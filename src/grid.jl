@@ -274,4 +274,4 @@ Base.in(l::SVec{K}, g::Grid{K}) where {K} = all(g.bounds[nN] .≤ l .≤ g.bound
 # exp(-ik⋅r).
 isproper_blochphase(e⁻ⁱᵏᴸ::Number, isbloch::Bool) = (isbloch && abs(e⁻ⁱᵏᴸ)==1) || (!isbloch && e⁻ⁱᵏᴸ==1)
 isproper_blochphase(e⁻ⁱᵏᴸ::SVec{K,<:Number}, isbloch::SVec{K,Bool}) where {K} =
-    all(ntuple(k->isproper_blochphase(isbloch[k], e⁻ⁱᵏᴸ[k]), Val(K)))
+    all(isproper_blochphase.(e⁻ⁱᵏᴸ, isbloch))
