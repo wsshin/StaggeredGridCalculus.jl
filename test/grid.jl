@@ -40,11 +40,11 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
     @test g1.bounds ≈ ([lprim[1]], [lprim[end]+∆ldual[end]])
     @test SVec(-l₀) ∈ g1  # `∈` supports only SVec
     lg = lghost(((lprim,),(ldual,)), SVec(L), SVec{1}(isbloch))
-    lprim_g = g1.ghosted.l[nPR][1]
-    ldual_g = g1.ghosted.l[nDL][1]
+    lprim_g = g1.ghosted.lg[nPR][1]
+    ldual_g = g1.ghosted.lg[nDL][1]
     @test lprim_g[1:end-1]≈lprim && lprim_g[end]≈lg[nPR][1] && ldual_g[2:end]≈ldual && ldual_g[1]≈lg[nDL][1]
-    τlprim_g = g1.ghosted.τl[nPR][1]
-    τldual_g = g1.ghosted.τl[nDL][1]
+    τlprim_g = g1.ghosted.τlg[nPR][1]
+    τldual_g = g1.ghosted.τlg[nDL][1]
     @test τlprim_g[1:end-1]≈lprim && τlprim_g[end]≈lg[nPR][1]-L && τldual_g[2:end]≈ldual && τldual_g[1]≈lg[nDL][1]+L
     τindprim_g = g1.ghosted.τind[nPR][1]
     τinddual_g = g1.ghosted.τind[nDL][1]
@@ -93,11 +93,11 @@ end  # @testset "Grid{1}, primal boundary"
     @test -l₀ ∈ g3
     @test all(g3.bounds .∈ Ref(g3))
     lg = lghost((lprim,ldual), L, g3.isbloch)
-    lprim_g = g3.ghosted.l[nPR]
-    ldual_g = g3.ghosted.l[nDL]
+    lprim_g = g3.ghosted.lg[nPR]
+    ldual_g = g3.ghosted.lg[nDL]
     @test pop!.(lprim_g)≈lg[nPR].data && popfirst!.(ldual_g)≈lg[nDL].data && lprim_g≈lprim && ldual_g≈ldual
-    τlprim_g = g3.ghosted.τl[nPR]
-    τldual_g = g3.ghosted.τl[nDL]
+    τlprim_g = g3.ghosted.τlg[nPR]
+    τldual_g = g3.ghosted.τlg[nDL]
     @test pop!.(τlprim_g)≈lg[nPR].data.-(0,0,L[3]) && popfirst!.(τldual_g)≈(ldual[1][1],ldual[2][1],lg[nDL][3]+L[3]) && τlprim_g≈lprim && τldual_g≈ldual
     τindprim_g = g3.ghosted.τind[nPR]
     τinddual_g = g3.ghosted.τind[nDL]

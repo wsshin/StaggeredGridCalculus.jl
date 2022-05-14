@@ -137,9 +137,9 @@ export isproper_blochphase, lghost  # functions
 # than N.  (Even thought σ seems to deal with reflection of ghost points, it doesn't; it has
 # N entries, so it is defined in Grid rather than in Ghosted.)
 struct Ghosted{K}
-    l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction with ghost points
-    τl::Tuple2{NTuple{K,VecFloat}}  # τl[PRIM][k] = primal vertex locations in k-direction with transformed ghost points into domain; all τl are in domain
-    τind::Tuple2{NTuple{K,VecInt}}  # τind[PRIM][k] = indices of Ghosted.l corresponding to transformed points in to domain by boundary conditions
+    lg::Tuple2{NTuple{K,VecFloat}}  # lg[PRIM][k] = primal vertex locations in k-direction with ghost points
+    τlg::Tuple2{NTuple{K,VecFloat}}  # τlg[PRIM][k] = primal vertex locations in k-direction with transformed ghost points into domain; all τlg are in domain
+    τind::Tuple2{NTuple{K,VecInt}}  # τind[PRIM][k] = indices of ghosted.lg corresponding to transformed points in to domain by boundary conditions
     ∆τ::Tuple2{NTuple{K,VecFloat}}  # ∆τ[PRIM][k] = amount of "shift" to get points into domain by Bloch boundary conditions (ignoring transformation by reflection by symmetry boundary, which is handled by Grid.σ)
 end
 
