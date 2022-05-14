@@ -214,7 +214,7 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
     τindg_dual = isbloch.*N .+ 1 .+ .!isbloch  # SInt{K}: 2 for symmetry; N+1 for Bloch
     τindg = (τindg_prim, τindg_dual)  # Tuple2{SInt{K}}
 
-    τl = (deepcopy(lprim), deepcopy(ldual))
+    τlg = (deepcopy(lprim), deepcopy(ldual))
 
     ∆τ = (zeros.((N.+1).data), zeros.((N.+1).data))  # Tuple2{NTuple{K,VecFloat}}
 
@@ -223,14 +223,14 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
         τind[nDL][k][1] = τindg[nDL][k]  # 2 for symmetry; N+1 for Bloch
 
         # Below, getindex() does not return an index, but the value at the given index.
-        τl[nPR][k][end] = getindex(lprim[k], τind[nPR][k][end])  # lprim[k][τind[nPR][k][end]]
-        τl[nDL][k][1] = getindex(ldual[k], τind[nDL][k][1])  # ldual[k][τind[nDL][k][1]]
+        τlg[nPR][k][end] = getindex(lprim[k], τind[nPR][k][end])  # lprim[k][τind[nPR][k][end]]
+        τlg[nDL][k][1] = getindex(ldual[k], τind[nDL][k][1])  # ldual[k][τind[nDL][k][1]]
 
         ∆τ[nPR][k][end] = -L[k] * isbloch[k]
         ∆τ[nDL][k][1] = L[k] * isbloch[k]
     end
 
-    ghosted = Ghosted{K}((deepcopy(lprim), deepcopy(ldual)), τl, τind, ∆τ)
+    ghosted = Ghosted{K}((deepcopy(lprim), deepcopy(ldual)), τlg, τind, ∆τ)
 
     # Construct σ, which is false on non-Bloch (= symmetry) boundaries.
     # Note that σ's are vectors of length-N and therefore do not include ghost points.
