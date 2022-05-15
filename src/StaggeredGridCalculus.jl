@@ -4,6 +4,7 @@ module StaggeredGridCalculus
 # StaggeredGridCalculus.
 using Reexport
 @reexport using LinearAlgebra, SparseArrays
+using ArgCheck
 using AbbreviatedTypes
 using Base.Threads: @threads  # used in matrixfree/differential/*.jl
 

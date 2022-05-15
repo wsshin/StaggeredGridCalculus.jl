@@ -174,7 +174,7 @@ Base.length(grid::Grid) = prod(size(grid))
 # Constructor calling the inner constructor.
 function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, including both domain boundaries
               isbloch::SVec{K,Bool}) where {K}
-    all(issorted.(lprim)) || throw(ArgumentError("all entry vectors of lprim = $(lprim) must be sorted."))
+    @argcheck all(issorted.(lprim))  # all entry vectors of lprim must be sorted
 
     # For array inputs, create separate copies.
     lprim = collect.(float.(lprim))  # collect instead of deepcopy to turn range (e.g., 1.0:10.0) into vector
