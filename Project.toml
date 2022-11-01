@@ -13,10 +13,10 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
-AbbreviatedTypes = "^0.2.1"
-ArgCheck = "^2.1.0"
-Reexport = "^1.0.0"
-julia = "^1.7"
+AbbreviatedTypes = "≥ 0.2.1"
+ArgCheck = "2.1.0 - 2"
+Reexport = "1.0.0 - 1"
+julia = "1.7 - 1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
