@@ -5,7 +5,7 @@ module StaggeredGridCalculus
 using Reexport
 @reexport using LinearAlgebra, SparseArrays
 using ArgCheck
-using AbbreviatedTypes
+using AbbreviatedTypes; @define_types_with(Float64)
 using Base.Threads: @threads  # used in matrixfree/differential/*.jl
 
 # The order of inclusion matters: if types or functions in file A are used in file B, file A
