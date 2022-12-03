@@ -98,11 +98,16 @@ function create_stretched_∆l(ω::Number,  # angular frequency
                              Npml::Tuple2{SInteger{K}},  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
                              pml::PMLParam=PMLParam()  # PML parameters
                              ) where {K}
-    lpml, Lpml = pml_loc(l[nPR], bounds, Npml)
-    sfactor = create_sfactor(ω, l, lpml, Lpml, pml)
+    if all(iszero.(Npml))
+        s∆lprim = ∆l[nPR]  # AbsVecReal
+        s∆ldual = ∆l[nDL]  # AbsVecReal
+    else
+        lpml, Lpml = pml_loc(l[nPR], bounds, Npml)
+        sfactor = create_sfactor(ω, l, lpml, Lpml, pml)
 
-    s∆lprim = map((x,y)->x.*y, sfactor[nPR], ∆l[nPR])
-    s∆ldual = map((x,y)->x.*y, sfactor[nDL], ∆l[nDL])
+        s∆lprim = map((x,y)->x.*y, sfactor[nPR], ∆l[nPR])  # AbsVecNumber
+        s∆ldual = map((x,y)->x.*y, sfactor[nDL], ∆l[nDL])  # AbsVecNumber
+    end
 
     s∆l = (s∆lprim, s∆ldual)
 
