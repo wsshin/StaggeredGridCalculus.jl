@@ -6,7 +6,7 @@ export create_πcmp
 # Wrapper to convert AbstractVector's to SVec's.
 create_πcmp(N::AbsVecInteger,
             permute::AbsVecInteger;  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
-            scale::AbsVecNumber=ones(length(permute)),  # scale[w]: scale factor to w-component of input field
+            scale::AbsVecNumber=ones(Int,length(permute)),  # scale[w]: scale factor to w-component of input field
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     (K = length(N); Kf = length(permute); create_πcmp(SInt{K}(N), SInt{Kf}(permute), scale=SVec{Kf}(scale), order_cmpfirst=order_cmpfirst))
 
@@ -14,7 +14,7 @@ create_πcmp(N::AbsVecInteger,
 # field.
 function create_πcmp(N::SInt{K},  # size of grid
                      permute::SInt{Kf};  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
-                     scale::SVec{Kf,T}=SVec{Kf}(ntuple(k->1.0, Val(Kf))),  # scale[w]: scale factor to w-component of input field
+                     scale::SVec{Kf,T}=SInt(ntuple(k->1, Val(Kf))),  # scale[w]: scale factor to w-component of input field
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,Kf,T<:Number}
     M = prod(N)
