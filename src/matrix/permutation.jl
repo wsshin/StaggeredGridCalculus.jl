@@ -43,5 +43,8 @@ function create_πcmp(N::SInt{K},  # size of grid
 end
 
 # Take the same argument as create_πcmp(), but returns its inverse.
-create_inv_πcmp(N, permute; scale=SInt(ntuple(k->1, Val(length(permute)))), kwargs...) =
-    transpose(create_πcmp(N, permute; scale=(1 ./ scale), kwargs...))
+function create_inv_πcmp(N, permute; scale=SInt(ntuple(k->1, Val(length(permute)))), kwargs...)
+    invscale = all(isone.(scale)) ? scale : 1 ./ scale
+
+    return transpose(create_πcmp(N, permute; scale=invscale, kwargs...))
+end
