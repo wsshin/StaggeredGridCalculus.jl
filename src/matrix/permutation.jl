@@ -4,6 +4,9 @@ export create_πcmp
 # K are the same, here we assume they can be different.
 
 # Wrapper to convert AbstractVector's to SVec's.
+#
+# If N and permute are both SInt, do not expect this wrapper to be called even if scale is
+# typed AbsVecNumber, because keyword arguments don't affect the dispatch procedure.
 create_πcmp(N::AbsVecInteger,
             permute::AbsVecInteger;  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
             scale::AbsVecNumber=ones(Int,length(permute)),  # scale[w]: scale factor to w-component of input field
