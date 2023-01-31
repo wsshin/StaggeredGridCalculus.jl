@@ -1,4 +1,4 @@
-export create_πcmp
+export create_πcmp, create_inv_πcmp
 
 # Unlike curl, divergence, gradient for which the field dimension Kf and the space dimension
 # K are the same, here we assume they can be different.
@@ -41,3 +41,7 @@ function create_πcmp(N::SInt{K},  # size of grid
 
     return dropzeros!(sparse(Itot, Jtot, Vtot, KfM, KfM))  # dropzeros!() are in case some scale[nw] is zero
 end
+
+# Take the same argument as create_πcmp(), but returns its inverse.
+create_inv_πcmp(N, permute; scale=SInt(ntuple(k->1, Val(length(permute)))), kwargs...) =
+    transpose(create_πcmp(N, permute; scale=(1 ./ scale), kwargs...))

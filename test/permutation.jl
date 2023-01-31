@@ -7,11 +7,12 @@ Z = zeros(M,M)
 @testset "create_πcmp" begin
     permute = [3,1,2]
     scale = [-1,1,-1]
+    order_cmpfirst = false
     Kf = length(permute)
     KfM = Kf * M
 
     # order_cmpfirst = false
-    P = create_πcmp(N, permute, scale=scale, order_cmpfirst=false)
+    P = create_πcmp(N, permute; scale, order_cmpfirst)
     P2 = zeros(KfM,KfM)
     Id = Matrix{eltype(scale)}(I, M, M)
 
@@ -24,14 +25,21 @@ Z = zeros(M,M)
     end
     @test P2 == P
 
+    P⁻¹ = create_inv_πcmp(N, permute; scale, order_cmpfirst)
+    @test P * P⁻¹ == I
+
     # order_cmpfirst = true
-    P_cmpfirst = create_πcmp(N, permute, scale=scale)
+    P_cmpfirst = create_πcmp(N, permute; scale)
     p = spzeros(eltype(scale), Kf, Kf)
     for nw = 1:Kf
         p[permute[nw], nw] = scale[nw]
     end
     P2_cmpfirst = blockdiag(ntuple(k->p, M)...)
     @test P2_cmpfirst == P_cmpfirst
+
+    P⁻¹_cmpfirst = create_inv_πcmp(N, permute; scale)
+    @test P_cmpfirst * P⁻¹_cmpfirst == I
+
 end  # @testset "create_πcmp"
 
 end  # @testset "permutation"
