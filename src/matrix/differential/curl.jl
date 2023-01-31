@@ -5,7 +5,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::NTuple{K,Number}=ntuple(k->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             cmp_shp::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,
@@ -25,7 +25,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             cmp_shp::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,

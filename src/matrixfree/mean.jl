@@ -22,8 +22,8 @@ apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at 
             F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
             isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-            α::Number=1.0,  # scale factor to multiply to result before adding it to G: G += α mean(F)
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
             overwrite::Bool=true) =  # false to add result to output storage G
     (K = length(isfwd); apply_mean!(G, F, SBool{K}(isfwd), SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α, overwrite))
 
@@ -34,8 +34,8 @@ apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at 
             ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
             ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
             isbloch::AbsVecBool=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-            α::Number=1.0,  # scale factor to multiply to result before adding it to G: G += α mean(F)
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
             overwrite::Bool=true  # false to add result to output storage G
             ) where {K} =
     apply_mean!(G, F, SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α, overwrite)
@@ -48,7 +48,7 @@ function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
                      isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
                      isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
                      e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-                     α::Number=1.0,  # scale factor to multiply to result before adding it to G: G += α mean(F)
+                     α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      overwrite::Bool=true  # false to add result to output storage G
                      ) where {K,K₊₁}  #  K is space dimension; K₊₁ = K + 1
     @assert K₊₁==K+1
@@ -72,7 +72,7 @@ function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
                      ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
                      isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
                      e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-                     α::Number=1.0,  # scale factor to multiply to result before adding it to G: G += α mean(F)
+                     α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      overwrite::Bool=true  # false to add result to output storage G
                      ) where {K,K₊₁}  #  K is space dimension; K₊₁ = K + 1
     @assert K₊₁==K+1
@@ -103,8 +103,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x
                   nw::Integer,  # 1|2|3 for averaging along x|y|z
                   isfwd::Bool,  # true|false for forward|backward averaging
                   isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-                  α::Number=1.0,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
+                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
                   overwrite::Bool=true)  # false to add result to output storage G
     @assert size(Gᵥ)==size(Fᵤ)
 
@@ -296,8 +296,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x
                   nw::Integer,  # 1|2 for averaging along x|y
                   isfwd::Bool,  # true|false for forward|backward averaging
                   isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-                  α::Number=1.0,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
+                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
                   overwrite::Bool=true)  # false to add result to output storage G
     @assert size(Gᵥ)==size(Fᵤ)
 
@@ -433,8 +433,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x
                   nw::Integer,  # 1|2 for averaging along x|y
                   isfwd::Bool,  # true|false for forward|backward averaging
                   isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-                  α::Number=1.0,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
+                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
                   overwrite::Bool=true)  # false to add result to output storage G
     @assert size(Gᵥ)==size(Fᵤ)
 
@@ -496,8 +496,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x
                   ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
                   ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-                  α::Number=1.0,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
+                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
                   overwrite::Bool=true)  # false to add result to output storage G
     @assert size(Gᵥ)==size(Fᵤ)
     @assert size(Fᵤ,nw)==length(∆w)
@@ -708,8 +708,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x
                   ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
                   ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-                  α::Number=1.0,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
+                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
                   overwrite::Bool=true)  # false to add result to output storage G
     @assert size(Gᵥ)==size(Fᵤ)
     @assert size(Fᵤ,nw)==length(∆w)
@@ -859,8 +859,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x
                   ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
                   ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor
-                  α::Number=1.0,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
+                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
                   overwrite::Bool=true)  # false to add result to output storage G
     @assert size(Gᵥ)==size(Fᵤ)
     @assert size(Fᵤ,nw)==length(∆w)

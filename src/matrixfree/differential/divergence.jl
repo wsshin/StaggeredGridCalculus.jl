@@ -19,8 +19,8 @@ apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at 
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in K dimensions
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factors in K dimensions
-            α::Number=1.0,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factors in K dimensions
+            α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             overwrite::Bool=true) =  # false to add result to output storage g
     (N = size(g); K = length(isfwd); apply_divg!(g, F, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; α, overwrite))
 
@@ -30,8 +30,8 @@ apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at 
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in K dimensions
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factors in K dimensions
-            α::Number=1.0,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factors in K dimensions
+            α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             overwrite::Bool=true  # false to add result to output storage g
             ) where {K} =
     apply_divg!(g, F, SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α, overwrite)

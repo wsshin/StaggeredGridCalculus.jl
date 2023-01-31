@@ -45,9 +45,9 @@ export create_∂
 create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
          isfwd::Bool,  # true|false for forward|backward difference
          N::AbsVecInteger,  # size of grid
-         ∆w⁻¹::Number=1.0,  # inverse of spatial discretization
+         ∆w⁻¹::Number=1,  # inverse of spatial discretization
          isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
+         e⁻ⁱᵏᴸ::Number=1) =  # Bloch phase factor
     create_∂(nw, isfwd, N, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ)  # fill: create vector of ∆w⁻¹
 
 # Wrapper to convert AbstractVector's to SVec's
@@ -56,7 +56,7 @@ create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
          N::AbsVecInteger,  # size of grid
          ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
+         e⁻ⁱᵏᴸ::Number=1) =  # Bloch phase factor
     (K = length(N); M = prod(N); dropzeros!(sparse(create_∂info(nw, isfwd, SInt{K}(N), ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
 
 

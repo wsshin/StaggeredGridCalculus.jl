@@ -17,10 +17,10 @@ export apply_grad!
 apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
             f::AbsArrNumber,  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
+            ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in K dimensions
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factors in K dimensions
-            α::Number=1.0,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factors in K dimensions
+            α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             overwrite::Bool=true) =  # false to add result to output storage G
     (N = size(f); K = length(isfwd); apply_grad!(G, f, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; α, overwrite))
 
@@ -30,8 +30,8 @@ apply_grad!(G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component o
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in K dimensions
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factors in K dimensions
-            α::Number=1.0,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factors in K dimensions
+            α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             overwrite::Bool=true  # false to add result to output storage G
             ) where {K} =
     apply_grad!(G, f, SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α, overwrite)
@@ -43,7 +43,7 @@ function apply_grad!(G::AbsArrNumber{K₊₁},  # output field; in 3D, G[i,j,k,w
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l[w]: inverse of distances between grid planes in x-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     α::Number=1.0,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
+                     α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
                      overwrite::Bool=true  # false to add result to output storage G
                      ) where {K,K₊₁}
     @assert K₊₁==K+1

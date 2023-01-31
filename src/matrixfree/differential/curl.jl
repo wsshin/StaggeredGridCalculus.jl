@@ -14,11 +14,11 @@ apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::NTuple{K,Number}=ntuple(k->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             cmp_shp::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:size(G,K₊₁),
             cmp_in::AbsVecInteger=1:size(F,K₊₁),
-            α::Number=1.0,  # scale factor to multiply to result before adding it to G: G += α ∇×F
+            α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
             overwrite::Bool=true  # false to add result to output storage G
             ) where {K,K₊₁} =
     (N = size(G)[1:K]; apply_curl!(G, F, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, α, overwrite))
@@ -29,11 +29,11 @@ apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component
             isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             cmp_shp::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:size(G,K₊₁),
             cmp_in::AbsVecInteger=1:size(F,K₊₁),
-            α::Number=1.0,  # scale factor to multiply to result before adding it to G: G += α ∇×F
+            α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
             overwrite::Bool=true  # false to add result to output storage G
             ) where {K,K₊₁} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
@@ -58,7 +58,7 @@ function apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-
                      cmp_shp::SInt{K}=SVec(ntuple(identity, Val(K))),
                      cmp_out::SInt{Kout}=SVec(ntuple(identity, size(G,K₊₁))),
                      cmp_in::SInt{Kin}=SVec(ntuple(identity, size(G,K₊₁))),
-                     α::Number=1.0,  # scale factor to multiply to result before adding it to G: G += α ∇×F
+                     α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
                      overwrite::Bool=true  # false to add result to output storage Gᵥ
                      ) where {K,K₊₁,Kout,Kin}
     @assert K₊₁ == K+1

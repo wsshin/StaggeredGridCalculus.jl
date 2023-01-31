@@ -13,7 +13,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             N::AbsVecInteger,  # size of grid
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(length(isfwd));  # Bloch phase factor in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
     (K = length(isfwd); create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; order_cmpfirst))
 
@@ -21,7 +21,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(K);  # Bloch phase factor in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
