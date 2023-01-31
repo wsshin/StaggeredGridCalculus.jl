@@ -6,7 +6,7 @@ Z = zeros(M,M)
 
 @testset "create_πcmp" begin
     permute = [3,1,2]
-    scale = [-1,1,-1]
+    scale = [-2,3,-4]
     order_cmpfirst = false
     Kf = length(permute)
     KfM = Kf * M
