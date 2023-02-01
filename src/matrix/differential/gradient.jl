@@ -38,7 +38,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     dims::SInt{D}=SInt(ntuple(k, Val(K))),  # dimensions into which gradient is performed
+                     dims::SInt{D}=SInt(ntuple(identity, Val(K))),  # dimensions into which gradient is performed
                      order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,D}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
