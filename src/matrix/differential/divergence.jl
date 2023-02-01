@@ -14,15 +14,15 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(N)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factor in x, y, z
-            order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(isfwd); create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; order_cmpfirst))
+            cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    (K = length(isfwd); create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmpfirst))
 
 # Wrapper to convert AbstractVector's to SVec's
 create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -32,14 +32,14 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_divg(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); order_cmpfirst)
+    create_divg(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); cmpfirst)
 
 function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
                      dims::SInt{D}=SInt(ntuple(identity, Val(K))),  # dimensions in which divergence is performed
-                     order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,D}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVec(length.(∆l⁻¹))
@@ -56,7 +56,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
         nu = nw  # component of input field to feed to ∂w (column index of matrix block)
-        jstr, joff = order_cmpfirst ? (K, nu-K) : (1, M*(nu-1))  # (column stride, column offset)
+        jstr, joff = cmpfirst ? (K, nu-K) : (1, M*(nu-1))  # (column stride, column offset)
         @. J = jstr * J + joff
 
         # For some reason, using .= below is slower because it uses 1 allocatiotn.  On the

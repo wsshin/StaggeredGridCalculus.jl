@@ -10,15 +10,15 @@ export create_πcmp, create_inv_πcmp
 create_πcmp(N::AbsVecInteger,
             permute::AbsVecInteger;  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
             scale::AbsVecNumber=ones(Int,length(permute)),  # scale[w]: scale factor to w-component of input field
-            order_cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(N); Kf = length(permute); create_πcmp(SInt{K}(N), SInt{Kf}(permute), scale=SVec{Kf}(scale), order_cmpfirst=order_cmpfirst))
+            cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    (K = length(N); Kf = length(permute); create_πcmp(SInt{K}(N), SInt{Kf}(permute), scale=SVec{Kf}(scale), cmpfirst=cmpfirst))
 
 # Create the permutation matrix that permutes the order of Cartesian components of a vector
 # field.
 function create_πcmp(N::SInt{K},  # size of grid
                      permute::SInt{Kf};  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
                      scale::SVec{Kf,T}=SInt(ntuple(k->1, Val(Kf))),  # scale[w]: scale factor to w-component of input field
-                     order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,Kf,T<:Number}
     M = prod(N)
     KfM = Kf * M
@@ -30,8 +30,8 @@ function create_πcmp(N::SInt{K},  # size of grid
     for nw = 1:Kf  # component of input
         nv = permute[nw]  # component of output where w-component of input is placed
 
-        istr, ioff = order_cmpfirst ? (Kf, nv-Kf) : (1, M*(nv-1))  # (row stride, row offset)
-        jstr, joff = order_cmpfirst ? (Kf, nw-Kf) : (1, M*(nw-1))  # (column stride, column offset)
+        istr, ioff = cmpfirst ? (Kf, nv-Kf) : (1, M*(nv-1))  # (row stride, row offset)
+        jstr, joff = cmpfirst ? (Kf, nw-Kf) : (1, M*(nw-1))  # (column stride, column offset)
 
         indₛ, indₑ = (nw-1)*M + 1, nw*M
         @. Itot[indₛ:indₑ] = istr * (1:M) + ioff

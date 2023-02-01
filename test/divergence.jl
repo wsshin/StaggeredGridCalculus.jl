@@ -13,7 +13,7 @@ gvec = zeros(ComplexF64, M)  # column vector representation of g
     for ci = CartesianIndices((false:true,false:true))
         # Construct ∇̇ for a uniform grid and Bloch boundaries.
         isfwd = Vector{Bool}([ci.I...])
-        ∇̇ = create_divg(isfwd, N, order_cmpfirst=false)
+        ∇̇ = create_divg(isfwd, N, cmpfirst=false)
 
         # Test the overall coefficients.
         @test size(∇̇) == (M,2M)
@@ -33,7 +33,7 @@ gvec = zeros(ComplexF64, M)  # column vector representation of g
         isbloch = [true, false]
         e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
 
-        ∇̇ = create_divg(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+        ∇̇ = create_divg(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
 
         # Test ∇̇.
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -41,17 +41,17 @@ gvec = zeros(ComplexF64, M)  # column vector representation of g
         @test ∇̇ == [∂x ∂y]
 
         # Test Cartesian-component-first ordering.
-        ∇̇_cmpfirst = create_divg(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+        ∇̇_cmpfirst = create_divg(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=true)
         @test ∇̇_cmpfirst == ∇̇[:,r]
 
         # Test apply_divg!.
         f = F[:]
         mul!(gvec, ∇̇, f)
-        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
+        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
         @test g[:] ≈ gvec
 
         mul!(gvec, ∇̇_cmpfirst, f[r])
-        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
+        apply_divg!(g, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
         @test g[:] ≈ gvec
     end
 end  # @testset "create_divg and apply_divg!"
@@ -62,8 +62,8 @@ end  # @testset "create_divg and apply_divg!"
     M = prod(N)
     isfwd = [true, true, true]  # curl(U) and divg(V) are differentiated forward
 
-    ∇̽ = create_curl(isfwd, N, order_cmpfirst=false)
-    ∇̇ = create_divg(isfwd, N, order_cmpfirst=false)
+    ∇̽ = create_curl(isfwd, N, cmpfirst=false)
+    ∇̇ = create_divg(isfwd, N, cmpfirst=false)
 
     # Construct ∇̇ * ∇̽.
     A = ∇̇ * ∇̽

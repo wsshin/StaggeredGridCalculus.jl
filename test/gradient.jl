@@ -13,7 +13,7 @@ g = zeros(ComplexF64, 2M)  # column vector representation of G
     for ci = CartesianIndices((false:true,false:true))
         # Construct ∇ for a uniform grid and Bloch boundaries.
         isfwd = Vector{Bool}([ci.I...])
-        ∇ = create_grad(isfwd, N, order_cmpfirst=false)
+        ∇ = create_grad(isfwd, N, cmpfirst=false)
 
         # Test the overall coefficients.
         @test size(∇) == (2M,M)
@@ -33,7 +33,7 @@ g = zeros(ComplexF64, 2M)  # column vector representation of G
         isbloch = [true, false]
         e⁻ⁱᵏᴸ = rand(ComplexF64, 2)
 
-        ∇ = create_grad(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+        ∇ = create_grad(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
 
         # Test ∇.
         ∂x = (nw = 1; create_∂(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]))
@@ -41,17 +41,17 @@ g = zeros(ComplexF64, 2M)  # column vector representation of G
         @test ∇ == [∂x; ∂y]
 
         # Test Cartesian-component-first ordering.
-        ∇_cmpfirst = create_grad(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+        ∇_cmpfirst = create_grad(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=true)
         @test ∇_cmpfirst == ∇[r,:]
 
         # Test apply_grad!.
         fvec = f[:]
         mul!(g, ∇, fvec)
-        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
+        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
         @test G[:] ≈ g
 
         mul!(g, ∇_cmpfirst, fvec)
-        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument order_cmpfirst in apply_XXX!()
+        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
         @test G[:][r] ≈ g
     end
 end  # @testset "create_grad and apply_grad!"
@@ -62,8 +62,8 @@ end  # @testset "create_grad and apply_grad!"
     M = prod(N)
     isfwd = [true, true, true]  # curl(U) and gradient to generate U are differentiated forward
 
-    ∇̽ = create_curl(isfwd, N, order_cmpfirst=false)
-    ∇ = create_grad(isfwd, N, order_cmpfirst=false)
+    ∇̽ = create_curl(isfwd, N, cmpfirst=false)
+    ∇ = create_grad(isfwd, N, cmpfirst=false)
 
     # Construct ∇̽ * ∇
     A = ∇̽ * ∇

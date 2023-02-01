@@ -9,7 +9,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             cmp_shp::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,
-            order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -19,7 +19,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, order_cmpfirst)
+    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVec's
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
@@ -29,11 +29,11 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             cmp_shp::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,
-            order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     (Kout = length(cmp_out); Kin = length(cmp_in);
      create_curl(SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
-                 cmp_shp=SInt{K}(cmp_shp), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), order_cmpfirst))
+                 cmp_shp=SInt{K}(cmp_shp), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
 
 # ∇×F = x̂ (∂y Fz - ∂z Fy) + ŷ (∂z Fx - ∂x Fz) + ẑ (∂x Fy - ∂y Fx)
 #
@@ -54,7 +54,7 @@ function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
                      cmp_shp::SInt{K}=SVec(ntuple(identity, Val(K))),
                      cmp_out::SInt{Kout}=SVec(ntuple(identity, Val(K))),
                      cmp_in::SInt{Kin}=SVec(ntuple(identity, Val(K))),
-                     order_cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,Kout,Kin}  # {space dimension, output field dimension, input field dimension}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVec(length.(∆l⁻¹))
@@ -71,14 +71,14 @@ function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
     ind_blk = 0  # index of matrix block
     for ind_nv = 1:Kout
         nv = cmp_out[ind_nv]  # Cartesian compotent of output field
-        istr, ioff = order_cmpfirst ? (Kout, ind_nv-Kout) : (1, M*(ind_nv-1))  # (row stride, row offset)
+        istr, ioff = cmpfirst ? (Kout, ind_nv-Kout) : (1, M*(ind_nv-1))  # (row stride, row offset)
         for ind_nu = 1:Kin
             nu = cmp_in[ind_nu]  # Cantesian component of input field
 
             parity = CURL_BLK[nv,nu]
             iszero(parity) && continue  # if zero block, skip to next nu
 
-            jstr, joff = order_cmpfirst ? (Kin, ind_nu-Kin) : (1, M*(ind_nu-1))  # (column stride, column offset)
+            jstr, joff = cmpfirst ? (Kin, ind_nu-Kin) : (1, M*(ind_nu-1))  # (column stride, column offset)
 
             nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
             is_nw = cmp_shp.==nw

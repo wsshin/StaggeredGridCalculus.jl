@@ -20,7 +20,7 @@ g = zeros(ComplexF64, 3M)
                     ∂z Z -∂x;
                     -∂y ∂x Z]
 
-        ∇̽ = create_curl(isfwd, [N...], order_cmpfirst=false)
+        ∇̽ = create_curl(isfwd, [N...], cmpfirst=false)
 
         # Test the overall coefficients.
         @test size(∇̽) == (3M,3M)
@@ -41,13 +41,13 @@ g = zeros(ComplexF64, 3M)
                     ∂z Z -∂x;
                     -∂y ∂x Z]
 
-        ∇̽ = create_curl(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+        ∇̽ = create_curl(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
 
         # Test ∇̽.
         @test ∇̽ == ∇̽_blk
 
         # Test Cartesian-component-major ordering.
-        ∇̽_cmpfirst = create_curl(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=true)
+        ∇̽_cmpfirst = create_curl(isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=true)
         @test ∇̽_cmpfirst == ∇̽[r,r]
 
         # Test apply_curl!.
@@ -89,7 +89,7 @@ g = zeros(ComplexF64, 3M)
                 e⁻ⁱᵏᴸcmp = e⁻ⁱᵏᴸ[cmp_shp]
 
                 ∇̽ = create_curl(isfwdcmp, ∆l⁻¹cmp, isblochcmp, e⁻ⁱᵏᴸcmp;
-                                   cmp_shp, cmp_out, cmp_in, order_cmpfirst=false)
+                                   cmp_shp, cmp_out, cmp_in, cmpfirst=false)
 
                 ∂_blks = [[(nw = nw_blk[nv,nu];
                             if iszero(nw)
@@ -127,8 +127,8 @@ end  # @testset "create_curl and apply_curl!"
     isbloch = [true, false, false]
     e⁻ⁱᵏᴸ = ones(3)
 
-    ∇̽ᵤ = create_curl([true,true,true], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    ∇̽ᵥ = create_curl([false,false,false], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    ∇̽ᵤ = create_curl([true,true,true], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
+    ∇̽ᵥ = create_curl([false,false,false], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
 
     # Test symmetry of each block.
     for i = 1:3
@@ -139,8 +139,8 @@ end  # @testset "create_curl and apply_curl!"
 
     # Construct ∇̽ᵥ * ∇̽ᵤ.
     isbloch = fill(true, 3)
-    ∇̽ᵤ = create_curl([true,true,true], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    ∇̽ᵥ = create_curl([false,false,false], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    ∇̽ᵤ = create_curl([true,true,true], ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
+    ∇̽ᵥ = create_curl([false,false,false], ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
     A = ∇̽ᵥ * ∇̽ᵤ
 
     # Test curl of curl.
@@ -160,8 +160,8 @@ end  # @testset "curl of curl"
     e⁻ⁱᵏᴸ = ones(3)
 
     isfwd = [true,false,true]
-    ∇̽ᵤ = create_curl(isfwd, ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    ∇̽ᵥ = create_curl(.!isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    ∇̽ᵤ = create_curl(isfwd, ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
+    ∇̽ᵥ = create_curl(.!isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
 
     # Test symmetry of each block.
     for i = 1:3
@@ -172,8 +172,8 @@ end  # @testset "curl of curl"
 
     # Construct ∇̽ᵥ * ∇̽ᵤ.
     isbloch = fill(true, 3)
-    ∇̽ᵤ = create_curl(isfwd, ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
-    ∇̽ᵥ = create_curl(.!isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, order_cmpfirst=false)
+    ∇̽ᵤ = create_curl(isfwd, ∆ldual⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
+    ∇̽ᵥ = create_curl(.!isfwd, ∆lprim⁻¹, isbloch, e⁻ⁱᵏᴸ, cmpfirst=false)
     A = ∇̽ᵥ * ∇̽ᵤ
 
     # Test curl of curl.
