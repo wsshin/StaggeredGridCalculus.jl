@@ -1,7 +1,7 @@
 using StaggeredGridCalculus
 using Test
 # using Statistics: mean
-using AbbreviatedTypes
+using AbbreviatedTypes; @define_types_with(Float64)
 
 Base.isapprox(a::Tuple, b::Tuple; kws...) = all(p -> isapprox(p...; kws...), zip(a,b))
 
