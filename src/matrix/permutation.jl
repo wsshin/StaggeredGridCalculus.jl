@@ -8,15 +8,15 @@ export create_πcmp, create_inv_πcmp
 # If N and permute are both SInt, do not expect this wrapper to be called even if scale is
 # typed AbsVecNumber, because keyword arguments don't affect the dispatch procedure.
 create_πcmp(N::AbsVecInteger,
-            permute::AbsVecInteger;  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
-            scale::AbsVecNumber=ones(Int,length(permute)),  # scale[w]: scale factor to w-component of input field
+            cmpperm::AbsVecInteger;  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
+            scale::AbsVecNumber=ones(Int,length(cmpperm)),  # scale[w]: scale factor to w-component of input field
             cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(N); Kf = length(permute); create_πcmp(SInt{K}(N), SInt{Kf}(permute), scale=SVec{Kf}(scale), cmpfirst=cmpfirst))
+    (K = length(N); Kf = length(cmpperm); create_πcmp(SInt{K}(N), SInt{Kf}(cmpperm), scale=SVec{Kf}(scale), cmpfirst=cmpfirst))
 
 # Create the permutation matrix that permutes the order of Cartesian components of a vector
 # field.
 function create_πcmp(N::SInt{K},  # size of grid
-                     permute::SInt{Kf};  # permute[w]: component of output field where w-component of input field is placed; e.g., permute = [3,1,2] transforms [F1,F2,F3] to [F2,F3,F1]
+                     cmpperm::SInt{Kf};  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
                      scale::SVec{Kf,T}=SInt(ntuple(k->1, Val(Kf))),  # scale[w]: scale factor to w-component of input field
                      cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,Kf,T<:Number}
@@ -27,8 +27,9 @@ function create_πcmp(N::SInt{K},  # size of grid
     Jtot = VecInt(undef, KfM)
     Vtot = Vector{T}(undef, KfM)
 
-    for nw = 1:Kf  # component of input
-        nv = permute[nw]  # component of output where w-component of input is placed
+    # Below, at the nv-componet of the output comes the nw-component of the input.
+    for nv = 1:Kf  # component of output
+        nw = cmpperm[nv]  # component of input
 
         istr, ioff = cmpfirst ? (Kf, nv-Kf) : (1, M*(nv-1))  # (row stride, row offset)
         jstr, joff = cmpfirst ? (Kf, nw-Kf) : (1, M*(nw-1))  # (column stride, column offset)
@@ -43,8 +44,8 @@ function create_πcmp(N::SInt{K},  # size of grid
 end
 
 # Take the same argument as create_πcmp(), but returns its inverse.
-function create_inv_πcmp(N, permute; scale=SInt(ntuple(k->1, Val(length(permute)))), kwargs...)
+function create_inv_πcmp(N, cmpperm; scale=SInt(ntuple(k->1, Val(length(cmpperm)))), kwargs...)
     invscale = all(isone.(scale)) ? scale : 1 ./ scale
 
-    return transpose(create_πcmp(N, permute; scale=invscale, kwargs...))
+    return transpose(create_πcmp(N, cmpperm; scale=invscale, kwargs...))
 end
