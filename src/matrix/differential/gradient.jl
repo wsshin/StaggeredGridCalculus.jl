@@ -38,7 +38,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     dims::SInt{D}=SInt(ntuple(identity, Val(K))),  # dimensions into which gradient is performed
+                     dims::SInt{D}=SInt(ntuple(identity, Val(K))),  # dimensions into which gradient is performed; size of matrix does not depend on this
                      cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,D}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
@@ -46,8 +46,8 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
     M = prod(N)
     DM = D * M
 
-    # Below, create_∂info() is called D times in the double for loops, and each call returns
-    # I, J, V of length 2M, so we preallocate Itot, Jtot, Vtot of length D×2M = 2DM.
+    # Below, create_∂info() is called D times in the for loop, and each call returns I, J, V
+    # of length 2M, so we preallocate Itot, Jtot, Vtot of length D×2M = 2DM.
     Itot = VecInt(undef, 2DM)
     Jtot = VecInt(undef, 2DM)
     Vtot = Vector{T}(undef, 2DM)
