@@ -14,14 +14,16 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factor in x, y, z
+            dims::AbsVecInteger=1:length(isfwd),  # dimensions into which gradient is performed; size of matrix does not depend on this
             cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(isfwd); create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmpfirst))
+    (K = length(isfwd); create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; dims, cmpfirst))
 
 # Wrapper to convert AbstractVector's to SVec's
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
+            dims::AbsVecInteger=1:K,  # dimensions into which gradient is performed; size of matrix does not depend on this
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
@@ -32,7 +34,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_grad(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); cmpfirst)
+    create_grad(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); dims=SInt{length(dims)}(dims), cmpfirst)
 
 function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
