@@ -71,16 +71,22 @@ function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
     Vtot = Vector{T}(undef, num_blk * 2M)
 
     ind_blk = 0  # index of matrix block
-    for ind_nv = 1:Kout
-        nv = cmp_out[ind_nv]  # Cartesian compotent of output field
-        istr, ioff = cmpfirst ? (Kout, ind_nv-Kout) : (1, M*(ind_nv-1))  # (row stride, row offset)
-        for ind_nu = 1:Kin
-            nu = cmp_in[ind_nu]  # Cantesian component of input field
+    for (ind_nv, nv) = enumerate(cmp_out)  # enumerate Kout-directions of output field
+        if compact
+            istr, ioff = cmpfirst ? (Kout, ind_nv-Kout) : (1, M*(ind_nv-1))  # (row stride, row offset)
+        else
+            istr, ioff = cmpfirst ? (K, nv-K) : (1, M*(inv-1))  # (row stride, row offset)
+        end
 
+        for (ind_nu, nu) = enumerate(cmp_in)  # enumerate Kin-directions input field
             parity = CURL_BLK[nv,nu]
             iszero(parity) && continue  # if zero block, skip to next nu
 
-            jstr, joff = cmpfirst ? (Kin, ind_nu-Kin) : (1, M*(ind_nu-1))  # (column stride, column offset)
+            if compact
+                jstr, joff = cmpfirst ? (Kin, ind_nu-Kin) : (1, (ind_nu-1)M)  # (column stride, column offset)
+            else
+                jstr, joff = cmpfirst ? (K, nu-K) : (1, (nu-1)M)  # (column stride, column offset)
+            end
 
             nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
             is_nw = dir_diff.==nw
