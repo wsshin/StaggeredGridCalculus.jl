@@ -1,5 +1,8 @@
 export create_∂
 
+# Returns an M×M matrix, where M = prod(N).   This matrix is used as a matrix block in a
+# larger, e.g., 3M × 3M, matrix.
+
 # Assumption: we don't calculate derivatives for interpolated fields.  In other words, we
 # calculate derivatives for the original fields defined on Yee's grid.  (There are
 # exceptions; see below.)  This assumption simplifies implementation of the symmetry
