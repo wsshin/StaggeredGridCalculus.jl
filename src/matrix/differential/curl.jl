@@ -6,7 +6,7 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             ∆l⁻¹::NTuple{K,Number}=ntuple(k->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_shp::AbsVecInteger=1:K,
+            dir_diff::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
@@ -19,21 +19,21 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, cmpfirst)
+    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; dir_diff, cmp_out, cmp_in, cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVec's
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_shp::AbsVecInteger=1:K,
+            dir_diff::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     (Kout = length(cmp_out); Kin = length(cmp_in);
      create_curl(SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
-                 cmp_shp=SInt{K}(cmp_shp), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
+                 dir_diff=SInt{K}(dir_diff), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
 
 # ∇×F = x̂ (∂y Fz - ∂z Fy) + ŷ (∂z Fx - ∂x Fz) + ẑ (∂x Fy - ∂y Fx)
 #
@@ -51,10 +51,11 @@ function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # isblock[w]: boundary conditions in w-direction
                      e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-                     cmp_shp::SInt{K}=SVec(ntuple(identity, Val(K))),
-                     cmp_out::SInt{Kout}=SVec(ntuple(identity, Val(K))),
-                     cmp_in::SInt{Kin}=SVec(ntuple(identity, Val(K))),
-                     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     dir_diff::SInt{K}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of differentiation; usually axes of space containing shapes
+                     cmp_out::SInt{Kout}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of output field components; not necessarily dir_diff, because Ez can be defined on xy-shape
+                     cmp_in::SInt{Kin}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of input field
+                     cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
+                     compact::Bool=true  # true to create compact, Kout×Kin matrix; false to create full K×K matrix
                      ) where {K,Kout,Kin}  # {space dimension, output field dimension, input field dimension}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVec(length.(∆l⁻¹))
@@ -63,7 +64,8 @@ function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
     num_blk = sum(abs, CURL_BLK[cmp_out,cmp_in])  # no allocations
 
     # Below, create_∂info() is called num_blk times in the double for loops, and each call
-    # returns I, J, V of length 2M, so we preallocate Itot, Jtot, Vtot of length num_blk⋅2M.
+    # returns I, J, V of length 2M (one diagonal and one off-diagonal), so we preallocate
+    # Itot, Jtot, Vtot of length num_blk⋅2M.
     Itot = VecInt(undef, num_blk * 2M)
     Jtot = VecInt(undef, num_blk * 2M)
     Vtot = Vector{T}(undef, num_blk * 2M)
@@ -81,8 +83,8 @@ function create_curl(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
             jstr, joff = cmpfirst ? (Kin, ind_nu-Kin) : (1, M*(ind_nu-1))  # (column stride, column offset)
 
             nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
-            is_nw = cmp_shp.==nw
-            sum(is_nw)==1 || @error "cmp_shp = $cmp_shp does not have one and only one nw = $nw"
+            is_nw = dir_diff.==nw
+            sum(is_nw)==1 || @error "dir_diff = $dir_diff does not have one and only one nw = $nw"
             ind_nw = findfirst(is_nw)
             I, J, V = create_∂info(ind_nw, isfwd[ind_nw], N, ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw])
 
