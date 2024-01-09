@@ -89,7 +89,7 @@ create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
 # Creates the w-directional difference matrix, with division by ∆w's.
 function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
                       isfwd::Bool,  # true|false for forward|backward difference
-                      N::SVec{K,Int},  # size of grid
+                      N::SVec{K,Int},  # size of grid; we don't pass scalar Nw because N is needed
                       ∆w⁻¹::AbsVecNumber,  # spatial discretization; vector of length N[nw]
                       isbloch::Bool,  # boundary condition in w-direction
                       e⁻ⁱᵏᴸ::Number  # Bloch phase factor
