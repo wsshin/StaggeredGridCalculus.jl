@@ -113,9 +113,11 @@ function create_curl(
             jstr, joff = cmpfirst ? (Kin, ind_nu-Kin) : (1, (ind_nu-1)M)  # (column stride, column offset)
 
             nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
-            is_nw = dir_diff.==nw
-            sum(is_nw)==1 || @error "dir_diff = $dir_diff does not have one and only one nw = $nw"
-            ind_nw = findfirst(is_nw)
+
+            # ind_nw is the index of N.  N is needed by create_∂info().  If the space of
+            # differentiation is yz, N = [Ny,Nz] and ind_nw = 1 for y and ind_nw = 2 for z.
+            ind_nw = findfirst(isequal(nw), dir_diff)
+            isnothing(ind_nw) && error("dir_diff = $dir_diff does not have nw = $nw.")  # does not check multiplicity of nw in dir_diff
             I, J, V = create_∂info(ind_nw, isfwd[ind_nw], N, ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw])
 
             @. I = istr * I + ioff
