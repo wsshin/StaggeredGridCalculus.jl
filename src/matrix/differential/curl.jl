@@ -49,7 +49,6 @@ function create_curl(
     ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::SBool{K},  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    dir_diff::SInt{K}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of differentiation (axes of space containing shapes)
     cmp_out::SInt{Kout}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of output field components; not necessarily dir_diff, because, e.g., Ez can be defined on xy-shape
     cmp_in::SInt{Kin}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of input field; not necessarily dir_diff, because, e.g., Ez can be defined on xy-shape
     cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
@@ -75,19 +74,24 @@ function create_curl(
         # first row block, corresponding to ind_nv = 1.
         istr, ioff = cmpfirst ? (Kout, ind_nv-Kout) : (1, (ind_nv-1)M)  # (row stride, row offset)
 
-        for (ind_nu, nu) = enumerate(cmp_in)  # enumerate Kin-directions input field
-            parity = CURL_BLK[nv,nu]
-            iszero(parity) && continue  # if zero block, skip to next nu
+        for (ind_nu, nu) = enumerate(cmp_in)  # nu is direction of input field; ind_nu is used for calculating column indices in sparse matrix
+            # ∇×F = 1̂ (∂₂F₃ - ∂₃F₂) + 2̂ (∂₃F₁ - ∂₁F₃) + 3̂ (∂₁F₂ - ∂₂F₁)
+            #
+            # In matrix form,
+            # ⎡ 0  -∂₃  ∂₂⎤
+            # ⎢ ∂₃  0  -∂₁⎥
+            # ⎣-∂₂  ∂₁  0 ⎦
+            nv==nu && continue  # if zero block, skip to next nu
+            parity = mod(nv-nu+1, 3) - 1  # sign of (nv,nu)-entry of above matrix
 
             jstr, joff = cmpfirst ? (Kin, ind_nu-Kin) : (1, (ind_nu-1)M)  # (column stride, column offset)
 
+            # nw is the index of vector N.  N is needed by create_∂info().  If K = 2,
+            # N = [Nx,Ny] and nw = 1 for x and nw = 2 for y.
             nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
+            @argcheck 1≤nw≤K  # direction of differentiation should be one of 1:K
 
-            # ind_nw is the index of N.  N is needed by create_∂info().  If the space of
-            # differentiation is yz, N = [Ny,Nz] and ind_nw = 1 for y and ind_nw = 2 for z.
-            ind_nw = findfirst(isequal(nw), dir_diff)
-            isnothing(ind_nw) && error("dir_diff = $dir_diff does not have nw = $nw.")  # does not check multiplicity of nw in dir_diff
-            I, J, V = create_∂info(ind_nw, isfwd[ind_nw], N, ∆l⁻¹[ind_nw], isbloch[ind_nw], e⁻ⁱᵏᴸ[ind_nw])
+            I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
             @. I = istr * I + ioff
             @. J = jstr * J + joff
