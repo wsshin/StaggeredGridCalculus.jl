@@ -35,52 +35,18 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
      create_curl(SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
                  dir_diff=SInt{K}(dir_diff), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
 
-# ∇×F = x̂ (∂y Fz - ∂z Fy) + ŷ (∂z Fx - ∂x Fz) + ẑ (∂x Fy - ∂y Fx)
-#
-# In matrix form,
-# ⎡ 0  -∂z  ∂y⎤
-# ⎢ ∂z  0  -∂x⎥
-# ⎣-∂y  ∂x  0 ⎦
-#
-# CURL_BLK takes only the signs of the blocks:
-const CURL_BLK = S²Int{3,9}(0,  1, -1,  # 1st column (not row)
-                           -1,  0,  1,  # 2nd column (not row)
-                            1, -1,  0)  # 3rd column (not row)
-
-# - Provide cmp_in to specify the input vector field components.
-# - Provide cmp_out to specify the output vector field componets.
+# - The directions of differentiations are 1:K, where K is the number of entries of ∆l⁻¹.
+# - Provide cmp_in to specify the input vector field components; can contain directions > K.
+# - Provide cmp_out to specify the output vector field componets; can contain directions > K.
 # - For a given element of cmp_in and given element of cmp_out, the direction of
-#  differentiation is decided.  For example, the z-component of the curl is ∂xFy - ∂yFx.
-#  Therefore, for cmp_out[i] = z and cmp_in[j] = x, the direction of differentiation is y.
-#  In doing so, use CURL_BLK.  Using CURL_BLK is necessary, because we are dealing with 3D
-#  curl.  Even if we deal with 1D or 2D, we are taking the components of 3D curl rather than
-#  taking generalized curl; see Agenda > StaggeredGridCalculus > [Dec/09/2023] Update.
-# - Provide dir_diff in order to figure out which component of ∆l is ∆y.  Even though we
-#  deal with 3D curl, we may pass ∆ of only 1D or 2D (more on this below), so we need to
-#  specify which components of ∆l correspond to x, y, z.
-
-# In implementing create_curl(), there are two options for choosing ∆l⁻¹ and dir_diff:
-# - Pass the full ∆l⁻¹ for all directions, even if some of ∆x⁻¹, ∆y⁻¹, ∆z⁻¹ are not used,
-# and indicate the used ones by dir_diff.  In this case, the number K of the Cartesian
-# directions of ∆l⁻¹ may not be necessarily the K of dir_diff.
-# - Pass ∆l⁻¹ containing only the used ones of ∆x⁻¹, ∆y⁻¹, ∆z⁻¹; even in this case, we still
-# need dir_diff, because when ∆l⁻¹ has, e.g., two Cartesian components, we need to indicate
-# whether they are (x,y), (y,z), or (z,x).  In this case, ∆l⁻¹ and dir_diff  have the same K.
-#
-# We choose the second option, because in MaxwellGuidedMode, when the cross section is, e.g.,
-# on the yz-plane, we don't even have ∆x to create the full ∆l⁻¹.  Therefore, we use the
-# same K for ∆l⁻¹ and dir_diff.
-#
-# Also, this means that the order of components is not necessarily xyz.  If we deal with the
-# yz-plane, the two components are y and z, so the first component is not necessarily the x-
-# component.
-#
-# If ∆l⁻¹ = ((∆yprim⁻¹, ∆zprim⁻¹), (∆ydual⁻¹, ∆zdual⁻¹)), we pass dir_diff = [2,3].  This
-# is important for getting ind_nw from the direction of differentiation nw = 6 - nv - nu...
-# Actually not sure: when nu and nv are decided, we can figure out dir_diff in CURL_BLK.
+#  differentiation is decided.  For example, the 3rd-component of the curl is ∂₁F₂ - ∂₂F₁.
+#  Therefore, for cmp_out[i] = 3 and cmp_in[j] = 1, the direction of differentiation is 2.
+# - We deal with 3D curl.  Even when we deal with 1D or 2D, we are taking the components of
+#  3D curl rather than taking generalized curl; see Agenda > StaggeredGridCalculus >
+#  [Dec/09/2023] Update.
 function create_curl(
     isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
-    ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
+    ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::SBool{K},  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     dir_diff::SInt{K}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of differentiation (axes of space containing shapes)
@@ -103,7 +69,10 @@ function create_curl(
     Vtot = Vector{T}(undef, num_blk * 2M)
 
     ind_blk = 0  # index of matrix block
-    for (ind_nv, nv) = enumerate(cmp_out)  # enumerate Kout-directions of output field
+    for (ind_nv, nv) = enumerate(cmp_out)  # nv is direction of output field; ind_nv is used for calculating row indices in sparse matrix
+        # Why should we use ind_nv instead of nv?  Consider cmpfirst=false.  Even if nv = 3,
+        # it could be the only (and the first) output direction.  Then it should be the
+        # first row block, corresponding to ind_nv = 1.
         istr, ioff = cmpfirst ? (Kout, ind_nv-Kout) : (1, (ind_nv-1)M)  # (row stride, row offset)
 
         for (ind_nu, nu) = enumerate(cmp_in)  # enumerate Kin-directions input field
