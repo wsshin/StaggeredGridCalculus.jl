@@ -6,7 +6,6 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             ∆l⁻¹::NTuple{K,Number}=ntuple(k->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            dir_diff::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
@@ -19,21 +18,20 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; dir_diff, cmp_out, cmp_in, cmpfirst)
+    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_out, cmp_in, cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVec's
 create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            dir_diff::AbsVecInteger=1:K,
             cmp_out::AbsVecInteger=1:K,
             cmp_in::AbsVecInteger=1:K,
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     (Kout = length(cmp_out); Kin = length(cmp_in);
      create_curl(SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
-                 dir_diff=SInt{K}(dir_diff), cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
+                 cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
 
 # - The directions of differentiations are 1:K, where K is the number of entries of ∆l⁻¹.
 # - Provide cmp_in to specify the input vector field components; can contain directions > K.
@@ -49,8 +47,8 @@ function create_curl(
     ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::SBool{K},  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmp_out::SInt{Kout}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of output field components; not necessarily dir_diff, because, e.g., Ez can be defined on xy-shape
-    cmp_in::SInt{Kin}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of input field; not necessarily dir_diff, because, e.g., Ez can be defined on xy-shape
+    cmp_out::SInt{Kout}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmp_in::SInt{Kin}=SVec(ntuple(identity, Val(K))),  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
     cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # unlike create_divg() and create_grad(), create_curl() does not have kwarg `compact`; see Agenda > StaggeredGridCalculus > Dec/09/2023] Update
 ) where {K,Kout,Kin}  # {space dimension, output field dimension, input field dimension}
