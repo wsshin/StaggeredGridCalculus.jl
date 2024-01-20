@@ -87,7 +87,7 @@ create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
 # to work.  See my notes on Sep/06/2017 in RN - MaxwellFDM.jl.
 
 # Creates the w-directional difference matrix, with division by ∆w's.
-function create_∂info(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
+function create_∂info(nw::Integer,  # 1|2|3 for 3D; 1|2 for 2D
                       isfwd::Bool,  # true|false for forward|backward difference
                       N::SVec{K,Int},  # size of grid; we don't pass scalar Nw because N is needed
                       ∆w⁻¹::AbsVecNumber,  # spatial discretization; vector of length N[nw]
