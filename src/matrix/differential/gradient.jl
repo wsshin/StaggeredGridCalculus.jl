@@ -15,8 +15,10 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factor in x, y, z
             dims::AbsVecInteger=1:length(isfwd),  # dimensions into which gradient is performed; size of matrix does not depend on this
-            cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(isfwd); create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; dims, cmpfirst))
+            cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            compact::Bool=true,  # true to create compact, tall matrix; false to create square matrix
+            ) =
+    (K = length(isfwd); create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; dims, cmpfirst, compact))
 
 # Wrapper to convert AbstractVector's to SVec's
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
@@ -24,7 +26,8 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             dims::AbsVecInteger=1:K,  # dimensions into which gradient is performed; size of matrix does not depend on this
-            cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            compact::Bool=true,  # true to create compact, tall matrix; false to create square matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -34,7 +37,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_grad(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); dims=SInt{length(dims)}(dims), cmpfirst)
+    create_grad(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); dims=SInt{length(dims)}(dims), cmpfirst, compact)
 
 # - Unlike create_curl(), create_grad() does not require cmp_out, because it is the same as
 # dir_diff (now removed, but deduced from ∆l⁻¹).
