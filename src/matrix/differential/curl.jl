@@ -34,14 +34,23 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
                  cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
 
 # - The directions of differentiations are 1:K, where K is the number of entries of ∆l⁻¹.
+#
 # - Provide cmp_in to specify the input vector field components; can contain directions > K.
+#
 # - Provide cmp_out to specify the output vector field componets; can contain directions > K.
+#
 # - For a given element of cmp_in and given element of cmp_out, the direction of
-#  differentiation is decided.  For example, the 3rd-component of the curl is ∂₁F₂ - ∂₂F₁.
-#  Therefore, for cmp_out[i] = 3 and cmp_in[j] = 1, the direction of differentiation is 2.
+# differentiation is decided.  For example, the 3rd-component of the curl is ∂₁F₂ - ∂₂F₁.
+# Therefore, for cmp_out[i] = 3 and cmp_in[j] = 1, the direction of differentiation is 2.
+#
 # - We deal with 3D curl.  Even when we deal with 1D or 2D, we are taking the components of
-#  3D curl rather than taking generalized curl; see Agenda > StaggeredGridCalculus >
-#  [Dec/09/2023] Update.
+# 3D curl rather than taking generalized curl; see Agenda > StaggeredGridCalculus >
+# [Dec/09/2023] Update.
+#
+# - This is why create_curl() does not support compact: we need to specify cmp_in and and
+# cmp_out of the 3D curl explicitly, and the size of the curl matrix is automatically
+# decided by them.  On the other hand, create_grad(), for example,
+#
 function create_curl(
     isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
