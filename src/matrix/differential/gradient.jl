@@ -36,6 +36,33 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     # because sometimes I would want to even create an integral curl operator.
     create_grad(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); dims=SInt{length(dims)}(dims), cmpfirst)
 
+# - Unlike create_curl(), create_grad() does not require cmp_out, because it is the same as
+# dir_diff (now removed, but deduced from ∆l⁻¹).
+#
+# - For compact = false, we create a full matrix (rather than a block-column matrix) that
+# takes the vector field, such as (Hx,Hy,Hz), and takes the gradient of its one specific
+# Cartesian component.  Technically, the input field component could be none of the
+# directions of differentiation.  For example, consider taking the gradient of Hz in the
+# xy-plane.  Then the full matrix to create is a 2×3 block matrix.  We don't consider such
+# cases for simplicity, because we should be able to pass the information of "3" in that
+# case, which cannot be contained in the scalar cmp_in.  This is usually OK, because even in
+# the considered case that occurs in the waveguide mode calculation, the matrix equation is
+# set up for (Hx, Hy), and Hz is derived from the two.
+#
+# - In the future, if I really need to generate 2×3 block matrices, consider updating the
+# interface to pass cmp_in = [false, false, true].  More generally, I should be able to
+# specify the dimension Kin of the input, dimension Kout of the output, cmp_in (single
+# natural number ≤ Kin), and cmp_out (Kout-vector).  When compact=false, this will generate
+# an operator that takes a Kin-dimensional input vector field and generates Kout-dimensional
+# output vector field.
+#
+# - For now, I think it should be fine to assume that Kin = Kout = K of ∆l⁻¹.  The gradient
+# is almost always paired with the divergence.  The dimension (e.g., 2D) of the output
+# vector field of the gradient is the dimension of the input vector field of the divergence,
+# which is usually the same as the dimension of any vector field of the problem (e.g., 2D).
+# example case).
+#
+# - To check the correctness of the implementation, consider the case of dir_diff = [2,3].
 function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
