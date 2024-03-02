@@ -14,16 +14,17 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(N)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factor in x, y, z
-            dims::AbsVecInteger=1:length(isfwd),  # dimensions in which divergence is performed; size of matrix does not depend on this
-            cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(isfwd); create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; dims, cmpfirst))
+            cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function; ≥1 and ≤K creates square matrix putting scalar funciton on cmp_in-th Cartesian direction of output vector field
+            cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            ) =
+    (K = length(isfwd); create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_out, cmpfirst))
 
 # Wrapper to convert AbstractVector's to SVec's
 create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            dims::AbsVecInteger=1:K,  # dimensions in which divergence is performed; size of matrix does not depend on this
+            cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function; ≥1 and ≤K creates square matrix putting scalar funciton on cmp_in-th Cartesian direction of output vector field
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
@@ -34,40 +35,48 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_divg(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); dims=SInt{length(dims)}(dims), cmpfirst)
+    create_divg(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); cmp_out, cmpfirst)
 
 function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
                      isbloch::SBool{K},  # boundary conditions in K dimensions
                      e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
-                     dims::SInt{D}=SInt(ntuple(identity, Val(K))),  # dimensions in which divergence is performed; size of matrix does not depend on this
+                     cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function; ≥1 and ≤K creates square matrix putting scalar funciton on cmp_in-th Cartesian direction of output vector field
                      cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
-                     ) where {K,D}
+                     ) where {K}
+    @argcheck 0 ≤ cmp_out ≤ K
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVec(length.(∆l⁻¹))
     M = prod(N)
-    DM = D * M
+    KM = K * M  # resulting matrix: M×KM for cmp_out=0 (compact); KM×KM for cmp_out>0 (square)
 
-    # Below, create_∂info() is called D times in the for loop, and each call returns I, J, V
-    # of length 2M, so we preallocate Itot, Jtot, Vtot of length D×2M = 2DM.
-    Itot = VecInt(undef, 2DM)
-    Jtot = VecInt(undef, 2DM)
-    Vtot = Vector{T}(undef, 2DM)
+    # Below, create_∂info() is called K times in the for loop, and each call returns I, J, V
+    # of length 2M (one diagonal and one off-diagonal), so we preallocate Itot, Jtot, Vtot
+    # of length K×2M = 2KM.
+    Itot = VecInt(undef, 2KM)
+    Jtot = VecInt(undef, 2KM)
+    Vtot = Vector{T}(undef, 2KM)
 
-    for (ind_nw, nw) = enumerate(dims)  # direction of differentiation
+    for nw = 1:K  # direction of differentiation (= direction of input)
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
-        nu = nw  # component of input field to feed to ∂w (column index of matrix block)
-        jstr, joff = cmpfirst ? (K, nu-K) : (1, M*(nu-1))  # (column stride, column offset)
+        if !iszero(cmp_out)
+            istr, ioff = cmpfirst ? (K, cmp_out-K) : (1, (cmp_out-1)M)  # (column stride, column offset)
+            @. I = istr * I + ioff
+        end
+
+        jstr, joff = cmpfirst ? (K, nw-K) : (1, M*(nw-1))  # (column stride, column offset)
         @. J = jstr * J + joff
 
         # For some reason, using .= below is slower because it uses 1 allocatiotn.  On the
         # other hand, using = does not use allocation and therefore faster.
-        indₛ, indₑ = (ind_nw-1)*2M + 1, ind_nw*2M
+        indₛ, indₑ = (nw-1)*2M + 1, nw*2M  # should be ind_nw instead of nw like in create_curl(), but here ind_nw = nw
         Itot[indₛ:indₑ] = I
         Jtot[indₛ:indₑ] = J
         Vtot[indₛ:indₑ] = V
     end
 
-    return dropzeros!(sparse(Itot, Jtot, Vtot, M, K*M))
+    return iszero(cmp_out) ?
+        dropzeros!(sparse(Itot, Jtot, Vtot, M, KM)) :
+        dropzeros!(sparse(Itot, Jtot, Vtot, KM, KM))
 end
