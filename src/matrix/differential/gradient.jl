@@ -71,7 +71,7 @@ function create_grad(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
                      cmp_in::Integer=0,  # 0 creates compact thin matrix acting on scalar function; ≥1 and ≤K creates square matrix acting on cmp_in-th Cartesian direction of input vector field
                      cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K}
-    @argcheck 0≤cmp_in≤K
+    @argcheck 0 ≤ cmp_in ≤ K
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVec(length.(∆l⁻¹))
     M = prod(N)
