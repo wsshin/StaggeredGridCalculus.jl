@@ -65,7 +65,7 @@ function create_curl(
     N = SVec(length.(∆l⁻¹))
     M = prod(N)
 
-    num_blk = sum(abs, CURL_BLK[cmp_out,cmp_in])  # no allocations
+    num_blk = Kout * Kin - length(intersect(cmp_out, cmp_in))  # diagonal blocks are empty
 
     # Below, create_∂info() is called num_blk times in the double for loops, and each call
     # returns I, J, V of length 2M (one diagonal and one off-diagonal), so we preallocate
@@ -88,18 +88,21 @@ function create_curl(
             # ⎡ 0  -∂₃  ∂₂⎤
             # ⎢ ∂₃  0  -∂₁⎥
             # ⎣-∂₂  ∂₁  0 ⎦
-            nv==nu && continue  # if zero block, skip to next nu
-            parity = mod(nv-nu+1, 3) - 1  # sign of (nv,nu)-entry of above matrix
+            nu==nv && continue  # if zero block, skip to next nu
 
             jstr, joff = cmpfirst ? (Kin, ind_nu-Kin) : (1, (ind_nu-1)M)  # (column stride, column offset)
 
             # nw is the index of vector N.  N is needed by create_∂info().  If K = 2,
-            # N = [Nx,Ny] and nw = 1 for x and nw = 2 for y.
-            nw = 6 - nv - nu  # direction of differentiation; 6 = 1 + 2 + 3
-            @argcheck 1≤nw≤K  # direction of differentiation should be one of 1:K
+            # N = [Ny,Nz] and nw = 1 for y and nw = 2 for z.  In other words, the code is
+            # xyz-agnostic: the 1st component of ∆l⁻¹ is along the 1st direction, the 2nd
+            # component of ∆l⁻¹ is along the 2nd direction, etc, and they do not correspond
+            # to x and y.
+            nw = 6 - nu - nv  # direction of differentiation; 6 = 1 + 2 + 3
+            @argcheck 1 ≤ nw ≤ K
 
             I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
+            parity = mod(nv-nu+1, 3) - 1  # sign of (nv,nu)-entry of above matrix
             @. I = istr * I + ioff
             @. J = jstr * J + joff
             V .*= parity
