@@ -44,7 +44,7 @@ function create_πcmp(N::SInt{K},  # size of grid
 end
 
 # Take the same argument as create_πcmp(), but returns its inverse.
-function create_inv_πcmp(N, cmpperm; scale=SInt(ntuple(k->1, Val(length(cmpperm)))), kwargs...)
+function create_invπcmp(N, cmpperm; scale=SInt(ntuple(k->1, Val(length(cmpperm)))), kwargs...)
     invscale = all(isone.(scale)) ? scale : 1 ./ scale
 
     return transpose(create_πcmp(N, cmpperm; scale=invscale, kwargs...))
