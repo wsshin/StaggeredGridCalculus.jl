@@ -14,18 +14,16 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factor in x, y, z
-            cmp_in::Integer=0,  # 0 creates compact thin matrix acting on scalar function; ≥1 and ≤K creates square matrix acting on cmp_in-th Cartesian direction of input vector field
-            cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            kwargs...
             ) =
-    (K = length(isfwd); create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_in, cmpfirst))
+    (K = length(isfwd); create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...))
 
 # Wrapper to convert AbstractVector's to SVec's
 create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
             isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_in::Integer=0,  # 0 creates compact thin matrix acting on scalar function; ≥1 and ≤K creates square matrix acting on cmp_in-th Cartesian direction of input vector field
-            cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
+            kwargs...
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -35,7 +33,7 @@ create_grad(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_grad(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); cmp_in, cmpfirst)
+    create_grad(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); kwargs...)
 
 # - Unlike create_curl(), create_grad() does not require cmp_out, because it is the same as
 # dir_diff (now removed, but deduced from ∆l⁻¹).
