@@ -81,7 +81,7 @@ function create_πcell(
 
     Itot = VecInt(undef, KfM)
     Jtot = VecInt(undef, KfM)
-    Vtot = Vector{T}(undef, KfM)
+    Vtot = Vector{Bool}(undef, KfM)
 
     # The goal of cellperm is to permute the elements of an input vector, whose indices are
     # linearized cell indices in the order of (x,y,z), into an output vector whose indices
@@ -110,7 +110,7 @@ function create_πcell(
         indₛ, indₑ = (ncmp-1)*M + 1, ncmp*M
         @. Itot[indₛ:indₑ] = str * out_li + off
         @. Jtot[indₛ:indₑ] = str * in_li + off
-        @. Vtot[indₛ:indₑ] = 1
+        @. Vtot[indₛ:indₑ] = true
     end
 
     return dropzeros!(sparse(Itot, Jtot, Vtot, KfM, KfM))  # dropzeros!() are in case some scale[nw] is zero
