@@ -26,7 +26,7 @@
     end
     @test P2 == P
 
-    P⁻¹ = create_inv_πcmp(N, cmpperm; scale, cmpfirst)
+    P⁻¹ = create_invπcmp(N, cmpperm; scale, cmpfirst)
     @test P * P⁻¹ == I
 
     cmpfirst = true
@@ -39,24 +39,24 @@
     P2_cmpfirst = blockdiag(ntuple(k->p, M)...)
     @test P2_cmpfirst == P_cmpfirst
 
-    P⁻¹_cmpfirst = create_inv_πcmp(N, cmpperm; scale)
+    P⁻¹_cmpfirst = create_invπcmp(N, cmpperm; scale)
     @test P_cmpfirst * P⁻¹_cmpfirst == I
 
 end  # @testset "create_πcmp, cpmperm"
 
 @testset "create_πcmp, cellperm" begin
-    N = [3,4,5]
+    N = [3,4]
     M = prod(N)
 
-    cmpperm = [1,2]
-    cellperm = [3,1,2]
-    scale = [-2,3]
+    cmpperm = [3,1,2]
+    cellperm = [2,1]
+    scale = [-2,3,-1]
     cmpfirst = false
     Kf = length(cmpperm)
     KfM = Kf * M
 
     # cmpfirst = false
-    P = create_πcmp(N, cmpperm, cellperm; scale, cmpfirst)
+    P = create_πcell(N, Kf, cellperm; cmpfirst) * create_πcmp(N, cmpperm; scale, cmpfirst)
     P2 = zeros(KfM,KfM)
     Id = Matrix{eltype(scale)}(I, M, M)
 
@@ -73,11 +73,11 @@ end  # @testset "create_πcmp, cpmperm"
     end
     @test P2 == P
 
-    P⁻¹ = create_inv_πcmp(N, cmpperm, cellperm; scale, cmpfirst)
+    P⁻¹ = create_invπcmp(N, cmpperm; scale, cmpfirst) * create_invπcell(N, Kf, cellperm; cmpfirst)
     @test P * P⁻¹ == I
 
     cmpfirst = true
-    P_cmpfirst = create_πcmp(N, cmpperm, cellperm; scale, cmpfirst)
+    P_cmpfirst = create_πcell(N, Kf, cellperm; cmpfirst) * create_πcmp(N, cmpperm; scale, cmpfirst)
     q = spzeros(eltype(scale), Kf, Kf)
     for nv = 1:Kf
         nw = cmpperm[nv]
@@ -87,7 +87,7 @@ end  # @testset "create_πcmp, cpmperm"
     P2_cmpfirst = kron(Q, q)
     @test P2_cmpfirst == P_cmpfirst
 
-    P⁻¹_cmpfirst = create_inv_πcmp(N, cmpperm, cellperm; scale)
+    P⁻¹_cmpfirst = create_invπcmp(N, cmpperm; scale, cmpfirst) * create_invπcell(N, Kf, cellperm; cmpfirst)
     @test P_cmpfirst * P⁻¹_cmpfirst == I
 
 end  # @testset "create_πcmp, cellperm"
