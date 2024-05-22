@@ -64,32 +64,34 @@ g = zeros(ComplexF64, 3M)
                   3 0 -1;
                   -2 1 0]
 
-        cmp_shps = ([1], [2], [3], [1,2], [2,3], [3,1])
-        for cmp_shp = cmp_shps
-            if length(cmp_shp) == 1
-                cmp_outs = setdiff(([1],[2],[3]), tuple(cmp_shp))
-            else  # length(cmp_shp) == 2
-                cmp_outs = (cmp_shp, setdiff([1,2,3], cmp_shp))
+        dir_diffs = ([1], [1,2])
+        for dir_diff = dir_diffs
+            if length(dir_diff) == 1
+                cmp_outs = setdiff(([1],[2],[3]), tuple(dir_diff))  # off-diagonal blocks
+            else  # length(dir_diff) == 2
+                cmp_outs = (dir_diff, setdiff([1,2,3], dir_diff))
             end
 
             for cmp_out = cmp_outs
-                if length(cmp_shp) == 1
-                    cmp_in = [6 - only(cmp_shp) - only(cmp_out)]
-                else  # length(cmp_shp) == 2
+                if length(dir_diff) == 1
+                    cmp_in = [6 - only(dir_diff) - only(cmp_out)]
+                else  # length(dir_diff) == 2
                     cmp_in = setdiff([1,2,3], cmp_out)
                 end
 
-                Ncmp = N[cmp_shp]
+                Ncmp = N[dir_diff]
                 Mcmp = prod(Ncmp)
                 Zcmp = spzeros(Mcmp,Mcmp)
 
-                isfwdcmp = isfwd[cmp_shp]
-                ∆l⁻¹cmp = ∆l⁻¹[cmp_shp]
-                isblochcmp = isbloch[cmp_shp]
-                e⁻ⁱᵏᴸcmp = e⁻ⁱᵏᴸ[cmp_shp]
+                isfwdcmp = isfwd[dir_diff]
+                ∆l⁻¹cmp = ∆l⁻¹[dir_diff]
+                isblochcmp = isbloch[dir_diff]
+                e⁻ⁱᵏᴸcmp = e⁻ⁱᵏᴸ[dir_diff]
+
+                @show dir_diff, cmp_out, cmp_in
 
                 ∇̽ = create_curl(isfwdcmp, ∆l⁻¹cmp, isblochcmp, e⁻ⁱᵏᴸcmp;
-                                   cmp_shp, cmp_out, cmp_in, cmpfirst=false)
+                                cmp_out, cmp_in, cmpfirst=false)
 
                 ∂_blks = [[(nw = nw_blk[nv,nu];
                             if iszero(nw)
@@ -97,7 +99,7 @@ g = zeros(ComplexF64, 3M)
                             else
                                 sn = sign(nw)
                                 nw = abs(nw)
-                                ind_nw = findfirst(cmp_shp.==nw)
+                                ind_nw = findfirst(dir_diff.==nw)
                                 ∂_blk = sn * create_∂(ind_nw, isfwd[nw], [Ncmp...], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
                             end;
                             ∂_blk) for nu = cmp_in] for nv = cmp_out]
