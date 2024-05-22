@@ -73,7 +73,7 @@ create_πcell(
 function create_πcell(
     N::SInt{K},  # size of grid
     Kf::Int,  # number of Cartesian components
-    cellperm::SInt{K}=SInt(ntuple(k->1, Val(K)));  # e.g., cellperm = [3,1,2] makes z-index fastest-varying and y-index slowest-varying
+    cellperm::SVector{K,Int};  # e.g., cellperm = [3,1,2] makes z-index fastest-varying and y-index slowest-varying
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K}
     M = prod(N)
