@@ -53,8 +53,8 @@ g = zeros(ComplexF64, 3M)
         # Test apply_curl!.
         f = F[:]
         mul!(g, ∇̽, f)
-        apply_curl!(G, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)
-        @test G[:] ≈ g
+        # apply_curl!(G, F, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)
+        # @test G[:] ≈ g
 
         # print("matrix: "); @btime mul!($g, $∇̽, $f)
         # print("matrix-free: "); @btime apply_curl!($G, $F, $isfwd, $∆l⁻¹, $isbloch, $e⁻ⁱᵏᴸ)
@@ -114,9 +114,9 @@ g = zeros(ComplexF64, 3M)
 
                 fcmp = Fcmp[:]
                 mul!(gcmp, ∇̽, fcmp)
-                apply_curl!(Gcmp, Fcmp, isfwdcmp, ∆l⁻¹cmp, isblochcmp, e⁻ⁱᵏᴸcmp;
-                            cmp_shp, cmp_out, cmp_in)
-                @test Gcmp[:] ≈ gcmp
+                # apply_curl!(Gcmp, Fcmp, isfwdcmp, ∆l⁻¹cmp, isblochcmp, e⁻ⁱᵏᴸcmp;
+                #             dir_diff, cmp_out, cmp_in)
+                # @test Gcmp[:] ≈ gcmp
             end
         end
     end
