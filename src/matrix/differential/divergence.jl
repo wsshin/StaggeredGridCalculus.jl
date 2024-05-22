@@ -11,17 +11,17 @@ export create_divg
 # types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
 create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             N::AbsVecInteger,  # size of grid
-            ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(N)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factor in x, y, z
+            ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
+            isbloch::AbsVecBool=ones(Bool,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             kwargs...
-            ) =
-    (K = length(isfwd); create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...))
+            ) where {K} =
+    create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
 # Wrapper to convert AbstractVector's to SVec's
 create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
             ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in x, y, z
+            isbloch::AbsVecBool=ones(Bool,K),  # boundary conditions in x, y, z
             e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
             kwargs...
             ) where {K} =
@@ -33,7 +33,7 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_divg(SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); kwargs...)
+    create_divg(SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
 function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
                      ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction

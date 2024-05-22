@@ -17,7 +17,7 @@ create_πcmp(N::AbsVecInteger,  # size of grid
 # field.
 function create_πcmp(N::SInt{K},  # size of grid
                      cmpperm::SInt{Kf};  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
-                     scale::SVec{Kf,T}=SInt(ntuple(k->1, Val(Kf))),  # scale[w]: scale factor to w-component of input field
+                     scale::SVec{Kf,T}=@SVector(ones(Int,Val(Kf))),  # scale[w]: scale factor to w-component of input field
                      cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,Kf,T<:Number}
     M = prod(N)
@@ -44,7 +44,7 @@ function create_πcmp(N::SInt{K},  # size of grid
 end
 
 # Take the same argument as create_πcmp(), but returns its inverse.
-function create_invπcmp(N, cmpperm; scale=SInt(ntuple(k->1, Val(length(cmpperm)))), kwargs...)
+function create_invπcmp(N, cmpperm; scale=@SVector(ones(Int, Val(length(cmpperm)))), kwargs...)
     invscale = all(isone.(scale)) ? scale : 1 ./ scale
 
     return transpose(create_πcmp(N, cmpperm; scale=invscale, kwargs...))

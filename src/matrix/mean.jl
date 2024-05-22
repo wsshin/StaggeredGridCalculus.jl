@@ -138,7 +138,7 @@ create_m̂(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          isfwd::Bool,  # true|false for forward|backward averaging
          N::AbsVecInteger,  # size of grid
          isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
+         e⁻ⁱᵏᴸ::Number=1) =  # Bloch phase factor
     (K = length(N); ∆w = ones(N[nw]); ∆w′⁻¹ = ones(N[nw]); create_m̂(nw, isfwd, SInt{K}(N), ∆w, ∆w′⁻¹, isbloch, e⁻ⁱᵏᴸ))
 
 create_m̂(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
@@ -147,7 +147,7 @@ create_m̂(nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
          ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
          ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
          isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1.0) =  # Bloch phase factor
+         e⁻ⁱᵏᴸ::Number=1) =  # Bloch phase factor
     (K = length(N); M = prod(N); dropzeros!(sparse(create_minfo(nw, isfwd, SInt{K}(N), ∆w, ∆w′⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
 
 
