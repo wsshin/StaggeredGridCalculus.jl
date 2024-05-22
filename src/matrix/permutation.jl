@@ -55,7 +55,7 @@ create_πcell(
     Kf::Integer,  # number of Cartesian components
     cellperm::AbsVecInteger;  # e.g., cellperm = [3,1,2] makes z-index fastest-varying and y-index slowest-varying
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
-) = (K = length(N); create_πcell(SInt{K}(N), Int(Kf), SInt{Kf}(cellperm); cmpfirst))
+) = (K = length(N); create_πcell(SInt{K}(N), Int(Kf), SInt{K}(cellperm); cmpfirst))
 
 # Create the permutation matrix that permutes the order of Cartesian components of a vector
 # field.
