@@ -88,7 +88,7 @@ g = zeros(ComplexF64, 3M)
                 isblochcmp = isbloch[dir_diff]
                 e⁻ⁱᵏᴸcmp = e⁻ⁱᵏᴸ[dir_diff]
 
-                @show dir_diff, cmp_out, cmp_in
+                # @show dir_diff, cmp_out, cmp_in
 
                 ∇̽ = create_curl(isfwdcmp, ∆l⁻¹cmp, isblochcmp, e⁻ⁱᵏᴸcmp;
                                 cmp_out, cmp_in, cmpfirst=false)
