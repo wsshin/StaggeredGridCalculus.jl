@@ -172,8 +172,10 @@ Base.size(grid::Grid) = grid.N.data
 Base.length(grid::Grid) = prod(size(grid))
 
 # Constructor calling the inner constructor.
-function Grid(lprim::NTuple{K,AbstractVector{<:Real}},  # primal grid plane locations, including both domain boundaries
-              isbloch::SVector{K,Bool}) where {K}
+function Grid(
+    lprim::NTuple{K,AbstractVector{<:Real}},  # primal grid plane locations, including both domain boundaries
+    isbloch::SVector{K,Bool}
+) where {K}
     @argcheck all(issorted.(lprim))  # all entry vectors of lprim must be sorted
 
     # For array inputs, create separate copies.

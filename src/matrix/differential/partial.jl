@@ -45,22 +45,29 @@ export create_∂
 ## Difference operators ##
 
 # Wrapper to create the discrete partial derivative by default
-create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
-         isfwd::Bool,  # true|false for forward|backward difference
-         N::AbstractVector{<:Integer},  # size of grid
-         ∆w⁻¹::Number=1,  # inverse of spatial discretization
-         isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1) =  # Bloch phase factor
+create_∂(
+    nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
+    isfwd::Bool,  # true|false for forward|backward difference
+    N::AbstractVector{<:Integer},  # size of grid
+    ∆w⁻¹::Number=1,  # inverse of spatial discretization
+    isbloch::Bool=true,  # boundary condition in w-direction
+    e⁻ⁱᵏᴸ::Number=1  # Bloch phase factor
+) =
     create_∂(nw, isfwd, N, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ)  # fill: create vector of ∆w⁻¹
 
 # Wrapper to convert AbstractVector's to SVector's
-create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
-         isfwd::Bool,  # true|false for forward|backward difference
-         N::AbstractVector{<:Integer},  # size of grid
-         ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
-         isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1) =  # Bloch phase factor
-    (K = length(N); M = prod(N); dropzeros!(sparse(create_∂info(nw, isfwd, SVector{K,Int}(N), ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M)))
+create_∂(
+    nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
+    isfwd::Bool,  # true|false for forward|backward difference
+    N::AbstractVector{<:Integer},  # size of grid
+    ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
+    isbloch::Bool=true,  # boundary condition in w-direction
+    e⁻ⁱᵏᴸ::Number=1  # Bloch phase factor
+) = (
+    K = length(N);
+    M = prod(N);
+    dropzeros!(sparse(create_∂info(nw, isfwd, SVector{K,Int}(N), ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M))
+)
 
 
 # I need to figure out whether the ±1 entries of the backward difference operator is always
@@ -87,13 +94,14 @@ create_∂(nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
 # to work.  See my notes on Sep/06/2017 in RN - MaxwellFDM.jl.
 
 # Creates the w-directional difference matrix, with division by ∆w's.
-function create_∂info(nw::Integer,  # 1|2|3 for 3D; 1|2 for 2D
-                      isfwd::Bool,  # true|false for forward|backward difference
-                      N::SVector{K,Int},  # size of grid; we don't pass scalar Nw because N is needed
-                      ∆w⁻¹::AbstractVector{<:Number},  # spatial discretization; vector of length N[nw]
-                      isbloch::Bool,  # boundary condition in w-direction
-                      e⁻ⁱᵏᴸ::Number  # Bloch phase factor
-                      ) where {K}
+function create_∂info(
+    nw::Integer,  # 1|2|3 for 3D; 1|2 for 2D
+    isfwd::Bool,  # true|false for forward|backward difference
+    N::SVector{K,Int},  # size of grid; we don't pass scalar Nw because N is needed
+    ∆w⁻¹::AbstractVector{<:Number},  # spatial discretization; vector of length N[nw]
+    isbloch::Bool,  # boundary condition in w-direction
+    e⁻ⁱᵏᴸ::Number  # Bloch phase factor
+) where {K}
     M = prod(N)
     Nw = N[nw]
     ŵ = SVector(ntuple(identity,Val(K))) .== nw  # unit vector in w-direction; [0,true,0] for w == y

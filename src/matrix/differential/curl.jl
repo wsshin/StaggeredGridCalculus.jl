@@ -1,15 +1,16 @@
 export create_curl
 
 # Wrapper to create the discrete curl by default
-create_curl(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
-            N::AbstractVector{<:Integer},  # size of grid
-            ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_out::AbstractVector{<:Integer}=1:K,
-            cmp_in::AbstractVector{<:Integer}=1:K,
-            cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
-            ) where {K} =
+create_curl(
+    isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+    N::AbstractVector{<:Integer},  # size of grid
+    ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    cmp_out::AbstractVector{<:Integer}=1:K,
+    cmp_in::AbstractVector{<:Integer}=1:K,
+    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -21,17 +22,22 @@ create_curl(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forwa
     create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_out, cmp_in, cmpfirst)
 
 # Wrapper to convert AbstractVector's to SVector's
-create_curl(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
-            ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_out::AbstractVector{<:Integer}=1:K,
-            cmp_in::AbstractVector{<:Integer}=1:K,
-            cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
-            ) where {K} =
-    (Kout = length(cmp_out); Kin = length(cmp_in);
-     create_curl(SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ);
-                 cmp_out=SVector{Kout,Int}(cmp_out), cmp_in=SVector{Kin,Int}(cmp_in), cmpfirst))
+create_curl(
+    isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    cmp_out::AbstractVector{<:Integer}=1:K,
+    cmp_in::AbstractVector{<:Integer}=1:K,
+    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+) where {K} = (
+    Kout = length(cmp_out);
+    Kin = length(cmp_in);
+    create_curl(
+        SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ);
+        cmp_out=SVector{Kout,Int}(cmp_out), cmp_in=SVector{Kin,Int}(cmp_in), cmpfirst
+    )
+)
 
 # - The directions of differentiations are 1:K, where K is the number of entries of ∆l⁻¹.
 #

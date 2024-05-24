@@ -9,22 +9,24 @@ export create_divg
 # implementation directly instead of the next wrapper function taking ∆l⁻¹ even if the
 # keyword arguments are not SVector's, because methods are dispatched based only on the
 # types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
-create_divg(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
-            N::AbstractVector{<:Integer},  # size of grid
-            ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
-            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-            kwargs...
-            ) where {K} =
+create_divg(
+    isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+    N::AbstractVector{<:Integer},  # size of grid
+    ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    kwargs...
+) where {K} =
     create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
 # Wrapper to convert AbstractVector's to SVector's
-create_divg(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
-            ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-            kwargs...
-            ) where {K} =
+create_divg(
+    isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    kwargs...
+) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -35,14 +37,15 @@ create_divg(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forwa
     # because sometimes I would want to even create an integral curl operator.
     create_divg(SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
-function create_divg(isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
-                     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-                     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
-                     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
-                     cmp_in::Integer=0,  # 0 creates usual divergence operator; ∈[1,K] populates entries for only one input component without changing matrix shape
-                     cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_in-th Cartesian direction of output vector field
-                     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
-                     ) where {K}
+function create_divg(
+    isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
+    isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
+    cmp_in::Integer=0,  # 0 creates usual divergence operator; ∈[1,K] populates entries for only one input component without changing matrix shape
+    cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_in-th Cartesian direction of output vector field
+    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+) where {K}
     @argcheck 0 ≤ cmp_in ≤ K
     @argcheck 0 ≤ cmp_out ≤ K
 
