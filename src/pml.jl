@@ -64,49 +64,49 @@ export PMLParam
 export create_stretched_∆l
 
 mutable struct PMLParam
-    m::Float  # degree of polynomial grading for σ and κ
-    R::Float  # R: target reflection coefficient of PML
-    κmax::Float  # maximum of real stretch factor
-    amax::Float  # maximum of complex frequency shift
-    ma::Float  # degree of polynomial grading for a
+    m::Float64  # degree of polynomial grading for σ and κ
+    R::Float64  # R: target reflection coefficient of PML
+    κmax::Float64  # maximum of real stretch factor
+    amax::Float64  # maximum of complex frequency shift
+    ma::Float64  # degree of polynomial grading for a
     PMLParam() = new(4.0, exp(-16), 1.0, 0.0, 4.0)
 end
 
-function create_stretched_∆l(ω::Number, ∆l::Tuple2{AbsVecReal}, l::Tuple2{AbsVecReal},
-                             bounds::Tuple2{Real}, Npml::Tuple2{Integer}, pml::PMLParam=PMLParam())
-    s∆l = create_stretched_∆l(ω, tuple.(∆l), tuple.(l), SVec{1}.(bounds), SVec{1}.(Npml), pml)
+function create_stretched_∆l(ω::Number, ∆l::NTuple{2,AbstractVector{<:Real}}, l::NTuple{2,AbstractVector{<:Real}},
+                             bounds::NTuple{2,Real}, Npml::NTuple{2,Integer}, pml::PMLParam=PMLParam())
+    s∆l = create_stretched_∆l(ω, tuple.(∆l), tuple.(l), SVector{1}.(bounds), SVector{1}.(Npml), pml)
 
     return (s∆l[nPR][1], s∆l[nDL][1])
 end
 
-# Wrapper for converting AbstractVector's to SVec's
-create_stretched_∆l(ω::Number, grid::Grid{K}, Npml::Tuple2{AbsVecInteger}, pml::PMLParam=PMLParam()) where {K} =
-    create_stretched_∆l(ω, grid, SVec{K}.(Npml), pml)
+# Wrapper for converting AbstractVector's to SVector's
+create_stretched_∆l(ω::Number, grid::Grid{K}, Npml::NTuple{2,AbstractVector{<:Integer}}, pml::PMLParam=PMLParam()) where {K} =
+    create_stretched_∆l(ω, grid, SVector{K}.(Npml), pml)
 
-create_stretched_∆l(ω::Number, ∆l::Tuple2{NTuple{K,AbsVecReal}}, l::Tuple2{NTuple{K,AbsVecReal}},
-                    bounds::Tuple2{AbsVecReal}, Npml::Tuple2{AbsVecInteger}, pml::PMLParam=PMLParam()) where {K} =
-    create_stretched_∆l(ω, ∆l, l, SVec{K}.(bounds), SVec{K}.(Npml), pml)
+create_stretched_∆l(ω::Number, ∆l::NTuple{2,NTuple{K,AbstractVector{<:Real}}}, l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},
+                    bounds::NTuple{2,AbstractVector{<:Real}}, Npml::NTuple{2,AbstractVector{<:Integer}}, pml::PMLParam=PMLParam()) where {K} =
+    create_stretched_∆l(ω, ∆l, l, SVector{K}.(bounds), SVector{K}.(Npml), pml)
 
 # Create vectors containig a stretched version of a given ∆l.
-create_stretched_∆l(ω::Number, grid::Grid{K}, Npml::Tuple2{SInteger{K}}, pml::PMLParam=PMLParam()) where {K} =
+create_stretched_∆l(ω::Number, grid::Grid{K}, Npml::NTuple{2,SVector{K,<:Integer}}, pml::PMLParam=PMLParam()) where {K} =
     create_stretched_∆l(ω, grid.∆l, grid.l, grid.bounds, Npml, pml)
 
 function create_stretched_∆l(ω::Number,  # angular frequency
-                             ∆l::Tuple2{NTuple{K,AbsVecReal}},  # grid point spacings at primal and dual grid point locations
-                             l::Tuple2{NTuple{K,AbsVecReal}},  # locations of primal and dual grid points w/o ghost points
-                             bounds::Tuple2{SReal{K}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
-                             Npml::Tuple2{SInteger{K}},  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
+                             ∆l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point spacings at primal and dual grid point locations
+                             l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # locations of primal and dual grid points w/o ghost points
+                             bounds::NTuple{2,SVector{K,<:Real}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
+                             Npml::NTuple{2,SVector{K,<:Integer}},  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
                              pml::PMLParam=PMLParam()  # PML parameters
                              ) where {K}
     if all(iszero.(Npml))
-        s∆lprim = ∆l[nPR]  # AbsVecReal
-        s∆ldual = ∆l[nDL]  # AbsVecReal
+        s∆lprim = ∆l[nPR]  # AbstractVector{<:Real}
+        s∆ldual = ∆l[nDL]  # AbstractVector{<:Real}
     else
         lpml, Lpml = pml_loc(l[nPR], bounds, Npml)
         sfactor = create_sfactor(ω, l, lpml, Lpml, pml)
 
-        s∆lprim = map((x,y)->x.*y, sfactor[nPR], ∆l[nPR])  # AbsVecNumber
-        s∆ldual = map((x,y)->x.*y, sfactor[nDL], ∆l[nDL])  # AbsVecNumber
+        s∆lprim = map((x,y)->x.*y, sfactor[nPR], ∆l[nPR])  # AbstractVector{<:Number}
+        s∆ldual = map((x,y)->x.*y, sfactor[nDL], ∆l[nDL])  # AbstractVector{<:Number}
     end
 
     s∆l = (s∆lprim, s∆ldual)
@@ -114,20 +114,20 @@ function create_stretched_∆l(ω::Number,  # angular frequency
     return s∆l
 end
 
-# Wrapper for converting AbstractVector's to SVec's
-create_sfactor(ω::Number, l::Tuple2{NTuple{K,AbsVecReal}}, lpml::Tuple2{AbsVecReal},
-               Lpml::Tuple2{AbsVecReal}, pml::PMLParam=PMLParam()) where {K} =
-    create_sfactor(ω, l, SVec{K}.(lpml), SVec{K}.(Lpml), pml)
+# Wrapper for converting AbstractVector's to SVector's
+create_sfactor(ω::Number, l::NTuple{2,NTuple{K,AbstractVector{<:Real}}}, lpml::NTuple{2,AbstractVector{<:Real}},
+               Lpml::NTuple{2,AbstractVector{<:Real}}, pml::PMLParam=PMLParam()) where {K} =
+    create_sfactor(ω, l, SVector{K}.(lpml), SVector{K}.(Lpml), pml)
 
 # Create vectors of stretching factors.
 function create_sfactor(ω::Number,  # angular frequency
-                        l::Tuple2{NTuple{K,AbsVecReal}},  # locations of primal and dual grid points
-                        lpml::Tuple2{SReal{K}},  # locations of PML interfaces
-                        Lpml::Tuple2{SReal{K}},  # thicknesses of PML
+                        l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # locations of primal and dual grid points
+                        lpml::NTuple{2,SVector{K,<:Real}},  # locations of PML interfaces
+                        Lpml::NTuple{2,SVector{K,<:Real}},  # thicknesses of PML
                         pml::PMLParam=PMLParam()  # PML parameters
                         ) where {K}
     N = length.(l[nPR])  # (Nx, Ny, Nz)
-    sfactor = (ones.(ComplexF,N), ones.(ComplexF,N))
+    sfactor = (ones.(ComplexF64,N), ones.(ComplexF64,N))
     for k = 1:K
         lpmlₙ, lpmlₚ = lpml[nN][k], lpml[nP][k]
         Lpmlₙ, Lpmlₚ = Lpml[nN][k], Lpml[nP][k]
@@ -157,23 +157,23 @@ function calc_sfactor(ω::Number,  # angular frequency
     s_factor = κ + σ / (a + im*ω)  # s = κ + σ/(a + i ω ε), where ε = 1 in units of ε₀
 end
 
-# Wrapper for converting AbstractVector's to SVec's
-pml_loc(lprim::NTuple{K,AbsVecReal}, bounds::Tuple2{AbsVecReal}, Npml::Tuple2{AbsVecInteger}) where {K} =
-    pml_loc(lprim, SVec{K}.(bounds), SVec{K}.(Npml))
+# Wrapper for converting AbstractVector's to SVector's
+pml_loc(lprim::NTuple{K,AbstractVector{<:Real}}, bounds::NTuple{2,AbstractVector{<:Real}}, Npml::NTuple{2,AbstractVector{<:Integer}}) where {K} =
+    pml_loc(lprim, SVector{K}.(bounds), SVector{K}.(Npml))
 
 # Get the PML interface locations.
 # The primal grid plane locations *without* the ghost plane locations are passed, so the
 # positive-end boundaries of the computational domain cannot be retrieved from them.
 # Therefore, the boundary information is passed separately.
-function pml_loc(lprim::NTuple{K,AbsVecReal},  # lprim[k] = primal vertex locations in k-direction (excluding ghost location at (+) end)
-                 bounds::Tuple2{SReal{K}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
-                 Npml::Tuple2{SInteger{K}}  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
+function pml_loc(lprim::NTuple{K,AbstractVector{<:Real}},  # lprim[k] = primal vertex locations in k-direction (excluding ghost location at (+) end)
+                 bounds::NTuple{2,SVector{K,<:Real}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
+                 Npml::NTuple{2,SVector{K,<:Integer}}  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
                  ) where {K}
     # Below, if Npml[nP] = 0, lprim[end+1-Npml[nP]] = lprim[end+1] is out of bound.  Because
     # lprim[end+1] points to the ghost point, we return the positive-end boundary in this
     # case.
-    lpml = (map((v,n)->v[1+n], lprim, Npml[nN]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[nP], Npml[nP]))  # Tuple2{SFloat{K}}
-    Lpml = (lpml[nN]-bounds[nN], bounds[nP]-lpml[nP])  # Tuple2{SFloat{K}}
+    lpml = (map((v,n)->v[1+n], lprim, Npml[nN]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[nP], Npml[nP]))  # NTuple{2,SFloat{K}}
+    Lpml = (lpml[nN]-bounds[nN], bounds[nP]-lpml[nP])  # NTuple{2,SFloat{K}}
 
     return lpml, Lpml
 end

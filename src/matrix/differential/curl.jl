@@ -1,13 +1,13 @@
 export create_curl
 
 # Wrapper to create the discrete curl by default
-create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
-            N::AbsVecInteger,  # size of grid
+create_curl(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+            N::AbstractVector{<:Integer},  # size of grid
             ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-            isbloch::AbsVecBool=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_out::AbsVecInteger=1:K,
-            cmp_in::AbsVecInteger=1:K,
+            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+            cmp_out::AbstractVector{<:Integer}=1:K,
+            cmp_in::AbstractVector{<:Integer}=1:K,
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
@@ -16,22 +16,22 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     # of constructing it from k and L as exp.(-im .* k .* L), which is always complex even
     # if k = 0.
     #
-    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
+    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float64, ComplexF64), either,
     # because sometimes I would want to even create an integral curl operator.
     create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_out, cmp_in, cmpfirst)
 
-# Wrapper to convert AbstractVector's to SVec's
-create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
-            ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-            isbloch::AbsVecBool=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_out::AbsVecInteger=1:K,
-            cmp_in::AbsVecInteger=1:K,
+# Wrapper to convert AbstractVector's to SVector's
+create_curl(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+            ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+            cmp_out::AbstractVector{<:Integer}=1:K,
+            cmp_in::AbstractVector{<:Integer}=1:K,
             cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
             ) where {K} =
     (Kout = length(cmp_out); Kin = length(cmp_in);
-     create_curl(SVec{K}(isfwd), ∆l⁻¹, SVec{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ);
-                 cmp_out=SInt{Kout}(cmp_out), cmp_in=SInt{Kin}(cmp_in), cmpfirst))
+     create_curl(SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ);
+                 cmp_out=SVector{Kout,Int}(cmp_out), cmp_in=SVector{Kin,Int}(cmp_in), cmpfirst))
 
 # - The directions of differentiations are 1:K, where K is the number of entries of ∆l⁻¹.
 #
@@ -52,17 +52,17 @@ create_curl(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
 # decided by them.  On the other hand, create_grad(), for example,
 #
 function create_curl(
-    isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
-    ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
-    isbloch::SBool{K},  # isblock[w]: boundary conditions in w-direction
-    e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmp_out::SInt{Kout}=SVector{K}(1:K),  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
-    cmp_in::SInt{Kin}=SVector{K}(1:K),  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
+    isbloch::SVector{K,Bool},  # isblock[w]: boundary conditions in w-direction
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+    cmp_out::SVector{Kout,Int}=SVector{K}(1:K),  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmp_in::SVector{Kin,Int}=SVector{K}(1:K),  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
     cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # unlike create_divg() and create_grad(), create_curl() does not have kwarg `compact`; see Agenda > StaggeredGridCalculus > Dec/09/2023] Update
 ) where {K,Kout,Kin}  # {space dimension, output field dimension, input field dimension}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
-    N = SVec(length.(∆l⁻¹))
+    N = SVector(length.(∆l⁻¹))
     M = prod(N)
 
     num_blk = Kout * Kin - length(intersect(cmp_out, cmp_in))  # diagonal blocks are empty
@@ -70,8 +70,8 @@ function create_curl(
     # Below, create_∂info() is called num_blk times in the double for loops, and each call
     # returns I, J, V of length 2M (one diagonal and one off-diagonal), so we preallocate
     # Itot, Jtot, Vtot of length num_blk⋅2M.
-    Itot = VecInt(undef, num_blk * 2M)
-    Jtot = VecInt(undef, num_blk * 2M)
+    Itot = Vector{Int}(undef, num_blk * 2M)
+    Jtot = Vector{Int}(undef, num_blk * 2M)
     Vtot = Vector{T}(undef, num_blk * 2M)
 
     ind_blk = 0  # index of matrix block

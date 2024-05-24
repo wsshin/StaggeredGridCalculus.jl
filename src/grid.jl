@@ -137,10 +137,10 @@ export isproper_blochphase, lghost  # functions
 # than N.  (Even thought σ seems to deal with reflection of ghost points, it doesn't; it has
 # N entries, so it is defined in Grid rather than in Ghosted.)
 struct Ghosted{K}
-    lg::Tuple2{NTuple{K,VecFloat}}  # lg[PRIM][k] = primal vertex locations in k-direction with ghost points
-    τlg::Tuple2{NTuple{K,VecFloat}}  # τlg[PRIM][k] = primal vertex locations in k-direction with transformed ghost points into domain; all τlg are in domain
-    τind::Tuple2{NTuple{K,VecInt}}  # τind[PRIM][k] = indices of ghosted.lg corresponding to transformed points in to domain by boundary conditions
-    ∆τ::Tuple2{NTuple{K,VecFloat}}  # ∆τ[PRIM][k] = amount of "shift" to get points into domain by Bloch boundary conditions (ignoring transformation by reflection by symmetry boundary, which is handled by Grid.σ)
+    lg::NTuple{2,NTuple{K,Vector{Float64}}}  # lg[PRIM][k] = primal vertex locations in k-direction with ghost points
+    τlg::NTuple{2,NTuple{K,Vector{Float64}}}  # τlg[PRIM][k] = primal vertex locations in k-direction with transformed ghost points into domain; all τlg are in domain
+    τind::NTuple{2,NTuple{K,Vector{Int}}}  # τind[PRIM][k] = indices of ghosted.lg corresponding to transformed points in to domain by boundary conditions
+    ∆τ::NTuple{2,NTuple{K,Vector{Float64}}}  # ∆τ[PRIM][k] = amount of "shift" to get points into domain by Bloch boundary conditions (ignoring transformation by reflection by symmetry boundary, which is handled by Grid.σ)
 end
 
 # Consider storing lvxlbounds, which is
@@ -155,35 +155,35 @@ end
 # Then, for a voxel center l[gt][i], the voxel bounds are lvxlbounds[[i,i+1]], regardless of
 # the value of gt.
 struct Grid{K}
-    N::SVec{K,Int}  # N[k] = number of grid cells in k-direction
-    L::SVec{K,Float}  # L[k] = length of grid (domain) in k-direction
-    l::Tuple2{NTuple{K,VecFloat}}  # l[PRIM][k] = primal vertex locations in k-direction
-    ∆l::Tuple2{NTuple{K,VecFloat}}  # ∆l[PRIM][k] = (∆l at primal vertices in k) == diff(l[DUAL][k] including ghost point)
-    isbloch::SVec{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
-    σ::Tuple2{NTuple{K,VecBool}}  # false only for non-ghost points exactly on symmetry boundary (= first point in primal grid)
-    bounds::Tuple2{SVec{K,Float}}  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
+    N::SVector{K,Int}  # N[k] = number of grid cells in k-direction
+    L::SVector{K,Float64}  # L[k] = length of grid (domain) in k-direction
+    l::NTuple{2,NTuple{K,Vector{Float64}}}  # l[PRIM][k] = primal vertex locations in k-direction
+    ∆l::NTuple{2,NTuple{K,Vector{Float64}}}  # ∆l[PRIM][k] = (∆l at primal vertices in k) == diff(l[DUAL][k] including ghost point)
+    isbloch::SVector{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
+    σ::NTuple{2,NTuple{K,Vector{Bool}}}  # false only for non-ghost points exactly on symmetry boundary (= first point in primal grid)
+    bounds::NTuple{2,SVector{K,Float64}}  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
     ghosted::Ghosted{K}  # data related to ghost points
 end
 
 # Constructor taking non-static vectors.
-Grid(lprim::NTuple{K,AbsVecReal}, isbloch::AbsVecBool) where {K} = Grid(lprim, SVec{K}(isbloch))
+Grid(lprim::NTuple{K,AbstractVector{<:Real}}, isbloch::AbstractVector{Bool}) where {K} = Grid(lprim, SVector{K}(isbloch))
 
 Base.size(grid::Grid) = grid.N.data
 Base.length(grid::Grid) = prod(size(grid))
 
 # Constructor calling the inner constructor.
-function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, including both domain boundaries
-              isbloch::SVec{K,Bool}) where {K}
+function Grid(lprim::NTuple{K,AbstractVector{<:Real}},  # primal grid plane locations, including both domain boundaries
+              isbloch::SVector{K,Bool}) where {K}
     @argcheck all(issorted.(lprim))  # all entry vectors of lprim must be sorted
 
     # For array inputs, create separate copies.
     lprim = collect.(float.(lprim))  # collect instead of deepcopy to turn range (e.g., 1.0:10.0) into vector
 
-    ldual = movingavg.(lprim)  # NTuple{K,VecFloat}
+    ldual = movingavg.(lprim)  # NTuple{K,Vector{Float64}}
 
-    lbound = SVec(lprim)  # SVec{K,Vector{<:Real}}; to make broadcast and map on lprim to produce SVec
-    bounds = (getindex.(lbound,1), getindex.(lbound,lastindex.(lbound)))  # Tuple2{SVec{K,<:Real}}
-    L = bounds[nP] - bounds[nN]  # SVec{K,<:Real}
+    lbound = SVector(lprim)  # SVector{K,Vector{<:Real}}; to make broadcast and map on lprim to produce SVector
+    bounds = (getindex.(lbound,1), getindex.(lbound,lastindex.(lbound)))  # NTuple{2,SVector{K,<:Real}}
+    L = bounds[nP] - bounds[nN]  # SVector{K,<:Real}
 
     # Prepare lprim and ldual to calculate ∆lprim and ∆ldual.
     # Note that ∆lprim is not ∆'s or lprim, but ∆'s defined at lprim locations.
@@ -194,13 +194,13 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
     end
 
     # Below, (∆lprim, ∆ldual) is not (diff(lprim), diff(ldual)), but swapped.
-    ∆lprim = diff.(ldual)  # NTuple{K,VecFloat}; length(∆lprim[k]) = N[k]
-    ∆ldual = diff.(lprim)  # NTuple{K,VecFloat}; length(∆ldual[k]) = N[k]
+    ∆lprim = diff.(ldual)  # NTuple{K,Vector{Float64}}; length(∆lprim[k]) = N[k]
+    ∆ldual = diff.(lprim)  # NTuple{K,Vector{Float64}}; length(∆ldual[k]) = N[k]
     ∆l = (∆lprim, ∆ldual)
 
     # Set N (number of grid cells along the axis).
     @assert length.(∆l[nPR]) == length.(∆l[nDL])  # lprim, ldual, ∆lprim, ∆ldual have the same length
-    N = SVec(length.(∆l[nPR]))  # SInt{3}
+    N = SVector(length.(∆l[nPR]))  # SInt{3}
 
     # Find the locations of the ghost points transformed into the domain by the boundary
     # conditions.  Note that regardless of the boundary condition, the primal ghost point is
@@ -209,14 +209,14 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
     # Make sure these locations are where the objects assigned to the ghost points are found.
 
     # Construct an instance of Ghosted.  Note that lprim and ldual include ghost points now.
-    τind = (map(n->collect(1:n+1), N.data), map(n->collect(1:n+1), N.data))  # Tuple23{VecInt}
-    τindg_prim = .!isbloch.*N .+ 1  # SInt{K}: N+1 for symmetry; 1 for Bloch
-    τindg_dual = isbloch.*N .+ 1 .+ .!isbloch  # SInt{K}: 2 for symmetry; N+1 for Bloch
-    τindg = (τindg_prim, τindg_dual)  # Tuple2{SInt{K}}
+    τind = (map(n->collect(1:n+1), N.data), map(n->collect(1:n+1), N.data))  # NTuple{2,NTuple{3,Vector{Int}}}
+    τindg_prim = .!isbloch.*N .+ 1  # SVector{K,Int}: N+1 for symmetry; 1 for Bloch
+    τindg_dual = isbloch.*N .+ 1 .+ .!isbloch  # SVector{K,Int}: 2 for symmetry; N+1 for Bloch
+    τindg = (τindg_prim, τindg_dual)  # NTuple{2,SVector{K,Int}}
 
     τlg = (deepcopy(lprim), deepcopy(ldual))
 
-    ∆τ = (zeros.((N.+1).data), zeros.((N.+1).data))  # Tuple2{NTuple{K,VecFloat}}
+    ∆τ = (zeros.((N.+1).data), zeros.((N.+1).data))  # NTuple{2,NTuple{K,Vector{Float64}}}
 
     for k = 1:K
         τind[nPR][k][end] = τindg[nPR][k]  # N+1 for symmetry; 1 for Bloch
@@ -234,8 +234,8 @@ function Grid(lprim::NTuple{K,AbsVecReal},  # primal grid plane locations, inclu
 
     # Construct σ, which is false on non-Bloch (= symmetry) boundaries.
     # Note that σ's are vectors of length-N and therefore do not include ghost points.
-    σprim = ones.(Bool, N.data)  # NTuple{K,VecBool}; all filled with 'True'
-    σdual = ones.(Bool, N.data)  # NTuple{K,VecBool}; all filled with 'True'
+    σprim = ones.(Bool, N.data)  # NTuple{K,Vector{Bool}}; all filled with 'True'
+    σdual = ones.(Bool, N.data)  # NTuple{K,Vector{Bool}}; all filled with 'True'
     for k = 1:K
         # Primal grid points are on the symmetry boundary if they are the first (non-ghost)
         # points and the symmetry boundary is used.
@@ -263,7 +263,7 @@ end
 
 # Additional functions
 Base.ndims(::Grid{K}) where {K} = K
-Base.in(l::SVec{K}, g::Grid{K}) where {K} = all(g.bounds[nN] .≤ l .≤ g.bounds[nP])
+Base.in(l::SVector{K}, g::Grid{K}) where {K} = all(g.bounds[nN] .≤ l .≤ g.bounds[nP])
 
 # For the Bloch boundary, check if e⁻ⁱᵏᴸ is indeed a phase factor (i.e., amplitude = 1).
 # For the non-Bloch (= symmetry) boundary, check if e⁻ⁱᵏᴸ = 1.
@@ -273,5 +273,5 @@ Base.in(l::SVec{K}, g::Grid{K}) where {K} = all(g.bounds[nN] .≤ l .≤ g.bound
 # because we assume the exp(+iωt) time dependence and thus the position dependence is
 # exp(-ik⋅r).
 isproper_blochphase(e⁻ⁱᵏᴸ::Number, isbloch::Bool) = (isbloch && abs(e⁻ⁱᵏᴸ)==1) || (!isbloch && e⁻ⁱᵏᴸ==1)
-isproper_blochphase(e⁻ⁱᵏᴸ::SVec{K,<:Number}, isbloch::SVec{K,Bool}) where {K} =
+isproper_blochphase(e⁻ⁱᵏᴸ::SVector{K,<:Number}, isbloch::SVector{K,Bool}) where {K} =
     all(isproper_blochphase.(e⁻ⁱᵏᴸ, isbloch))

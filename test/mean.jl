@@ -1,7 +1,7 @@
 @testset "mean" begin
 
 @testset "create_mean and apply_mean! 1D" begin
-    N = SVec(10,)
+    N = SVector(10,)
     M = prod(N)
 
     Fᵤ = rand(N...)
@@ -104,7 +104,7 @@
 end  # @testset "create_mean and apply_mean! 1D"
 
 @testset "create_mean and apply_mean! 2D" begin
-    N = SVec(8,9)
+    N = SVector(8,9)
     M = prod(N)
 
     Fᵤ = rand(N...)
@@ -207,7 +207,7 @@ end  # @testset "create_mean and apply_mean! 1D"
 end  # @testset "create_mean and apply_mean! 2D"
 
 @testset "create_mean and apply_mean! 3D" begin
-    N = SVec(8,9,10)
+    N = SVector(8,9,10)
     M = prod(N)
 
     Fᵤ = rand(N...)

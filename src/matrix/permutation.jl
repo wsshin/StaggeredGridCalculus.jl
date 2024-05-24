@@ -3,28 +3,28 @@ export create_πcmp, create_πcell, create_invπcmp, create_invπcell
 # Unlike curl, divergence, gradient for which the field dimension Kf and the space dimension
 # K are the same, here we assume they can be different.
 
-# Wrapper to convert AbstractVector's to SVec's.
+# Wrapper to convert AbstractVector's to SVector's.
 #
 # If N and permute are both SInt, do not expect this wrapper to be called even if scale is
-# typed AbsVecNumber, because keyword arguments don't affect the dispatch procedure.
-create_πcmp(N::AbsVecInteger,  # size of grid
-            cmpperm::AbsVecInteger;  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
-            scale::AbsVecNumber=ones(Int,length(cmpperm)),  # scale[w]: scale factor to w-component of input field
+# typed AbstractVector{<:Number}, because keyword arguments don't affect the dispatch procedure.
+create_πcmp(N::AbstractVector{<:Integer},  # size of grid
+            cmpperm::AbstractVector{<:Integer};  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
+            scale::AbstractVector{<:Number}=ones(Int,length(cmpperm)),  # scale[w]: scale factor to w-component of input field
             cmpfirst::Bool=true) =  # true to use Cartesian-component-major ordering for more tightly banded matrix
-    (K = length(N); Kf = length(cmpperm); create_πcmp(SInt{K}(N), SInt{Kf}(cmpperm), scale=SVec{Kf}(scale); cmpfirst))
+    (K = length(N); Kf = length(cmpperm); create_πcmp(SVector{K,Int}(N), SVector{Kf,Int}(cmpperm), scale=SVector{Kf}(scale); cmpfirst))
 
 # Create the permutation matrix that permutes the order of Cartesian components of a vector
 # field.
-function create_πcmp(N::SInt{K},  # size of grid
-                     cmpperm::SInt{Kf};  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
-                     scale::SVec{Kf,T}=@SVector(ones(Int,Val(Kf))),  # scale[w]: scale factor to w-component of input field
+function create_πcmp(N::SVector{K,Int},  # size of grid
+                     cmpperm::SVector{Kf,Int};  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
+                     scale::SVector{Kf,T}=@SVector(ones(Int,Val(Kf))),  # scale[w]: scale factor to w-component of input field
                      cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
                      ) where {K,Kf,T<:Number}
     M = prod(N)
     KfM = Kf * M
 
-    Itot = VecInt(undef, KfM)
-    Jtot = VecInt(undef, KfM)
+    Itot = Vector{Int}(undef, KfM)
+    Jtot = Vector{Int}(undef, KfM)
     Vtot = Vector{T}(undef, KfM)
 
     # Below, at the nv-componet of the output comes the nw-component of the input.
@@ -51,11 +51,11 @@ function create_invπcmp(N, cmpperm; scale=@SVector(ones(Int, Val(length(cmpperm
 end
 
 create_πcell(
-    N::AbsVecInteger,  # size of grid
+    N::AbstractVector{<:Integer},  # size of grid
     Kf::Integer,  # number of Cartesian components
-    cellperm::AbsVecInteger;  # e.g., cellperm = [3,1,2] makes z-index fastest-varying and y-index slowest-varying
+    cellperm::AbstractVector{<:Integer};  # e.g., cellperm = [3,1,2] makes z-index fastest-varying and y-index slowest-varying
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
-) = (K = length(N); create_πcell(SInt{K}(N), Int(Kf), SInt{K}(cellperm); cmpfirst))
+) = (K = length(N); create_πcell(SVector{K,Int}(N), Int(Kf), SVector{K,Int}(cellperm); cmpfirst))
 
 # Create the permutation matrix that permutes the order of Cartesian components of a vector
 # field.
@@ -71,7 +71,7 @@ create_πcell(
 # permutation, because the same cell participates in derivatives along different directions,
 # which means that different scales need to be multiplied to the same cells.
 function create_πcell(
-    N::SInt{K},  # size of grid
+    N::SVector{K,Int},  # size of grid
     Kf::Int,  # number of Cartesian components
     cellperm::SVector{K,Int};  # e.g., cellperm = [3,1,2] makes z-index fastest-varying and y-index slowest-varying
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
@@ -79,8 +79,8 @@ function create_πcell(
     M = prod(N)
     KfM = Kf * M
 
-    Itot = VecInt(undef, KfM)
-    Jtot = VecInt(undef, KfM)
+    Itot = Vector{Int}(undef, KfM)
+    Jtot = Vector{Int}(undef, KfM)
     Vtot = Vector{Bool}(undef, KfM)
 
     # The goal of cellperm is to permute the elements of an input vector, whose indices are

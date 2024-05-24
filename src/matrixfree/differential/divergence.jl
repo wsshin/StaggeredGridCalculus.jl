@@ -16,33 +16,33 @@ export apply_divg!
 # types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
 apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
             F::AbsArrNumber,  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
-            isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
             ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # boundary conditions in K dimensions
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # Bloch phase factors in K dimensions
+            isbloch::AbstractVector{Bool}=fill(true,length(isfwd)),  # boundary conditions in K dimensions
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,length(isfwd));  # Bloch phase factors in K dimensions
             α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             overwrite::Bool=true) =  # false to add result to output storage g
     (N = size(g); K = length(isfwd); apply_divg!(g, F, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; α, overwrite))
 
-# Wrapper for converting AbstractVector's to SVec's
+# Wrapper for converting AbstractVector's to SVector's
 apply_divg!(g::AbsArrNumber,  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
             F::AbsArrNumber,  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
-            isfwd::AbsVecBool,  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-            isbloch::AbsVecBool=fill(true,K),  # boundary conditions in K dimensions
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factors in K dimensions
+            isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+            ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
+            isbloch::AbstractVector{Bool}=fill(true,K),  # boundary conditions in K dimensions
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factors in K dimensions
             α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
             overwrite::Bool=true  # false to add result to output storage g
             ) where {K} =
-    apply_divg!(g, F, SBool{K}(isfwd), ∆l⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α, overwrite)
+    apply_divg!(g, F, SVector{K,Bool}(isfwd), ∆l⁻¹, SVector{K,Bool}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); α, overwrite)
 
 # Concrete implementation
 function apply_divg!(g::AbsArrNumber{K},  # output array of scalar; in 3D, g[i,j,k] is g at (i,j,k)
                      F::AbsArrNumber{K₊₁},  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
-                     isfwd::SBool{K},  # isfwd[w] = true|false: create ∂w by forward|backward difference
-                     ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l[w]: inverse of distances between grid planes in x-direction
-                     isbloch::SBool{K},  # boundary conditions in K dimensions
-                     e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
+                     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+                     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l[w]: inverse of distances between grid planes in x-direction
+                     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
+                     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
                      α::Number=1.0,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
                      overwrite::Bool=true  # false to add result to output storage g
                      ) where {K,K₊₁}

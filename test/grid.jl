@@ -1,15 +1,15 @@
 StaggeredGridCalculus# The following without the qualifier StaggeredGridCalculus cannot find the Grid constructor
 # of StaggeredGridCalculus:
-# Grid(lprim::AbsVecReal, Npml::NTuple{2,Int}, isbloch::Bool) =
+# Grid(lprim::AbstractVector{<:Real}, Npml::NTuple{2,Int}, isbloch::Bool) =
 #     StaggeredGridCalculus.Grid((lprim,), ([Npml[nN]], [Npml[nP]]), (isbloch,))
 
 # Calculate ghost points from l, L, and isbloch.
 lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
-       L::SVec{K,Float64},  # domain size
-       isbloch::SVec{K,Bool}  # boundary condition
+       L::SVector{K,Float64},  # domain size
+       isbloch::SVector{K,Bool}  # boundary condition
        ) where {K} =
-    (map((lprimₖ,Lₖ) -> lprimₖ[1]+Lₖ, SVec(l[nPR]), L),  # lg[PRIM]
-     map((isblochₖ,lprimₖ,ldualₖ,Lₖ) -> (isblochₖ ? ldualₖ[end]-Lₖ : 2lprimₖ[1]-ldualₖ[1]), isbloch, SVec(l[nPR]), SVec(l[nDL]), L))  # lg[DUAL]
+    (map((lprimₖ,Lₖ) -> lprimₖ[1]+Lₖ, SVector(l[nPR]), L),  # lg[PRIM]
+     map((isblochₖ,lprimₖ,ldualₖ,Lₖ) -> (isblochₖ ? ldualₖ[end]-Lₖ : 2lprimₖ[1]-ldualₖ[1]), isbloch, SVector(l[nPR]), SVector(l[nDL]), L))  # lg[DUAL]
 
 @testset "grid" begin
 
@@ -27,7 +27,7 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
 
     @test g1.N == [N]
     @test g1.L ≈ [L]
-    @test all(SVec.(lprim) .∈ Ref(g1))  # `∈` supports only SVec, not Vector
+    @test all(SVector.(lprim) .∈ Ref(g1))  # `∈` supports only SVector, not Vector
     ldual = StaggeredGridCalculus.movingavg(lprim)
     pop!(lprim)
     @test g1.l ≈ ((lprim,), (ldual,))
@@ -38,8 +38,8 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
     # @test g1.Lpml ≈ ([sum(∆ldual[1:Npmln])], [sum(∆ldual[end-Npmlp+1:end])])
     # @test g1.lpml ≈ ([sum(∆ldual[1:Npmln])-l₀], [sum(∆ldual)-sum(∆ldual[end-Npmlp+1:end])-l₀])
     @test g1.bounds ≈ ([lprim[1]], [lprim[end]+∆ldual[end]])
-    @test SVec(-l₀) ∈ g1  # `∈` supports only SVec
-    lg = lghost(((lprim,),(ldual,)), SVec(L), SVec{1}(isbloch))
+    @test SVector(-l₀) ∈ g1  # `∈` supports only SVector
+    lg = lghost(((lprim,),(ldual,)), SVector(L), SVector{1}(isbloch))
     lprim_g = g1.ghosted.lg[nPR][1]
     ldual_g = g1.ghosted.lg[nDL][1]
     @test lprim_g[1:end-1]≈lprim && lprim_g[end]≈lg[nPR][1] && ldual_g[2:end]≈ldual && ldual_g[1]≈lg[nDL][1]
@@ -60,7 +60,7 @@ end  # @testset "Grid{1}, primal boundary"
     ∆ldual = ntuple(d->rand(N[d]), length(N))
     isbloch = [false, false, true]
 
-    L = SVec(sum.(∆ldual))  # SFloat{3}
+    L = SVector(sum.(∆ldual))  # SFloat{3}
     l₀ = L ./ 2  # SFloat{3}
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
 

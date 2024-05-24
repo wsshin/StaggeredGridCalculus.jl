@@ -15,39 +15,39 @@
 
 export apply_m̂!, apply_mean!
 
-# Wrapper for converting AbstractVector's to SVec's for arithmetic averaging
+# Wrapper for converting AbstractVector's to SVector's for arithmetic averaging
 # This corresponds to the wrappers to create discrete versions of differential operators,
 # but the nonzero enries in the matrix are 0.5 rather than 1.0.
 apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
-            isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
-            isbloch::AbsVecBool=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
+            isbloch::AbstractVector{Bool}=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
             α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
             overwrite::Bool=true) =  # false to add result to output storage G
-    (K = length(isfwd); apply_mean!(G, F, SBool{K}(isfwd), SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α, overwrite))
+    (K = length(isfwd); apply_mean!(G, F, SVector{K,Bool}(isfwd), SVector{K,Bool}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); α, overwrite))
 
-# Wrapper for converting AbstractVector's to SVec's for weighted averaging
+# Wrapper for converting AbstractVector's to SVector's for weighted averaging
 apply_mean!(G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
             F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
-            isfwd::AbsVecBool,  # isfwd[w] = true|false: m̂_w is forward|backward averaging
-            ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
-            ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-            isbloch::AbsVecBool=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+            isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
+            ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
+            ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
+            isbloch::AbstractVector{Bool}=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
             α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
             overwrite::Bool=true  # false to add result to output storage G
             ) where {K} =
-    apply_mean!(G, F, SBool{K}(isfwd), ∆l, ∆l′⁻¹, SBool{K}(isbloch), SVec{K}(e⁻ⁱᵏᴸ); α, overwrite)
+    apply_mean!(G, F, SVector{K,Bool}(isfwd), ∆l, ∆l′⁻¹, SVector{K,Bool}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); α, overwrite)
 
 # Concrete implementation for arithmetic averaging
 # Initially this was implemented by passing a tuple of ones() os ∆l and ∆l′⁻¹, but because
 # arithmetic averaging is used frequently, the optimized version is implemented separately.
 function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::AbsArrNumber{K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
-                     isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
-                     isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-                     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+                     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
+                     isbloch::SVector{K,Bool},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+                     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
                      α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      overwrite::Bool=true  # false to add result to output storage G
                      ) where {K,K₊₁}  #  K is space dimension; K₊₁ = K + 1
@@ -67,11 +67,11 @@ end
 # For the implementation details, see the comments in matrix/mean.jl.
 function apply_mean!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
                      F::AbsArrNumber{K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
-                     isfwd::SBool{K},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
-                     ∆l::NTuple{K,AbsVecNumber},  # line segments to multiply with; vectors of length N
-                     ∆l′⁻¹::NTuple{K,AbsVecNumber},  # inverse of line segments to divide by; vectors of length N
-                     isbloch::SBool{K},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-                     e⁻ⁱᵏᴸ::SNumber{K};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+                     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
+                     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
+                     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
+                     isbloch::SVector{K,Bool},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+                     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
                      α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
                      overwrite::Bool=true  # false to add result to output storage G
                      ) where {K,K₊₁}  #  K is space dimension; K₊₁ = K + 1
@@ -493,8 +493,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x
                   Fᵤ::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
                   nw::Integer,  # 1|2|3 for averaging along x|y|z
                   isfwd::Bool,  # true|false for forward|backward averaging
-                  ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
-                  ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
+                  ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
+                  ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
                   α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
@@ -705,8 +705,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x
                   Fᵤ::AbsArrNumber{2},  # u-component of input field (u = x, y)
                   nw::Integer,  # 1|2 for averaging along x|y
                   isfwd::Bool,  # true|false for forward|backward averaging
-                  ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
-                  ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
+                  ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
+                  ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
                   α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
@@ -856,8 +856,8 @@ function apply_m̂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x
                   Fᵤ::AbsArrNumber{1},  # u-component of input field (u = x, y)
                   nw::Integer,  # 1|2 for averaging along x|y
                   isfwd::Bool,  # true|false for forward|backward averaging
-                  ∆w::AbsVecNumber,  # line segments to multiply with; vector of length N[nw]
-                  ∆w′⁻¹::AbsVecNumber,  # inverse of line segments to divide by; vector of length N[nw]
+                  ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
+                  ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
                   α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)

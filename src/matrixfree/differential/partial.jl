@@ -20,8 +20,8 @@ apply_∂!(Gᵥ::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D
     (N = size(Gᵥ); apply_∂!(Gᵥ, Fᵤ, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ; α, overwrite))  # fill: create vector of ∆w⁻¹
 
 # Unlike matrix/partial.jl, there is no need to create a wrapper to convert AbstractVector's
-# to SVec's, because the concrete implementation of apply_∂! below does not take any
-# SVec's.  I only need to set the default value for e⁻ⁱᵏᴸ below, even though I don't
+# to SVector's, because the concrete implementation of apply_∂! below does not take any
+# SVector's.  I only need to set the default value for e⁻ⁱᵏᴸ below, even though I don't
 # usually set default values for the arguments in concrete implementation (except for
 # keyword arguments, which require default values).
 
@@ -33,7 +33,7 @@ function apply_∂!(Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x
                   Fᵤ::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
                   nw::Integer,  # 1|2|3 for x|y|z
                   isfwd::Bool,  # true|false for forward|backward difference
-                  ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
+                  ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
                   α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
@@ -244,7 +244,7 @@ function apply_∂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x
                   Fᵤ::AbsArrNumber{2},  # u-component of input field (u = x, y)
                   nw::Integer,  # 1|2 for x|y
                   isfwd::Bool,  # true|false for forward|backward difference
-                  ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
+                  ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
                   α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
@@ -393,7 +393,7 @@ function apply_∂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x
                   Fᵤ::AbsArrNumber{1},  # u-component of input field (u = x)
                   nw::Integer,  # 1 for x
                   isfwd::Bool,  # true|false for forward|backward difference
-                  ∆w⁻¹::AbsVecNumber,  # inverse of spatial discretization; vector of length N[nw]
+                  ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
                   isbloch::Bool,  # boundary condition in w-direction
                   e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
                   α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
@@ -460,7 +460,7 @@ end
 #                   Fᵤ::AbsArrNumber{K},  # u-component of input field (u = x, y, z in 3D)
 #                   nw::Integer,  # 1|2|3 for x|y|z in 3D
 #                   isfwd::Bool,  # true|false for forward|backward difference
-#                   ∆w⁻¹::AbsVecNumber,  # spatial discretization; vector of length N[nw]
+#                   ∆w⁻¹::AbstractVector{<:Number},  # spatial discretization; vector of length N[nw]
 #                   isbloch::Bool,  # boundary condition in w-direction
 #                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor: L = Lw
 #                   α::Number=1.0  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w

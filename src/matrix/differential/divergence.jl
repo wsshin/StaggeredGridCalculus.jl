@@ -9,20 +9,20 @@ export create_divg
 # implementation directly instead of the next wrapper function taking ∆l⁻¹ even if the
 # keyword arguments are not SVector's, because methods are dispatched based only on the
 # types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
-create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
-            N::AbsVecInteger,  # size of grid
+create_divg(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+            N::AbstractVector{<:Integer},  # size of grid
             ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
-            isbloch::AbsVecBool=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
+            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
             kwargs...
             ) where {K} =
     create_divg(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
-# Wrapper to convert AbstractVector's to SVec's
-create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backward difference
-            ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-            isbloch::AbsVecBool=ones(Bool,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbsVecNumber=ones(Int,K);  # Bloch phase factor in x, y, z
+# Wrapper to convert AbstractVector's to SVector's
+create_divg(isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+            ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
+            isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
+            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
             kwargs...
             ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
@@ -31,14 +31,14 @@ create_divg(isfwd::AbsVecBool,  # isfwd[w] = true|false: ∂w is forward|backwar
     # of constructing it from k and L as exp.(-im .* k .* L), which is always complex even
     # if k = 0.
     #
-    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float, ComplexF), either,
+    # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float64, ComplexF64), either,
     # because sometimes I would want to even create an integral curl operator.
     create_divg(SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
-function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|backward difference
-                     ∆l⁻¹::NTuple{K,AbsVecNumber},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-                     isbloch::SBool{K},  # boundary conditions in K dimensions
-                     e⁻ⁱᵏᴸ::SNumber{K};  # Bloch phase factors in K dimensions
+function create_divg(isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
+                     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
+                     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
+                     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
                      cmp_in::Integer=0,  # 0 creates usual divergence operator; ∈[1,K] populates entries for only one input component without changing matrix shape
                      cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_in-th Cartesian direction of output vector field
                      cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
@@ -47,7 +47,7 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
     @argcheck 0 ≤ cmp_out ≤ K
 
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
-    N = SVec(length.(∆l⁻¹))
+    N = SVector(length.(∆l⁻¹))
     M = prod(N)
     KM = K * M  # resulting matrix: M×KM for cmp_out=0 (compact); KM×KM for cmp_out>0 (square)
 
@@ -57,8 +57,8 @@ function create_divg(isfwd::SBool{K},  # isfwd[w] = true|false: ∂w is forward|
     cmps_in = iszero(cmp_in) ? (1:K) : (cmp_in:cmp_in)
     N_blk = length(cmps_in)  # number of nonzeo matrix blocks
 
-    Itot = VecInt(undef, 2M * N_blk)
-    Jtot = VecInt(undef, 2M * N_blk)
+    Itot = Vector{Int}(undef, 2M * N_blk)
+    Jtot = Vector{Int}(undef, 2M * N_blk)
     Vtot = Vector{T}(undef, 2M * N_blk)
 
     ind_blk = 0  # index of matrix block

@@ -86,13 +86,13 @@ end  # @testset "1D, Npml = 0"
     M = sum(Npml) + N
     ∆ldual = ntuple(d->rand(M[d]), length(N))
 
-    L = SVec(sum.(∆ldual))  # SFloat{3}
+    L = SVector(sum.(∆ldual))  # SFloat{3}
     l₀ = L ./ 2  # SFloat{3}
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
     ldual = StaggeredGridCalculus.movingavg.(lprim)
 
-    lpml = (SVec{3}((w->lprim[w][1+Npml[nN][w]]).(1:3)), SVec{3}((w->lprim[w][end-Npml[nP][w]]).(1:3)))
-    Lpml = (lpml[nN].-SVec{3}((w->lprim[w][1]).(1:3)), SVec{3}((w->lprim[w][end]).(1:3)).-lpml[nP])
+    lpml = (SVector{3}((w->lprim[w][1+Npml[nN][w]]).(1:3)), SVector{3}((w->lprim[w][end-Npml[nP][w]]).(1:3)))
+    Lpml = (lpml[nN].-SVector{3}((w->lprim[w][1]).(1:3)), SVector{3}((w->lprim[w][end]).(1:3)).-lpml[nP])
 
     bounds = ([v[1] for v = lprim], [v[end] for v = lprim])
     lprim = map(v->v[1:end-1], lprim)

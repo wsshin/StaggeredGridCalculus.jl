@@ -2,44 +2,44 @@ export t_ind, invert_∆l
 
 # Below, t_ind returns
 # - a tuple if the first argument is a tuple of tuple, and
-# - an SVec if the first argument is a tuple of vector.
+# - an SVector if the first argument is a tuple of vector.
 
 # Below, earlier methods delegate actions to later methods.  Maybe they need to be
 # implemented separately for speed?
 
-# t_ind(t::Tuple3{T}, ind::Tuple3{Int}) where {T} = (t[ind[1]], t[ind[2]], t[ind[3]])
+# t_ind(t::NTuple{3,T}, ind::NTuple{3,Int}) where {T} = (t[ind[1]], t[ind[2]], t[ind[3]])
 # t_ind(t::Tuple32{T}, i::Int, j::Int, k::Int) where {T} = (t[1][i], t[2][j], t[3][k])  # i, j, k = 1 or 2
 
 # From a tuple of two tuples 1 and 2, each with K entries, construct a tuple (with K entries)
 # whose kth entry is the kth entry of either tuple 1 or tuple 2.
 # E.g., t_ind(((0.1,0.2,0.3), (1.0,2.0,3.0)), 1, 2, 1) = (0.1, 2.0, 0.3)
-@inline t_ind(t::Tuple23, i₁₂::T, j₁₂::T, k₁₂::T) where {T<:Union{GridType,Sign,Integer}} = t_ind(t, (i₁₂,j₁₂,k₁₂))  # i₁₂, j₁₂, k₁₂ = 1 or 2
-@inline t_ind(t::Tuple2{NTuple{K}}, ind₁₂::CartesianIndex{K}) where {K} = t_ind(t, ind₁₂.I)  # ind₁₂.I: NTuple{K,Int}
-@inline t_ind(t::Tuple2{NTuple{K}}, ind₁₂::SVec{K,T}) where {K,T<:Union{GridType,Sign,Integer}} = t_ind(t, ind₁₂.data)
-@inline t_ind(t::Tuple2{NTuple{K}}, ind₁₂::NTuple{K,T}) where {K,T<:Union{GridType,Sign,Integer}} =  # ind₁₂[k] = 1 or 2
+@inline t_ind(t::NTuple{2,NTuple{3}}, i₁₂::T, j₁₂::T, k₁₂::T) where {T<:Union{GridType,Sign,Integer}} = t_ind(t, (i₁₂,j₁₂,k₁₂))  # i₁₂, j₁₂, k₁₂ = 1 or 2
+@inline t_ind(t::NTuple{2,NTuple{K}}, ind₁₂::CartesianIndex{K}) where {K} = t_ind(t, ind₁₂.I)  # ind₁₂.I: NTuple{K,Int}
+@inline t_ind(t::NTuple{2,NTuple{K}}, ind₁₂::SVector{K,T}) where {K,T<:Union{GridType,Sign,Integer}} = t_ind(t, ind₁₂.data)
+@inline t_ind(t::NTuple{2,NTuple{K}}, ind₁₂::NTuple{K,T}) where {K,T<:Union{GridType,Sign,Integer}} =  # ind₁₂[k] = 1 or 2
     map((t₁,t₂,i) -> Int(i)==1 ? t₁ : t₂, t[1], t[2], ind₁₂)  # NTuple{K}
 
-# From a tuple of two SVecs 1 and 2, each with K entries, construct an SVec (with K
-# entries) whose kth entry is the kth entry of either SVec 1 or SVec 2.
-# E.g., t_ind((SVec(0.1,0.2,0.3), SVec(1.0,2.0,3.0)), 1, 2, 1) = SVec(0.1, 2.0, 0.3)
-@inline t_ind(t::Tuple2{SVec{3}}, i₁₂::T, j₁₂::T, k₁₂::T) where {T<:Union{GridType,Sign}} = t_ind(t, SVec(i₁₂,j₁₂,k₁₂))
-# @inline t_ind(t::Tuple2{SVec{K}}, ind₁₂::CartesianIndex{K}) where {K} = t_ind(t, ind₁₂.I)
-@inline t_ind(t::Tuple2{SVec{K}}, ind₁₂::NTuple{K,T}) where {K,T<:Union{GridType,Sign}} = t_ind(t, SVec(ind₁₂))
-@inline t_ind(t::Tuple2{SVec{K}}, ind₁₂::SVec{K,T}) where {K,T<:Union{GridType,Sign}} =  # ind₁₂[k] = 1 or 2
-    map((t₁,t₂,i) -> Int(i)==1 ? t₁ : t₂, t[1], t[2], ind₁₂)  # SVec{K}
+# From a tuple of two SVecs 1 and 2, each with K entries, construct an SVector (with K
+# entries) whose kth entry is the kth entry of either SVector 1 or SVector 2.
+# E.g., t_ind((SVector(0.1,0.2,0.3), SVector(1.0,2.0,3.0)), 1, 2, 1) = SVector(0.1, 2.0, 0.3)
+@inline t_ind(t::NTuple{2,SVector{3}}, i₁₂::T, j₁₂::T, k₁₂::T) where {T<:Union{GridType,Sign}} = t_ind(t, SVector(i₁₂,j₁₂,k₁₂))
+# @inline t_ind(t::NTuple{2,SVector{K}}, ind₁₂::CartesianIndex{K}) where {K} = t_ind(t, ind₁₂.I)
+@inline t_ind(t::NTuple{2,SVector{K}}, ind₁₂::NTuple{K,T}) where {K,T<:Union{GridType,Sign}} = t_ind(t, SVector(ind₁₂))
+@inline t_ind(t::NTuple{2,SVector{K}}, ind₁₂::SVector{K,T}) where {K,T<:Union{GridType,Sign}} =  # ind₁₂[k] = 1 or 2
+    map((t₁,t₂,i) -> Int(i)==1 ? t₁ : t₂, t[1], t[2], ind₁₂)  # SVector{K}
 
 # From a tuple of K vectors, construct a vector with K entries whose kth entry is
 # taken from the kth vector.  Which entry to take from the kth vector is specified
 # by indices.
-# E.g., t_ind(([0.1,0.2,0.3,0.4], [1.0,2.0,3.0,4.0], [10.0,20.0,30.0,40.0]), 3, 1, 4) = SVec(0.3, 1.0, 40.0)
-@inline t_ind(t::Tuple3{AbsVec}, i::Int, j::Int, k::Int) = t_ind(t, SVec(i,j,k))
-@inline t_ind(t::Tuple2{AbsVec}, i::Int, j::Int) = t_ind(t, SVec(i,j))
-@inline t_ind(t::NTuple{K,AbsVec}, ind::CartesianIndex{K}) where {K} = t_ind(t, ind.I)
-@inline t_ind(t::NTuple{K,AbsVec}, ind::NTuple{K,Int}) where {K} = t_ind(t, SVec(ind))
-@inline t_ind(t::NTuple{K,AbsVec}, ind::SVec{K,Int}) where {K} = map((tₖ,iₖ) -> tₖ[iₖ], SVec(t), ind)  # SVec{K}
+# E.g., t_ind(([0.1,0.2,0.3,0.4], [1.0,2.0,3.0,4.0], [10.0,20.0,30.0,40.0]), 3, 1, 4) = SVector(0.3, 1.0, 40.0)
+@inline t_ind(t::NTuple{3,AbstractVector}, i::Int, j::Int, k::Int) = t_ind(t, SVector(i,j,k))
+@inline t_ind(t::NTuple{2,AbstractVector}, i::Int, j::Int) = t_ind(t, SVector(i,j))
+@inline t_ind(t::NTuple{K,AbstractVector}, ind::CartesianIndex{K}) where {K} = t_ind(t, ind.I)
+@inline t_ind(t::NTuple{K,AbstractVector}, ind::NTuple{K,Int}) where {K} = t_ind(t, SVector(ind))
+@inline t_ind(t::NTuple{K,AbstractVector}, ind::SVector{K,Int}) where {K} = map((tₖ,iₖ) -> tₖ[iₖ], SVector(t), ind)  # SVector{K}
 
 
-function invert_∆l(∆l::Tuple2{Tuple{Vararg{AbsVecNumber}}})  # ∆l[PR][k]: grid point spacings at primal grid point locations on k-axis
+function invert_∆l(∆l::NTuple{2,Tuple{Vararg{AbstractVector{<:Number}}}})  # ∆l[PR][k]: grid point spacings at primal grid point locations on k-axis
     ∆lprim, ∆ldual = ∆l
     ∆lprim⁻¹ = map(v->(1 ./ v), ∆lprim)
     ∆ldual⁻¹ = map(v->(1 ./ v), ∆ldual)
@@ -47,7 +47,7 @@ function invert_∆l(∆l::Tuple2{Tuple{Vararg{AbsVecNumber}}})  # ∆l[PR][k]: 
     return (∆lprim⁻¹, ∆ldual⁻¹)
 end
 
-function movingavg(l::AbsVec{T}) where {T<:Number}
+function movingavg(l::AbstractVector{T}) where {T<:Number}
     # Return (l[1:end-1] + l[2:end]) / 2
 
     n = length(l)
@@ -63,7 +63,7 @@ function movingavg(l::AbsVec{T}) where {T<:Number}
     return lmov
 end
 
-function movingmin(l::AbsVec{T}) where {T<:Number}
+function movingmin(l::AbstractVector{T}) where {T<:Number}
     # Return min.([l; Inf], [Inf; l])
 
     n = length(l)
@@ -81,87 +81,6 @@ function movingmin(l::AbsVec{T}) where {T<:Number}
     return lmov
 end
 
-
-# Numerical differentiation by forward difference.
-f′fwd(f::Function, xₙ::Number, fₙ::Number=f(xₙ); h::Real=abs(xₙ)*τᵣ₀) = (f(xₙ+h) - fₙ) / h
-
-function newtsol(x₀::Number, f::Function, f′::Function=(x,fₙ)->f′fwd(f,x,fₙ); rtol::Real=τᵣ₀, atol::Real=τₐ₀)
-    # Solve f(x) = 0 using the Newton-Armijo method.
-    # x₀: initial guess
-    # f: function of x
-    # f′: derivative of f at x.  If f′ can be evaluated using the value of f(x),
-    #   write f′ such that it takes f(x) as the 2nd argument
-
-    isconverged = true  # true if solution converged; false otherwise
-    maxit = 100    # maximum iterations
-    maxitls = 20   # maximum iterations inside the line search
-    α = 1e-4
-    maxs = 1 / τᵣ₀  # maximum step size
-    perturbls = τₐ₀^0.75  # ≈ 1e-12, between sqrt(eps) and eps; some perturbation allowed in line search
-
-    # Initialize.
-    n = 0
-    xₙ = float(x₀)
-    T = typeof(xₙ)
-    fₙ::T = f(xₙ)
-    τf = rtol*abs(fₙ) + atol
-    rx₀ = abs(x₀)
-    has2ndarg = hasmethod(f′, Tuple2{Number})
-
-    # Perform the Newton method.
-    # @info "fₙ = $fₙ"
-    while abs(fₙ) > τf
-        # @info "n = $n"
-
-        # abs(xₙ/x₀) ≤ 1e3 || (isconverged = false; break)
-        # abs(xₙ/x₀) ≤ 1e3 || throw(ErrorException("Solution xₙ = $xₙ has diverged from x₀ = $x₀."))
-
-        λ = 1.
-        nls = 0  # line search iteration counter
-
-        f′ₙ::T = has2ndarg ? f′(xₙ,fₙ) : f′(xₙ)
-
-        # Avoid too large Newton steps.
-        s = -fₙ/f′ₙ
-        # @info "fₙ = $fₙ, f′ₙ = $f′ₙ, xₙ = $xₙ, s = $s"
-        abs(s) ≤ maxs || (isconverged = false; break)
-        # abs(s) ≤ maxs || throw(ErrorException("Newton step s = $s is larger than maximum step size $maxs."))
-        xₙ₊₁ = xₙ + λ*s
-        fₙ₊₁ = f(xₙ₊₁)
-
-        # Perform the line search to determine λ.  The stopping criterion does not
-        # have perturbls ≈ 1e-12 on the RHS, but I guess this kind of perturbation
-        # allows update in xₙ even in the situation where line search is supposed
-        # to fail.
-        while abs(fₙ₊₁) ≥ (1 - α*λ) * abs(fₙ) + perturbls
-            # @info "nls = $nls, fₙ₊₁ = $(fₙ₊₁)"
-            λ /= 2
-            xₙ₊₁ = xₙ + λ*s
-            fₙ₊₁::T = f(xₙ₊₁)
-            nls += 1
-
-            # Too many iteration steps in line search
-            nls ≤ maxitls || (isconverged = false; break)
-            # nls ≤ maxitls || throw(ErrorException("Line search fails in $nls iteration steps."))
-        end
-
-        # Step accepted; continue the Newton method.
-        xₙ = xₙ₊₁
-        n += 1
-
-        # Too many iteration steps in Newton's method.
-        n ≤ maxit || (isconverged = false; break)
-        # n ≤ maxit || throw(ErrorException("Newton method fails to converge in $n iteration steps."))
-
-        fₙ = f(xₙ)
-        # @info "fₙ = $fₙ"
-    end
-    # @info "Newton done"
-
-    return xₙ, isconverged
-end
-
-
 # isapprox_kernel(x, y, rtol, atol) = norm2diff(x,y) ≤ atol + rtol * max(norm2(x), norm2(y))
 # isapprox(x, y; rtol::Real=τᵣ₀, atol::Real=τₐ₀) = isapprox_kernel(x, y, rtol, atol)
 
@@ -177,7 +96,7 @@ isapprox_wrt(x, y, L::Number, rtol::Real=τᵣ₀) = norm(x-y) ≤ rtol * abs(L)
 #     return isapprox_kernel(x, y, rtol, atol)
 # end
 
-function consolidate_similar!(l::AbsVecNumber, L::Number)
+function consolidate_similar!(l::AbstractVector{<:Number}, L::Number)
     # Consolidate approximately equal points.  Assume l is sorted.
 
     # Original code:
@@ -199,7 +118,7 @@ function consolidate_similar!(l::AbsVecNumber, L::Number)
     end
 end
 
-function findsim(l1::AbsVecNumber, l2::AbsVecNumber, L::Number)
+function findsim(l1::AbstractVector{<:Number}, l2::AbstractVector{<:Number}, L::Number)
     ind = Int[]
     for i = 1:length(l1)
         v1 = l1[i]
