@@ -9,33 +9,35 @@
 export apply_curl!
 
 # Wrapper to apply the discrete curl by default
-apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-            F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
-            isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l⁻¹::NTuple{K,Number}=ntuple(k->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-            isbloch::AbstractVector{Bool}=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_shp::AbstractVector{<:Integer}=1:K,
-            cmp_out::AbstractVector{<:Integer}=1:size(G,K₊₁),
-            cmp_in::AbstractVector{<:Integer}=1:size(F,K₊₁),
-            α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
-            overwrite::Bool=true  # false to add result to output storage G
-            ) where {K,K₊₁} =
+apply_curl!(
+    G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+    F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
+    isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+    ∆l⁻¹::NTuple{K,Number}=ntuple(k->1.0,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
+    isbloch::AbstractVector{Bool}=fill(true,K),  # boundary conditions in x, y, z
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    cmp_shp::AbstractVector{<:Integer}=1:K,
+    cmp_out::AbstractVector{<:Integer}=1:size(G,K₊₁),
+    cmp_in::AbstractVector{<:Integer}=1:size(F,K₊₁),
+    α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
+    overwrite::Bool=true  # false to add result to output storage G
+) where {K,K₊₁} =
     (N = size(G)[1:K]; apply_curl!(G, F, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; cmp_shp, cmp_out, cmp_in, α, overwrite))
 
 # Wrapper for converting AbstractVector's to SVector's
-apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-            F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
-            isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
-            ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-            isbloch::AbstractVector{Bool}=fill(true,K),  # boundary conditions in x, y, z
-            e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-            cmp_shp::AbstractVector{<:Integer}=1:K,
-            cmp_out::AbstractVector{<:Integer}=1:size(G,K₊₁),
-            cmp_in::AbstractVector{<:Integer}=1:size(F,K₊₁),
-            α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
-            overwrite::Bool=true  # false to add result to output storage G
-            ) where {K,K₊₁} =
+apply_curl!(
+    G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+    F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
+    isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
+    isbloch::AbstractVector{Bool}=fill(true,K),  # boundary conditions in x, y, z
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    cmp_shp::AbstractVector{<:Integer}=1:K,
+    cmp_out::AbstractVector{<:Integer}=1:size(G,K₊₁),
+    cmp_in::AbstractVector{<:Integer}=1:size(F,K₊₁),
+    α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
+    overwrite::Bool=true  # false to add result to output storage G
+) where {K,K₊₁} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -49,18 +51,19 @@ apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component
                  cmp_shp=SVector{K,Int}(cmp_shp), cmp_out=SVector{Kout,Int}(cmp_out), cmp_in=SVector{Kin,Int}(cmp_in), α, overwrite))
 
 # Concrete implementation
-function apply_curl!(G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-                     F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
-                     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
-                     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
-                     isbloch::SVector{K,Bool},  # boundary conditions in x, y, z
-                     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factor in x, y, z
-                     cmp_shp::SVector{K,Int}=SVector(ntuple(identity, Val(K))),
-                     cmp_out::SVector{Kout,Int}=SVector(ntuple(identity, size(G,K₊₁))),
-                     cmp_in::SVector{Kin,Int}=SVector(ntuple(identity, size(G,K₊₁))),
-                     α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
-                     overwrite::Bool=true  # false to add result to output storage Gᵥ
-                     ) where {K,K₊₁,Kout,Kin}
+function apply_curl!(
+    G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+    F::AbsArrNumber{K₊₁},  # input field; F[i,j,k,w] is w-component of F at (i,j,k)
+    isfwd::SVector{K,Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
+    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
+    isbloch::SVector{K,Bool},  # boundary conditions in x, y, z
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factor in x, y, z
+    cmp_shp::SVector{K,Int}=SVector(ntuple(identity, Val(K))),
+    cmp_out::SVector{Kout,Int}=SVector(ntuple(identity, size(G,K₊₁))),
+    cmp_in::SVector{Kin,Int}=SVector(ntuple(identity, size(G,K₊₁))),
+    α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
+    overwrite::Bool=true  # false to add result to output storage Gᵥ
+) where {K,K₊₁,Kout,Kin}
     @assert K₊₁ == K+1
 
     for ind_nv = 1:Kout

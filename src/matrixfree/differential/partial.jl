@@ -8,15 +8,17 @@ export apply_∂!
 # allocations.
 
 # Wrapper to apply discrete partial derivative by default
-apply_∂!(Gᵥ::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
-         Fᵤ::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
-         nw::Integer,  # 1|2|3 for x|y|z in 3D
-         isfwd::Bool,  # true|false for forward|backward difference
-         ∆w⁻¹::Number=1,  # inverse of spatial discretization
-         isbloch::Bool=true,  # boundary condition in w-direction
-         e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-         α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
-         overwrite::Bool=true) =  # false to add result to output storage Gᵥ
+apply_∂!(
+    Gᵥ::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
+    Fᵤ::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
+    nw::Integer,  # 1|2|3 for x|y|z in 3D
+    isfwd::Bool,  # true|false for forward|backward difference
+    ∆w⁻¹::Number=1,  # inverse of spatial discretization
+    isbloch::Bool=true,  # boundary condition in w-direction
+    e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
+    overwrite::Bool=true  # false to add result to output storage Gᵥ
+) =
     (N = size(Gᵥ); apply_∂!(Gᵥ, Fᵤ, nw, isfwd, fill(∆w⁻¹, N[nw]), isbloch, e⁻ⁱᵏᴸ; α, overwrite))  # fill: create vector of ∆w⁻¹
 
 # Unlike matrix/partial.jl, there is no need to create a wrapper to convert AbstractVector's
@@ -29,15 +31,17 @@ apply_∂!(Gᵥ::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D
 # field, and indexed as Fᵤ[i,j,k], where (i,j,k) is the grid cell location.
 
 # Concrete apply_∂! for 3D
-function apply_∂!(Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
-                  Fᵤ::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
-                  nw::Integer,  # 1|2|3 for x|y|z
-                  isfwd::Bool,  # true|false for forward|backward difference
-                  ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
-                  isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
-                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
-                  overwrite::Bool=true)  # false to add result to output storage Gᵥ
+function apply_∂!(
+    Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
+    Fᵤ::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
+    nw::Integer,  # 1|2|3 for x|y|z
+    isfwd::Bool,  # true|false for forward|backward difference
+    ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
+    isbloch::Bool,  # boundary condition in w-direction
+    e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
+    overwrite::Bool=true  # false to add result to output storage Gᵥ
+)
     @assert size(Gᵥ)==size(Fᵤ)
     @assert 1≤nw≤3
     @assert size(Fᵤ,nw)==length(∆w⁻¹)
@@ -240,15 +244,17 @@ end
 
 
 # Concrete apply_∂! for 2D
-function apply_∂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x, y)
-                  Fᵤ::AbsArrNumber{2},  # u-component of input field (u = x, y)
-                  nw::Integer,  # 1|2 for x|y
-                  isfwd::Bool,  # true|false for forward|backward difference
-                  ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
-                  isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
-                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
-                  overwrite::Bool=true)  # false to add result to output storage Gᵥ
+function apply_∂!(
+    Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x, y)
+    Fᵤ::AbsArrNumber{2},  # u-component of input field (u = x, y)
+    nw::Integer,  # 1|2 for x|y
+    isfwd::Bool,  # true|false for forward|backward difference
+    ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
+    isbloch::Bool,  # boundary condition in w-direction
+    e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
+    overwrite::Bool=true  # false to add result to output storage Gᵥ
+)
     @assert size(Gᵥ)==size(Fᵤ)
     @assert 1≤nw≤2
     @assert size(Fᵤ,nw)==length(∆w⁻¹)
@@ -389,15 +395,17 @@ function apply_∂!(Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x
 end
 
 # Concrete apply_∂! for 1D
-function apply_∂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x)
-                  Fᵤ::AbsArrNumber{1},  # u-component of input field (u = x)
-                  nw::Integer,  # 1 for x
-                  isfwd::Bool,  # true|false for forward|backward difference
-                  ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
-                  isbloch::Bool,  # boundary condition in w-direction
-                  e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
-                  α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
-                  overwrite::Bool=true)  # false to add result to output storage Gᵥ
+function apply_∂!(
+    Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x)
+    Fᵤ::AbsArrNumber{1},  # u-component of input field (u = x)
+    nw::Integer,  # 1 for x
+    isfwd::Bool,  # true|false for forward|backward difference
+    ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
+    isbloch::Bool,  # boundary condition in w-direction
+    e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor: L = Lw
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
+    overwrite::Bool=true  # false to add result to output storage Gᵥ
+)
     @assert size(Gᵥ)==size(Fᵤ)
     @assert nw==1
     @assert size(Fᵤ,nw)==length(∆w⁻¹)
@@ -456,19 +464,20 @@ function apply_∂!(Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x
 end
 
 # # The following is the implementation for arbitrary space dimensions, but it is slow.
-# function apply_∂!(Gᵥ::AbsArrNumber{K},  # v-component of output field (v = x, y, z in 3D)
-#                   Fᵤ::AbsArrNumber{K},  # u-component of input field (u = x, y, z in 3D)
-#                   nw::Integer,  # 1|2|3 for x|y|z in 3D
-#                   isfwd::Bool,  # true|false for forward|backward difference
-#                   ∆w⁻¹::AbstractVector{<:Number},  # spatial discretization; vector of length N[nw]
-#                   isbloch::Bool,  # boundary condition in w-direction
-#                   e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor: L = Lw
-#                   α::Number=1.0  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
-#                   ) where {K}  # space dimension (field dimension Kf does not show up as we deal with single component)
+# function apply_∂!(
+#     Gᵥ::AbsArrNumber{K},  # v-component of output field (v = x, y, z in 3D)
+#     Fᵤ::AbsArrNumber{K},  # u-component of input field (u = x, y, z in 3D)
+#     nw::Integer,  # 1|2|3 for x|y|z in 3D
+#     isfwd::Bool,  # true|false for forward|backward difference
+#     ∆w⁻¹::AbstractVector{<:Number},  # spatial discretization; vector of length N[nw]
+#     isbloch::Bool,  # boundary condition in w-direction
+#     e⁻ⁱᵏᴸ::Number=1.0;  # Bloch phase factor: L = Lw
+#     α::Number=1.0  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α ∂Fᵤ/∂w
+# ) where {K}  # space dimension (field dimension Kf does not show up as we deal with single component)
 #     @assert size(Gᵥ)==size(Fᵤ)
 #     @assert 1≤nw≤K
 #     @assert size(Fᵤ,nw)==length(∆w⁻¹)
-#
+
 #     # Make sure not to include branches inside for loops.
 #     ciₛ₀ = (ntuple(k->1, Val(K)))  # start indices; (1,1,1) in 3D
 #     ciₑ₀ = (size(Fᵤ))  # end indices; (Nx,Ny,Nz) in 3D
@@ -483,7 +492,7 @@ end
 #             for ci = CI
 #                 @inbounds Gᵥ[ci] += (α * ∆w⁻¹[ci[nw]]) * (Fᵤ[ci+δci] - Fᵤ[ci])
 #             end
-#
+
 #             # At the positive end of the w-direction (where the boundary fields are taken
 #             # from the negative-end boundary)
 #             ciₛ = ciₛ₀ + ∆ci  # Nw at w-component; 1 elsewhere
@@ -501,7 +510,7 @@ end
 #             for ci = CI
 #                 @inbounds Gᵥ[ci] += (α * ∆w⁻¹[ci[nw]]) * (Fᵤ[ci+δci] - Fᵤ[ci])
 #             end
-#
+
 #             # At the negative end of the w-direction (where the boundary fields are assumed zero)
 #             ciₛ = ciₛ₀  # (1,1,1) in 3D
 #             ciₑ = ciₑ₀ - ∆ci  # w-component of end indices is decreased from Nw to 1
@@ -510,7 +519,7 @@ end
 #             for ci = CI
 #                 @inbounds Gᵥ[ci] += β * Fᵤ[ci+δci]  # note Fᵤ[ci] = 0
 #             end
-#
+
 #             # At the positive end of the w-direction (where the boundary fields are assumed zero)
 #             ciₛ = ciₛ₀ + ∆ci  # w-component of end indices is increased from 1 to Nw
 #             ciₑ = ciₑ₀  # (Nx,Ny,Nz) in 3D
@@ -530,7 +539,7 @@ end
 #         for ci = CI
 #             @inbounds Gᵥ[ci] += (α * ∆w⁻¹[ci[nw]]) * (Fᵤ[ci] - Fᵤ[ci-δci])
 #         end
-#
+
 #         if isbloch  # Bloch boundary condition
 #             # At the negative end of the w-direction (where the boundary fields are taken
 #             # from the positive-end boundary)
@@ -546,6 +555,6 @@ end
 #             # zero.
 #         end  # if isbloch
 #     end  # if isfwd
-#
+
 #     return nothing
 # end
