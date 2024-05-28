@@ -4,7 +4,7 @@ export create_curl
 create_curl(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     N::AbstractVector{<:Integer},  # size of grid
-    ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
+    ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of distance (not distances) between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::AbstractVector{Bool}=ones(Bool,K),  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
@@ -17,7 +17,7 @@ create_curl(
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float64, ComplexF64), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
+    create_curl(isfwd, fill.(∆l⁻¹,tuple(N...)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
 # Wrapper to convert AbstractVector's to SVector's
 create_curl(
