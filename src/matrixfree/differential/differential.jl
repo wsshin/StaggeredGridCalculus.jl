@@ -5,5 +5,5 @@
 
 include("partial.jl")
 include("curl.jl")
-include("divergence.jl")
-include("gradient.jl")
+# include("divergence.jl")
+# include("gradient.jl")

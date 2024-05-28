@@ -15,7 +15,7 @@ include("util.jl")
 include("grid.jl")
 # include("gridgen.jl")
 include("matrix/matrix.jl")
-# include("matrixfree/matrixfree.jl")
+include("matrixfree/matrixfree.jl")
 include("pml.jl")
 
 end # module StaggeredGridCalculus
