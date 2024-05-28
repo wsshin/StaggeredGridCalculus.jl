@@ -19,8 +19,8 @@ export apply_m̂!, apply_mean!
 # This corresponds to the wrappers to create discrete versions of differential operators,
 # but the nonzero enries in the matrix are 0.5 rather than 1.0.
 apply_mean!(
-    G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-    F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
+    G::AbstractArray{<:Number},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+    F::AbstractArray{<:Number},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     isbloch::AbstractVector{Bool}=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
@@ -31,8 +31,8 @@ apply_mean!(
 
 # Wrapper for converting AbstractVector's to SVector's for weighted averaging
 apply_mean!(
-    G::AbsArrNumber,  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-    F::AbsArrNumber,  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
+    G::AbstractArray{<:Number},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+    F::AbstractArray{<:Number},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
@@ -47,8 +47,8 @@ apply_mean!(
 # Initially this was implemented by passing a tuple of ones() os ∆l and ∆l′⁻¹, but because
 # arithmetic averaging is used frequently, the optimized version is implemented separately.
 function apply_mean!(
-    G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-    F::AbsArrNumber{K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
+    G::AbstractArray{<:Number,K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+    F::AbstractArray{<:Number,K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     isbloch::SVector{K,Bool},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
@@ -70,8 +70,8 @@ end
 # Concrete implementation for weighted averaging
 # For the implementation details, see the comments in matrix/mean.jl.
 function apply_mean!(
-    G::AbsArrNumber{K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
-    F::AbsArrNumber{K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
+    G::AbstractArray{<:Number,K₊₁},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
+    F::AbstractArray{<:Number,K₊₁},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
@@ -104,8 +104,8 @@ end
 
 # Arithmetic m̂ for 3D
 function apply_m̂!(
-    Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
-    Fᵤ::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
+    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = x, y, z)
+    Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = x, y, z)
     nw::Integer,  # 1|2|3 for averaging along x|y|z
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
@@ -299,8 +299,8 @@ end
 
 # Arithmetic m̂ for 2D
 function apply_m̂!(
-    Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x, y)
-    Fᵤ::AbsArrNumber{2},  # u-component of input field (u = x, y)
+    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = x, y)
+    Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = x, y)
     nw::Integer,  # 1|2 for averaging along x|y
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
@@ -438,8 +438,8 @@ end
 
 # Arithmetic m̂ for 1D
 function apply_m̂!(
-    Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x, y)
-    Fᵤ::AbsArrNumber{1},  # u-component of input field (u = x, y)
+    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = x, y)
+    Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = x, y)
     nw::Integer,  # 1|2 for averaging along x|y
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
@@ -501,8 +501,8 @@ end
 
 # Weighted m̂ for 3D
 function apply_m̂!(
-    Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
-    Fᵤ::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
+    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = x, y, z)
+    Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = x, y, z)
     nw::Integer,  # 1|2|3 for averaging along x|y|z
     isfwd::Bool,  # true|false for forward|backward averaging
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
@@ -715,8 +715,8 @@ end
 
 # Weighted m̂ for 2D
 function apply_m̂!(
-    Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x, y)
-    Fᵤ::AbsArrNumber{2},  # u-component of input field (u = x, y)
+    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = x, y)
+    Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = x, y)
     nw::Integer,  # 1|2 for averaging along x|y
     isfwd::Bool,  # true|false for forward|backward averaging
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
@@ -868,8 +868,8 @@ end
 
 # Weighted m̂ for 1D
 function apply_m̂!(
-    Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x, y)
-    Fᵤ::AbsArrNumber{1},  # u-component of input field (u = x, y)
+    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = x, y)
+    Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = x, y)
     nw::Integer,  # 1|2 for averaging along x|y
     isfwd::Bool,  # true|false for forward|backward averaging
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]

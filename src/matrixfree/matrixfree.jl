@@ -3,7 +3,7 @@ export calc_boundary_indices
 # # Usage:
 # # - set_or_add(t, i, j, k, s, Val(:(+=)))
 # # - set_or_add(t, i, j, k, s, Val(:(=)))
-# @generated function set_or_add!(t::AbsArrNumber, ind::Tuple{Vararg{Integer}}, s::Number, ::Val{OP}) where {OP}
+# @generated function set_or_add!(t::AbstractArray{<:Number}, ind::Tuple{Vararg{Integer}}, s::Number, ::Val{OP}) where {OP}
 #     return Expr(OP, :(t[ind...]), :s)
 # end
 

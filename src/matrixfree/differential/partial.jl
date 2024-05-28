@@ -9,8 +9,8 @@ export apply_∂!
 
 # Wrapper to apply discrete partial derivative by default
 apply_∂!(
-    Gᵥ::AbsArrNumber,  # v-component of output field (v = x, y, z in 3D)
-    Fᵤ::AbsArrNumber,  # u-component of input field (u = x, y, z in 3D)
+    Gᵥ::AbstractArray{<:Number},  # v-component of output field (v = x, y, z in 3D)
+    Fᵤ::AbstractArray{<:Number},  # u-component of input field (u = x, y, z in 3D)
     nw::Integer,  # 1|2|3 for x|y|z in 3D
     isfwd::Bool,  # true|false for forward|backward difference
     ∆w⁻¹::Number=1,  # inverse of spatial discretization
@@ -32,8 +32,8 @@ apply_∂!(
 
 # Concrete apply_∂! for 3D
 function apply_∂!(
-    Gᵥ::AbsArrNumber{3},  # v-component of output field (v = x, y, z)
-    Fᵤ::AbsArrNumber{3},  # u-component of input field (u = x, y, z)
+    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = x, y, z)
+    Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = x, y, z)
     nw::Integer,  # 1|2|3 for x|y|z
     isfwd::Bool,  # true|false for forward|backward difference
     ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
@@ -245,8 +245,8 @@ end
 
 # Concrete apply_∂! for 2D
 function apply_∂!(
-    Gᵥ::AbsArrNumber{2},  # v-component of output field (v = x, y)
-    Fᵤ::AbsArrNumber{2},  # u-component of input field (u = x, y)
+    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = x, y)
+    Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = x, y)
     nw::Integer,  # 1|2 for x|y
     isfwd::Bool,  # true|false for forward|backward difference
     ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
@@ -396,8 +396,8 @@ end
 
 # Concrete apply_∂! for 1D
 function apply_∂!(
-    Gᵥ::AbsArrNumber{1},  # v-component of output field (v = x)
-    Fᵤ::AbsArrNumber{1},  # u-component of input field (u = x)
+    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = x)
+    Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = x)
     nw::Integer,  # 1 for x
     isfwd::Bool,  # true|false for forward|backward difference
     ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]
@@ -465,8 +465,8 @@ end
 
 # # The following is the implementation for arbitrary space dimensions, but it is slow.
 # function apply_∂!(
-#     Gᵥ::AbsArrNumber{K},  # v-component of output field (v = x, y, z in 3D)
-#     Fᵤ::AbsArrNumber{K},  # u-component of input field (u = x, y, z in 3D)
+#     Gᵥ::AbstractArray{<:Number,K},  # v-component of output field (v = x, y, z in 3D)
+#     Fᵤ::AbstractArray{<:Number,K},  # u-component of input field (u = x, y, z in 3D)
 #     nw::Integer,  # 1|2|3 for x|y|z in 3D
 #     isfwd::Bool,  # true|false for forward|backward difference
 #     ∆w⁻¹::AbstractVector{<:Number},  # spatial discretization; vector of length N[nw]

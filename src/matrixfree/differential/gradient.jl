@@ -15,8 +15,8 @@ export apply_grad!
 # keyword arguments are not SVector's, because methods are dispatched based only on the
 # types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
 apply_grad!(
-    G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
-    f::AbsArrNumber,  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
+    G::AbstractArray{<:Number},  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
+    f::AbstractArray{<:Number},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
     ∆l⁻¹::Tuple{Vararg{Number}}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
     isbloch::AbstractVector{Bool}=fill(true,length(isfwd)),  # boundary conditions in K dimensions
@@ -28,8 +28,8 @@ apply_grad!(
 
 # Wrapper for converting AbstractVector's to SVector's
 apply_grad!(
-    G::AbsArrNumber,  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
-    f::AbsArrNumber,  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
+    G::AbstractArray{<:Number},  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
+    f::AbstractArray{<:Number},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in x-direction
     isbloch::AbstractVector{Bool}=fill(true,K),  # boundary conditions in K dimensions
@@ -41,8 +41,8 @@ apply_grad!(
 
 # Concrete implementation
 function apply_grad!(
-    G::AbsArrNumber{K₊₁},  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
-    f::AbsArrNumber{K},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
+    G::AbstractArray{<:Number,K₊₁},  # output field; in 3D, G[i,j,k,w] is w-component of G at (i,j,k)
+    f::AbstractArray{<:Number,K},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l[w]: inverse of distances between grid planes in x-direction
     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
