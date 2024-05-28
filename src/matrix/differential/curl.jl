@@ -4,12 +4,10 @@ export create_curl
 create_curl(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     N::AbstractVector{<:Integer},  # size of grid
-    ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-    cmp_out::AbstractVector{<:Integer}=1:K,
-    cmp_in::AbstractVector{<:Integer}=1:K,
-    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isblock[w]: boundary conditions in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+    kwargs...
 ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
@@ -19,7 +17,7 @@ create_curl(
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float64, ComplexF64), either,
     # because sometimes I would want to even create an integral curl operator.
-    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmp_out, cmp_in, cmpfirst)
+    create_curl(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
 # Wrapper to convert AbstractVector's to SVector's
 create_curl(
