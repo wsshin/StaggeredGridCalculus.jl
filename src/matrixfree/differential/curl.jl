@@ -18,7 +18,7 @@ apply_curl!(
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K,K₊₁} =
-    (N = size(G)[1:K]; apply_curl!(G, F, isfwd, fill.(tuple(∆l⁻¹...),N), isbloch, e⁻ⁱᵏᴸ; kwargs...))
+    (N = size(G)[1:K]; apply_curl!(G, F, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; kwargs...))
 
 # Wrapper for converting AbstractVector's to SVector's
 apply_curl!(
