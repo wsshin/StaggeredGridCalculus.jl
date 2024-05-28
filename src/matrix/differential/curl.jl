@@ -33,7 +33,7 @@ create_curl(
     Kin = length(cmp_in);
     create_curl(
         SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ);
-        cmp_out=SVector{Kout,Int}(cmp_out), cmp_in=SVector{Kin,Int}(cmp_in), cmpfirst
+        cmp_out=SVector{Kout}(cmp_out), cmp_in=SVector{Kin}(cmp_in), cmpfirst
     )
 )
 
