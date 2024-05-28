@@ -12,7 +12,7 @@ export create_grad
 create_grad(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     N::AbstractVector{<:Integer},  # size of grid
-    ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in w-direction
+    ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance (not distances) between grid planes in w-direction
     isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
     kwargs...
