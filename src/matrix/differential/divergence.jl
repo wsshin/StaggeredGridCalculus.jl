@@ -43,7 +43,7 @@ function create_divg(
     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
     cmp_in::Integer=0,  # 0 creates usual divergence operator; ∈[1,K] populates entries for only one input component without changing matrix shape
-    cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_in-th Cartesian direction of output vector field
+    cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_out-th Cartesian direction of output vector field
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K}
     @argcheck 0 ≤ cmp_in ≤ K
