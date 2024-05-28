@@ -17,7 +17,7 @@ create_grad(
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
     kwargs...
 ) where {K} =
-    create_grad(isfwd, fill.(∆l⁻¹,(N...,)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
+    create_grad(isfwd, fill.(∆l⁻¹,tuple(N...)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
 # Wrapper to convert AbstractVector's to SVector's
 create_grad(
