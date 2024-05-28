@@ -22,12 +22,12 @@ create_curl(
 # Wrapper to convert AbstractVector's to SVector's
 create_curl(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
-    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of uniform distance between grid planes in x-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
-    cmp_out::AbstractVector{<:Integer}=1:K,
-    cmp_in::AbstractVector{<:Integer}=1:K,
-    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isblock[w]: boundary conditions in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+    cmp_out::AbstractVector{<:Integer}=1:K,  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmp_in::AbstractVector{<:Integer}=1:K,  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K} = (
     Kout = length(cmp_out);
     Kin = length(cmp_in);
