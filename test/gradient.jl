@@ -47,12 +47,12 @@ g = zeros(ComplexF64, 2M)  # column vector representation of G
         # Test apply_grad!.
         fvec = f[:]
         mul!(g, ∇, fvec)
-        # apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
-        # @test G[:] ≈ g
+        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
+        @test G[:] ≈ g
 
         mul!(g, ∇_cmpfirst, fvec)
-        # apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
-        # @test G[:][r] ≈ g
+        apply_grad!(G, f, isfwd, ∆l⁻¹, isbloch, e⁻ⁱᵏᴸ)  # no keyword argument cmpfirst in apply_XXX!()
+        @test G[:][r] ≈ g
     end
 end  # @testset "create_grad and apply_grad!"
 
