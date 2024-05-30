@@ -28,11 +28,8 @@ apply_curl!(
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::AbstractVector{Bool}=ones(Bool,K),  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmp_out::AbstractVector{<:Integer}=1:K,  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
-    cmp_in::AbstractVector{<:Integer}=1:K,  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
-    α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
-    overwrite::Bool=true  # false to add result to output storage G
-) where {K,K₊₁} = (
+    kwargs...
+) where {K,K₊₁} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
     # becomes a complex matrix.  Sometimes I want to keep it real (e.g., when no PML and
     # Bloch phase factors are used).  In fact, this is the reason why I accept e⁻ⁱᵏᴸ instead
@@ -41,12 +38,7 @@ apply_curl!(
     #
     # I should not cast ∆l⁻¹ to a vector of any specific type (e.g., Float64, ComplexF64), either,
     # because sometimes I would want to even create an integral curl operator.
-    Kout = length(cmp_out);
-    Kin = length(cmp_in);
-    apply_curl!(
-        G, F, SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ);
-        cmp_out=SVector{Kout}(cmp_out), cmp_in=SVector{Kin}(cmp_in), α, overwrite)
-)
+    apply_curl!(G, F, SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
 # Concrete implementation
 function apply_curl!(
@@ -56,11 +48,11 @@ function apply_curl!(
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::SVector{K,Bool},  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmp_out::SVector{Kout,Int}=SVector{K}(1:K),  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
-    cmp_in::SVector{Kin,Int}=SVector{K}(1:K),  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmp_out=1:K,  # integer or vector of integers in 1:K; Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmp_in=1:K,  # integer or vector of integers in 1:K; Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
     α::Number=1,  # scale factor to multiply to result before adding it to G: G += α ∇×F
     overwrite::Bool=true  # false to add result to output storage G
-) where {K,K₊₁,Kout,Kin}
+) where {K,K₊₁}
     @assert K₊₁ == K+1
 
     for (ind_nv, nv) = enumerate(cmp_out)  # nv is direction of output field
