@@ -42,11 +42,11 @@ function create_divg(
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
-    cmp_in::Integer=0,  # 0 creates usual divergence operator; ∈[1,K] populates entries for only one input component without changing matrix shape
+    cmp_in=SVector{K}(1:K),  # integer or vector of integers in 1:K; input components for which divergence is taken; can be used to, e.g.,  perform 2D divergence for 3D vector field; does not change number of columns (input remains K-dimensional)
     cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_out-th Cartesian direction of output vector field
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K}
-    @argcheck 0 ≤ cmp_in ≤ K
+    @argcheck all(1 .≤ cmp_in .≤ K)
     @argcheck 0 ≤ cmp_out ≤ K
 
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
@@ -57,15 +57,14 @@ function create_divg(
     # Below, create_∂info() is called N_blk times in the for loop, and each call returns I, J, V
     # of length 2M (one diagonal and one off-diagonal), so we preallocate Itot, Jtot, Vtot
     # of length 2M × N_blk.
-    cmps_in = iszero(cmp_in) ? (1:K) : (cmp_in:cmp_in)
-    N_blk = length(cmps_in)  # number of nonzeo matrix blocks
+    N_blk = length(cmp_in)  # number of nonzeo matrix blocks
 
     Itot = Vector{Int}(undef, 2M * N_blk)
     Jtot = Vector{Int}(undef, 2M * N_blk)
     Vtot = Vector{T}(undef, 2M * N_blk)
 
     ind_blk = 0  # index of matrix block
-    for nw = cmps_in  # direction of differentiation (= direction of input)
+    for nw = cmp_in  # direction of differentiation (= direction of input)
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
         if !iszero(cmp_out)
