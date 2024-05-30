@@ -70,11 +70,11 @@ function create_grad(
     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
     cmp_in::Integer=0,  # 0 creates compact thin matrix acting on scalar function (not vector field); ∈[1,K] creates square matrix acting on cmp_in-th Cartesian direction of input vector field
-    cmp_out::Integer=0,  # 0 creates usual gradient operator; ∈[1,K] populates entries for only one output component without changing matrix shape
+    cmp_out=1:K,  # integer or vector of integers in 1:K; output components into which gradient is taken; can be used to, e.g., calculating 2D gradient in 3D space; does not change number of rows (output remains K-dimensional)
     cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K}
     @argcheck 0 ≤ cmp_in ≤ K
-    @argcheck 0 ≤ cmp_out ≤ K
+    @argcheck all(1 .≤ cmp_out .≤ K)
 
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVector(length.(∆l⁻¹))
@@ -84,15 +84,14 @@ function create_grad(
     # Below, create_∂info() is called N_blk times in the for loop, and each call returns I, J, V
     # of length 2M (one diagonal and one off-diagonal), so we preallocate Itot, Jtot, Vtot
     # of length 2M × N_blk.
-    cmps_out = iszero(cmp_out) ? (1:K) : (cmp_out:cmp_out)
-    N_blk = length(cmps_out)  # number of nonzeo matrix blocks
+    N_blk = length(cmp_out)  # number of nonzeo matrix blocks
 
     Itot = Vector{Int}(undef, 2M * N_blk)
     Jtot = Vector{Int}(undef, 2M * N_blk)
     Vtot = Vector{T}(undef, 2M * N_blk)
 
     ind_blk = 0  # index of matrix block
-    for nw = cmps_out  # direction of differentiation (= direction of output)
+    for nw = cmp_out  # direction of differentiation (= direction of output)
         I, J, V = create_∂info(nw, isfwd[nw], N, ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw])
 
         istr, ioff = cmpfirst ? (K, nw-K) : (1, (nw-1)M)  # (row stride, row offset)
