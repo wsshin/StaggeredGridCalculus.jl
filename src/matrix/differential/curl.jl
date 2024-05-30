@@ -57,13 +57,16 @@ function create_curl(
     cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # unlike create_divg() and create_grad(), create_curl() does not have kwarg `compact`; see Agenda > StaggeredGridCalculus > Dec/09/2023] Update
 ) where {K}  # {space dimension, output field dimension, input field dimension}
-    T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
-    N = SVector(length.(∆l⁻¹))
-    M = prod(N)
+    @argcheck allunique(cmp_out)
+    @argcheck allunique(cmp_in)
 
     Kout = length(cmp_out)
     Kin = length(cmp_in)
     num_blk = Kout * Kin - length(intersect(cmp_out, cmp_in))  # diagonal blocks are empty
+
+    T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
+    N = SVector(length.(∆l⁻¹))
+    M = prod(N)
 
     # Below, create_∂info() is called num_blk times in the double for loops, and each call
     # returns I, J, V of length 2M (one diagonal and one off-diagonal), so we preallocate

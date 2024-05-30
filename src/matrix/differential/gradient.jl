@@ -75,6 +75,7 @@ function create_grad(
 ) where {K}
     @argcheck 0 ≤ cmp_in ≤ K
     @argcheck all(1 .≤ cmp_out .≤ K)
+    @argcheck allunique(cmp_out)
 
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVector(length.(∆l⁻¹))

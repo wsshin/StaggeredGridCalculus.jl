@@ -47,6 +47,7 @@ function create_divg(
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K}
     @argcheck all(1 .≤ cmp_in .≤ K)
+    @argcheck allunique(cmp_in)
     @argcheck 0 ≤ cmp_out ≤ K
 
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous

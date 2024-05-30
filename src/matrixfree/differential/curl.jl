@@ -54,6 +54,8 @@ function apply_curl!(
     overwrite::Bool=true  # false to add result to output storage G
 ) where {K,K₊₁}
     @assert K₊₁ == K+1
+    @argcheck allunique(cmp_out)
+    @argcheck allunique(cmp_in)
 
     for (ind_nv, nv) = enumerate(cmp_out)  # nv is direction of output field
         Gᵥ = selectdim(G, K₊₁, ind_nv)  # v-component of output field

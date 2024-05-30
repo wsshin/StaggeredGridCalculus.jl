@@ -50,6 +50,7 @@ function apply_divg!(
     overwrite::Bool=true  # false to add result to output storage g
 ) where {K,K₊₁}
     @assert K₊₁==K+1
+    @argcheck allunique(cmp_in)
 
     # Accumurate partial derivatives.
     for nw = cmp_in  # direction of differentiation
