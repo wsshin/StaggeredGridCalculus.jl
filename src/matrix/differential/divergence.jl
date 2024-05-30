@@ -13,8 +13,8 @@ create_divg(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     N::AbstractVector{<:Integer},  # size of grid
     ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance (not distances) between grid planes in w-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
     create_divg(isfwd, fill.(∆l⁻¹,tuple(N...)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
@@ -23,8 +23,8 @@ create_divg(
 create_divg(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
     # I should not cast e⁻ⁱᵏᴸ into a complex vector, because then the entire curl matrix
@@ -40,8 +40,8 @@ create_divg(
 function create_divg(
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-    isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
-    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
+    isbloch::SVector{K,Bool},  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     cmp_in=1:K,  # integer or vector of integers in 1:K; input components for which divergence is taken; can be used to, e.g., perform 2D divergence for 3D vector field; does not change number of columns (input remains K-dimensional)
     cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_out-th Cartesian direction of output vector field
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix

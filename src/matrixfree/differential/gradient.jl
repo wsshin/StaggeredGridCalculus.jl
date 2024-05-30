@@ -19,8 +19,8 @@ apply_grad!(
     fv̲F::AbstractArray{<:Number},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance (not distances) between grid planes in w-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
     (N = size(G)[1:K]; apply_grad!(G, fv̲F, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; kwargs...))
@@ -31,8 +31,8 @@ apply_grad!(
     fv̲F::AbstractArray{<:Number},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
     apply_grad!(G, fv̲F, SVector{K,Bool}(isfwd), ∆l⁻¹, SVector{K,Bool}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
@@ -43,8 +43,8 @@ function apply_grad!(
     f::AbstractArray{<:Number,K},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l[w]: inverse of distances between grid planes in x-direction
-    isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
-    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
+    isbloch::SVector{K,Bool},  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     cmp_out=1:K,  # integer or vector of integers in 1:K; output components into which gradient is taken; can be used to, e.g., calculating 2D gradient in 3D space; does not change number of rows (output remains K-dimensional)
     α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
     overwrite::Bool=true  # false to add result to output storage G
@@ -69,8 +69,8 @@ apply_grad!(
     F::AbstractArray{<:Number,K₊₁},  # input array of scalar; in 3D, f[i,j,k] is f at (i,j,k)
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: create ∂w by forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l[w]: inverse of distances between grid planes in x-direction
-    isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
-    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensionsn
+    isbloch::SVector{K,Bool},  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     cmp_in::Integer,  # creates square matrix acting on cmp_in-th Cartesian direction of input vector field
     kwargs...
 ) where {K,K₊₁} = (

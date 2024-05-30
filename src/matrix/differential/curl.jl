@@ -5,7 +5,7 @@ create_curl(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     N::AbstractVector{<:Integer},  # size of grid
     ∆l⁻¹::NTuple{K,Number}=ntuple(k->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance (not distances) between grid planes in w-direction; assume ordered by right-hand rule
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isblock[w]: boundary conditions in w-direction
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
@@ -23,7 +23,7 @@ create_curl(
 create_curl(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isblock[w]: boundary conditions in w-direction
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
@@ -50,7 +50,7 @@ create_curl(
 function create_curl(
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
-    isbloch::SVector{K,Bool},  # isblock[w]: boundary conditions in w-direction
+    isbloch::SVector{K,Bool},  # isbloch[w]: boundary condition in w-direction
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     cmp_out=1:K,  # integer or vector of integers in 1:K; Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
     cmp_in=1:K,  # integer or vector of integers in 1:K; Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape

@@ -19,8 +19,8 @@ apply_divg!(
     F::AbstractArray{<:Number},  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,Number}=ntuple(x->1,length(isfwd)),  # ∆l⁻¹[w]: inverse of uniform distance (not distances) between grid planes in w-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
     (N = size(F)[1:K]; apply_divg!(gv̲G, F, isfwd, fill.(∆l⁻¹,N), isbloch, e⁻ⁱᵏᴸ; kwargs...))
@@ -31,8 +31,8 @@ apply_divg!(
     F::AbstractArray{<:Number},  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-    isbloch::AbstractVector{Bool}=ones(Bool,K),  # boundary conditions in x, y, z
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # Bloch phase factor in x, y, z
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) where {K} =
     apply_divg!(gv̲G, F, SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
@@ -43,8 +43,8 @@ function apply_divg!(
     F::AbstractArray{<:Number,K₊₁},  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-    isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
-    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
+    isbloch::SVector{K,Bool},  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     cmp_in=1:K,  # integer or vector of integers in 1:K; input components for which divergence is taken; can be used to, e.g.,  perform 2D divergence for 3D vector field; does not change number of columns (input remains K-dimensional)
     α::Number=1,  # scale factor to multiply to result before adding it to g: g += α ∇⋅F
     overwrite::Bool=true  # false to add result to output storage g
@@ -72,8 +72,8 @@ apply_divg!(
     F::AbstractArray{<:Number,K₊₁},  # input field; in 3D, F[i,j,k,w] is w-component of F at (i,j,k)
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: ∂w is forward|backward difference
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
-    isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
-    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
+    isbloch::SVector{K,Bool},  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     cmp_out::Integer,  # creates square matrix putting scalar funciton on cmp_out-th Cartesian direction of output vector field
     kwargs...
 ) where {K,K₊₁} = (
