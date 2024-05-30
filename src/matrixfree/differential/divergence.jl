@@ -56,7 +56,7 @@ function apply_divg!(
     for nw = cmp_in  # direction of differentiation
         nu = nw  # component of input field to feed to ∂w
         Fᵤ = selectdim(F, K₊₁, nu)  # nu-th component of input field
-        apply_∂!(g, Fᵤ, nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α, overwrite=(nw==cmp_in[1]))  # g += α ∂Fᵤ/∂w
+        apply_∂!(g, Fᵤ, nw, isfwd[nw], ∆l⁻¹[nw], isbloch[nw], e⁻ⁱᵏᴸ[nw]; α, overwrite=overwrite&&(nw==cmp_in[1]))  # g += α ∂Fᵤ/∂w
     end
 
     return nothing
