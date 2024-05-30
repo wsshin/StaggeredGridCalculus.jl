@@ -42,7 +42,7 @@ function create_divg(
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction
     isbloch::SVector{K,Bool},  # boundary conditions in K dimensions
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # Bloch phase factors in K dimensions
-    cmp_in=1:K,  # integer or vector of integers in 1:K; input components for which divergence is taken; can be used to, e.g.,  perform 2D divergence for 3D vector field; does not change number of columns (input remains K-dimensional)
+    cmp_in=1:K,  # integer or vector of integers in 1:K; input components for which divergence is taken; can be used to, e.g., perform 2D divergence for 3D vector field; does not change number of columns (input remains K-dimensional)
     cmp_out::Integer=0,  # 0 creates compact fat matrix producing scalar function (not vector field); ∈[1,K] creates square matrix putting scalar funciton on cmp_out-th Cartesian direction of output vector field
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K}
