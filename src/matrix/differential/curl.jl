@@ -25,17 +25,9 @@ create_curl(
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::AbstractVector{Bool}=ones(Bool,K),  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmp_out::AbstractVector{<:Integer}=1:K,  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
-    cmp_in::AbstractVector{<:Integer}=1:K,  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
-    cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
-) where {K} = (
-    Kout = length(cmp_out);
-    Kin = length(cmp_in);
-    create_curl(
-        SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ);
-        cmp_out=SVector{Kout}(cmp_out), cmp_in=SVector{Kin}(cmp_in), cmpfirst
-    )
-)
+    kwargs...
+) where {K} =
+    create_curl(SVector{K}(isfwd), ∆l⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
 # - The directions of differentiations are 1:K, where K is the number of entries of ∆l⁻¹.
 #
@@ -60,15 +52,17 @@ function create_curl(
     ∆l⁻¹::NTuple{K,AbstractVector{<:Number}},  # ∆l⁻¹[w]: inverse of distances between grid planes in w-direction; assume ordered by right-hand rule
     isbloch::SVector{K,Bool},  # isblock[w]: boundary conditions in w-direction
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmp_out::SVector{Kout,Int}=SVector{K}(1:K),  # Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
-    cmp_in::SVector{Kin,Int}=SVector{K}(1:K),  # Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmp_out=1:K,  # integer or vector of integers in 1:K; Cartesian directions of output field components; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
+    cmp_in=1:K,  # integer or vector of integers in 1:K; Cartesian directions of input field; not necessarily 1:K, because, e.g., Ez can be defined on xy-shape
     cmpfirst::Bool=true,  # true to use Cartesian-component-major ordering for more tightly banded matrix
     # unlike create_divg() and create_grad(), create_curl() does not have kwarg `compact`; see Agenda > StaggeredGridCalculus > Dec/09/2023] Update
-) where {K,Kout,Kin}  # {space dimension, output field dimension, input field dimension}
+) where {K}  # {space dimension, output field dimension, input field dimension}
     T = promote_type(eltype.(∆l⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l⁻¹)) can be Any if ∆l⁻¹ is inhomogeneous
     N = SVector(length.(∆l⁻¹))
     M = prod(N)
 
+    Kout = length(cmp_out)
+    Kin = length(cmp_in)
     num_blk = Kout * Kin - length(intersect(cmp_out, cmp_in))  # diagonal blocks are empty
 
     # Below, create_∂info() is called num_blk times in the double for loops, and each call
