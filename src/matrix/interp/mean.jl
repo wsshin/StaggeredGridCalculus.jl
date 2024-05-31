@@ -61,35 +61,34 @@ export create_mean
 create_mean(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     N::AbstractVector{<:Integer},  # size of grid
-    isbloch::AbstractVector{Bool}=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    isbloch::AbstractVector{Bool}=ones(Bool,length(isfwd)),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
+    kwargs...
 ) =
-    create_mean(isfwd, fill.(1.0,(N...,)), fill.(1.0,(N...,)), isbloch, e⁻ⁱᵏᴸ; cmpfirst)
+    create_mean(isfwd, ones.(Int,tuple(N...)), ones.(Int,tuple(N...)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
 # Wrapper to convert AbstractVector's to SVector's.
 create_mean(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
-    isbloch::AbstractVector{Bool}=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
-    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
+    e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
 ) where {K} =
-    create_mean(SVector{K,Bool}(isfwd), ∆l, ∆l′⁻¹, SVector{K,Bool}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); cmpfirst)
+    create_mean(SVector{K}(isfwd), ∆l, ∆l′⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
 # The function used to support setting nonzero matrix blocks at off-diagonal blocks, but the
 # need for doing it is absorbed in MaxwellFDM.jl/src/param.jl/create_param_matrix() by
 # putting the material parameters at off-diagonal blocks.  Therefore, the field-averaging
-# operators always the diagonal blocks as nonzero blocks, as they perform averaging on the
-# already generated input and output fields.  See RN - Subpixel Smoothing > [Update (May/13/2018)].
+# operators always have the diagonal blocks as nonzero blocks, as they perform averaging on
+# the already generated input and output fields.  See RN - Subpixel Smoothing > [Update (May/13/2018)].
 function create_mean(
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
-    isbloch::SVector{K,Bool},  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+    isbloch::SVector{K,Bool},  # isbloch[w]: boundary condition in w-direction
     e⁻ⁱᵏᴸ::SVector{K,<:Number};  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K}
