@@ -86,6 +86,6 @@ function create_divg(
     end
 
     return iszero(cmp_out) ?
-        dropzeros!(sparse(Itot, Jtot, Vtot, M, KM)) :
-        dropzeros!(sparse(Itot, Jtot, Vtot, KM, KM))
+        dropzeros!(sparse(Itot, Jtot, Vtot, M, KM)) :  # M×KM matrix
+        dropzeros!(sparse(Itot, Jtot, Vtot, KM, KM))  # KM×KM matrix
 end

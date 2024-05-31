@@ -118,5 +118,5 @@ function create_curl(
         end
     end
 
-    return dropzeros!(sparse(Itot, Jtot, Vtot, Kout*M, Kin*M))
+    return dropzeros!(sparse(Itot, Jtot, Vtot, Kout*M, Kin*M))  # (Kout M) × (Kin M) matrix
 end

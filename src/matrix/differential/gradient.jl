@@ -113,6 +113,6 @@ function create_grad(
     end
 
     return iszero(cmp_in) ?
-        dropzeros!(sparse(Itot, Jtot, Vtot, KM, M)) :
-        dropzeros!(sparse(Itot, Jtot, Vtot, KM, KM))
+        dropzeros!(sparse(Itot, Jtot, Vtot, KM, M)) :  # KM×M matrix
+        dropzeros!(sparse(Itot, Jtot, Vtot, KM, KM))  # KM×KM matrix
 end

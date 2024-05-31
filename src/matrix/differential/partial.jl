@@ -66,7 +66,7 @@ create_∂(
 ) = (
     K = length(N);
     M = prod(N);
-    dropzeros!(sparse(create_∂info(nw, isfwd, SVector{K,Int}(N), ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M))
+    dropzeros!(sparse(create_∂info(nw, isfwd, SVector{K,Int}(N), ∆w⁻¹, isbloch, e⁻ⁱᵏᴸ)..., M, M))  # M×M matrix
 )
 
 
