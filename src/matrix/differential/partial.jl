@@ -46,7 +46,7 @@ export create_∂
 
 # Wrapper to create the discrete partial derivative by default
 create_∂(
-    nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
+    nw::Integer,  # 1|2|3 for direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward difference
     N::AbstractVector{<:Integer},  # size of grid
     ∆w⁻¹::Number=1,  # inverse of spatial discretization
@@ -57,7 +57,7 @@ create_∂(
 
 # Wrapper to convert AbstractVector's to SVector's
 create_∂(
-    nw::Integer,  # 1|2|3 for x|y|z; 1|2 for horizontal|vertical
+    nw::Integer,  # 1|2|3 for direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward difference
     N::AbstractVector{<:Integer},  # size of grid
     ∆w⁻¹::AbstractVector{<:Number},  # inverse of spatial discretization; vector of length N[nw]

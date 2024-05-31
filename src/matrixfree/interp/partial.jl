@@ -12,9 +12,9 @@ export apply_m̂!
 
 # Arithmetic m̂ for 3D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = x, y, z)
-    Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = x, y, z)
-    nw::Integer,  # 1|2|3 for averaging along x|y|z
+    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = 1, 2, 3)
+    Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = 1, 2, 3)
+    nw::Integer,  # 1|2|3 for averaging along direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
@@ -207,9 +207,9 @@ end
 
 # Arithmetic m̂ for 2D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = x, y)
-    Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = x, y)
-    nw::Integer,  # 1|2 for averaging along x|y
+    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = 1, 2)
+    Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = 1, 2)
+    nw::Integer,  # 1|2 for averaging along direction 1|2
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
@@ -346,9 +346,9 @@ end
 
 # Arithmetic m̂ for 1D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = x, y)
-    Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = x, y)
-    nw::Integer,  # 1|2 for averaging along x|y
+    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = 1)
+    Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = 1)
+    nw::Integer,  # 1 for averaging along direction 1
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
@@ -356,6 +356,7 @@ function apply_m̂!(
     overwrite::Bool=true  # false to add result to output storage G
 )
     @assert size(Gᵥ)==size(Fᵤ)
+    @argcheck nw==1
 
     Nx = length(Fᵤ)  # not size(Fᵤ) unlike code for 2D and 3D
     α2 = 0.5α
@@ -409,9 +410,9 @@ end
 
 # Weighted m̂ for 3D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = x, y, z)
-    Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = x, y, z)
-    nw::Integer,  # 1|2|3 for averaging along x|y|z
+    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = 1 ,2, 3)
+    Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = 1, 2, 3)
+    nw::Integer,  # 1|2|3 for averaging along direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward averaging
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
     ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
@@ -623,9 +624,9 @@ end
 
 # Weighted m̂ for 2D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = x, y)
-    Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = x, y)
-    nw::Integer,  # 1|2 for averaging along x|y
+    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = 1, 2)
+    Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = 1, 2)
+    nw::Integer,  # 1|2 for averaging along direction 1|2
     isfwd::Bool,  # true|false for forward|backward averaging
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
     ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
@@ -776,9 +777,9 @@ end
 
 # Weighted m̂ for 1D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = x, y)
-    Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = x, y)
-    nw::Integer,  # 1|2 for averaging along x|y
+    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = 1)
+    Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = 1)
+    nw::Integer,  # 1 for averaging along direction 1
     isfwd::Bool,  # true|false for forward|backward averaging
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
     ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
@@ -790,6 +791,7 @@ function apply_m̂!(
     @assert size(Gᵥ)==size(Fᵤ)
     @assert size(Fᵤ,nw)==length(∆w)
     @assert length(∆w)==length(∆w′⁻¹)
+    @argcheck nw==1
 
     Nx = length(Fᵤ)  # not size(Fᵤ) unlike code for 2D and 3D
     α2 = 0.5α

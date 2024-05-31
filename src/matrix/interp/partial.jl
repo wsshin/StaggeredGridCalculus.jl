@@ -14,7 +14,7 @@ export create_m̂
 # fields along the field direction.  As a result, backward (rather than forward) averaging
 # is for primal fields.
 create_m̂(
-    nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
+    nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward averaging
     N::AbstractVector{<:Integer},  # size of grid
     isbloch::Bool=true,  # boundary condition in w-direction
@@ -27,7 +27,7 @@ create_m̂(
 )
 
 create_m̂(
-    nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along x|y|z
+    nw::Integer,  # for length(N) = 3, 1|2|3 for averaging along direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward averaging
     N::AbstractVector{<:Integer},  # size of grid
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
@@ -41,7 +41,7 @@ create_m̂(
 )
 
 function create_minfo(
-    nw::Integer,  # for K = 3, 1|2|3 for averaging along x|y|z
+    nw::Integer,  # for K = 3, 1|2|3 for averaging along direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward averaging
     N::SVector{K,Int},  # size of grid
     ∆w::AbstractVector{<:Number},  # line segments to multiply with; vector of length N[nw]
