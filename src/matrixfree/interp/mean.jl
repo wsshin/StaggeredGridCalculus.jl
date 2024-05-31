@@ -22,12 +22,11 @@ apply_mean!(
     G::AbstractArray{<:Number},  # output field; G[i,j,k,w] is w-component of G at (i,j,k)
     F::AbstractArray{<:Number},  # input field; G[i,j,k,w] is w-component of G at (i,j,k)
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
-    isbloch::AbstractVector{Bool}=fill(true,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+    isbloch::AbstractVector{Bool}=ones(Bool,length(isfwd)),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
-    overwrite::Bool=true  # false to add result to output storage G
+    kwargs...
 ) =
-    (K = length(isfwd); apply_mean!(G, F, SVector{K,Bool}(isfwd), SVector{K,Bool}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); α, overwrite))
+    (K = length(isfwd); apply_mean!(G, F, SVector{K}(isfwd), SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...))
 
 # Wrapper for converting AbstractVector's to SVector's for weighted averaging
 apply_mean!(
@@ -36,12 +35,11 @@ apply_mean!(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
-    isbloch::AbstractVector{Bool}=fill(true,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
+    isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w] = true|false : w-boundary condition is Bloch|symmetric
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
-    α::Number=1,  # scale factor to multiply to result before adding it to G: G += α mean(F)
-    overwrite::Bool=true  # false to add result to output storage G
+    kwargs...
 ) where {K} =
-    apply_mean!(G, F, SVector{K,Bool}(isfwd), ∆l, ∆l′⁻¹, SVector{K,Bool}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); α, overwrite)
+    apply_mean!(G, F, SVector{K}(isfwd), ∆l, ∆l′⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
 # Concrete implementation for arithmetic averaging
 # Initially this was implemented by passing a tuple of ones() os ∆l and ∆l′⁻¹, but because
