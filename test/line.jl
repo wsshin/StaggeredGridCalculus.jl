@@ -1,6 +1,6 @@
-@testset "mean" begin
+@testset "line" begin
 
-@testset "create_mean and apply_mean! 1D" begin
+@testset "create_line_avg and apply_line_avg! 1D" begin
     N = SVector(10,)
     M = prod(N)
 
@@ -85,8 +85,8 @@
             # Test apply_m̂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, Mws, fᵤ)
-            # apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
-            # @test Gᵥ[:] ≈ gᵥ
+            apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
             Is = 1+(nw-1)*M:nw*M
@@ -94,16 +94,16 @@
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, ∆l, ∆l′⁻¹, isblochK, cmpfirst=false) == Mdiag
+        @test create_line_avg(isfwdK, ∆l, ∆l′⁻¹, isblochK, cmpfirst=false) == Mdiag
 
-        # Test apply_mean!.
+        # Test apply_line_avg!.
         mul!(g, Mdiag, f)
-        # apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
-        # @test G[:] ≈ g
+        apply_line_avg!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
-end  # @testset "create_mean and apply_mean! 1D"
+end  # @testset "create_line_avg and apply_line_avg! 1D"
 
-@testset "create_mean and apply_mean! 2D" begin
+@testset "create_line_avg and apply_line_avg! 2D" begin
     N = SVector(8,9)
     M = prod(N)
 
@@ -188,8 +188,8 @@ end  # @testset "create_mean and apply_mean! 1D"
             # Test apply_m̂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, Mws, fᵤ)
-            # apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
-            # @test Gᵥ[:] ≈ gᵥ
+            apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
             Is = 1+(nw-1)*M:nw*M
@@ -197,16 +197,16 @@ end  # @testset "create_mean and apply_mean! 1D"
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, ∆l, ∆l′⁻¹, isblochK, cmpfirst=false) == Mdiag
+        @test create_line_avg(isfwdK, ∆l, ∆l′⁻¹, isblochK, cmpfirst=false) == Mdiag
 
-        # Test apply_mean!.
+        # Test apply_line_avg!.
         mul!(g, Mdiag, f)
-        # apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
-        # @test G[:] ≈ g
+        apply_line_avg!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
-end  # @testset "create_mean and apply_mean! 2D"
+end  # @testset "create_line_avg and apply_line_avg! 2D"
 
-@testset "create_mean and apply_mean! 3D" begin
+@testset "create_line_avg and apply_line_avg! 3D" begin
     N = SVector(8,9,10)
     M = prod(N)
 
@@ -291,8 +291,8 @@ end  # @testset "create_mean and apply_mean! 2D"
             # Test apply_m̂!.
             fᵤ = Fᵤ[:]
             mul!(gᵥ, Mws, fᵤ)
-            # apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
-            # @test Gᵥ[:] ≈ gᵥ
+            apply_m̂!(Gᵥ, Fᵤ, nw, isfwd, ∆w, ∆w′⁻¹, isbloch)
+            @test Gᵥ[:] ≈ gᵥ
 
             # Construct Mdiag, Msup, Msub.
             Is = 1+(nw-1)*M:nw*M
@@ -300,13 +300,13 @@ end  # @testset "create_mean and apply_mean! 2D"
         end  # for nw
         isfwdK = fill(isfwd, K)
         isblochK = fill(isbloch, K)
-        @test create_mean(isfwdK, ∆l, ∆l′⁻¹, isblochK, cmpfirst=false) == Mdiag
+        @test create_line_avg(isfwdK, ∆l, ∆l′⁻¹, isblochK, cmpfirst=false) == Mdiag
 
-        # Test apply_mean!.
+        # Test apply_line_avg!.
         mul!(g, Mdiag, f)
-        # apply_mean!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
-        # @test G[:] ≈ g
+        apply_line_avg!(G, F, isfwdK, ∆l, ∆l′⁻¹, isblochK)
+        @test G[:] ≈ g
     end  # isfwd = ..., isbloch = ...
-end  # @testset "create_mean and apply_mean! 3D"
+end  # @testset "create_line_avg and apply_line_avg! 3D"
 
 end  # @testset "mean"

@@ -3,7 +3,7 @@ export apply_m̂!
 ## Field-averaging operators "m̂" (as used in de Moerloose and de Zutter)
 #
 # This applies the averaging operator for a single Cartesian component.  For the operator
-# for all three Cartesian components, use apply_mean!.
+# for all three Cartesian components, use apply_line_avg!.
 
 # Below, I set the default value for e⁻ⁱᵏᴸ below, even though I don't usually set default
 # values for the arguments in concrete implementation (except for keyword arguments, which

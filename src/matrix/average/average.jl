@@ -1,2 +1,2 @@
 include("partial.jl")
-include("mean.jl")
+include("line.jl")

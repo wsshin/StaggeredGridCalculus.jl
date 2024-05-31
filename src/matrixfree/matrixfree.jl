@@ -39,4 +39,4 @@ function calc_boundary_indices(N::Tuple{Vararg{Int}})  # range of index: 1 throu
 end
 
 include("differential/differential.jl")
-include("interp/interp.jl")
+include("average/average.jl")

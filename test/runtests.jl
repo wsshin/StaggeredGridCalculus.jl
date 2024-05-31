@@ -16,7 +16,7 @@ include("partial.jl")
 include("curl.jl")
 include("divergence.jl")
 include("gradient.jl")
-include("mean.jl")
+include("line.jl")
 include("permutation.jl")
 include("pml.jl")
 

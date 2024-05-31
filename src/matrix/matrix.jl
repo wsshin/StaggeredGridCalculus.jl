@@ -1,3 +1,3 @@
 include("differential/differential.jl")
-include("interp/interp.jl")
+include("average/average.jl")
 include("permutation.jl")

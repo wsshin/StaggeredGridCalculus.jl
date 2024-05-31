@@ -6,7 +6,7 @@ export create_m̂
 # field (rather than the operator that performs averaging on a single Cartesian component of
 # an input field with several Cartesian components).
 #
-# For the operator for all three Cartesian components, use create_mean.
+# For the operator for all three Cartesian components, use create_line_avg.
 #
 # Construction of these operators are similar to that of difference operators.  However,
 # unlike the difference operators that are primarilly used for curl and hence differentiates

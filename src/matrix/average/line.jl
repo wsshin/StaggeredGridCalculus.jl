@@ -1,7 +1,7 @@
 # Average fields along the field directions (i.e., Fw along the w-direction).  See the
 # description of create_m̂() below.
 
-# create_mean() assumes the space dimension and field dimension are the same.  In other
+# create_line_avg() assumes the space dimension and field dimension are the same.  In other
 # words, when the space coordinate indices are (i,j,k), then the field has three vector
 # components.  Therefore, for the input field array F[i,j,k,w], we assume w = 1:3 because F
 # has three spatial indices i, j, k.  This assumption is reasonable, because line-averaging
@@ -17,7 +17,7 @@
 # sense to have Ez at the Hx- and Hy-points simultaneously, because then the density of Ez
 # points is doubled.  We usually need to know Ez at either the Hx-points or the Hy-points,
 # but not both.  Then the needed operator can be easily generated using create_m̂().
-export create_mean
+export create_line_avg
 
 # Assumption: we don't calculate averages for interpolated fields.  In other words, we
 # calculate averages for the original fields defined on Yee's grid.  (There are exceptions;
@@ -58,24 +58,24 @@ export create_mean
 # implementation directly instead of the next wrapper function taking ∆l and ∆l′⁻¹ even if
 # the keyword arguments are not SVector's, because methods are dispatched based only on the
 # types of positional arguments.  Therefore, we convert the keyword arguments into SVector's.
-create_mean(
+create_line_avg(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     N::AbstractVector{<:Integer},  # size of grid
     isbloch::AbstractVector{Bool}=ones(Bool,length(isfwd)),  # isbloch[w]: boundary condition in w-direction
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,length(isfwd));  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
     kwargs...
 ) =
-    create_mean(isfwd, ones.(Int,tuple(N...)), ones.(Int,tuple(N...)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
+    create_line_avg(isfwd, ones.(Int,tuple(N...)), ones.(Int,tuple(N...)), isbloch, e⁻ⁱᵏᴸ; kwargs...)
 
 # Wrapper to convert AbstractVector's to SVector's.
-create_mean(
+create_line_avg(
     isfwd::AbstractVector{Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
     isbloch::AbstractVector{Bool}=ones(Bool,K),  # isbloch[w]: boundary condition in w-direction
     e⁻ⁱᵏᴸ::AbstractVector{<:Number}=ones(Int,K);  # e⁻ⁱᵏᴸ[w]: Bloch phase factor in w-direction
 ) where {K} =
-    create_mean(SVector{K}(isfwd), ∆l, ∆l′⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
+    create_line_avg(SVector{K}(isfwd), ∆l, ∆l′⁻¹, SVector{K}(isbloch), SVector{K}(e⁻ⁱᵏᴸ); kwargs...)
 
 # Creates the field-averaging operator for all three Cartegian components.
 #
@@ -84,7 +84,7 @@ create_mean(
 # putting the material parameters at off-diagonal blocks.  Therefore, the field-averaging
 # operators always have the diagonal blocks as nonzero blocks, as they perform averaging on
 # the already generated input and output fields.  See RN - Subpixel Smoothing > [Update (May/13/2018)].
-function create_mean(
+function create_line_avg(
     isfwd::SVector{K,Bool},  # isfwd[w] = true|false: m̂_w is forward|backward averaging
     ∆l::NTuple{K,AbstractVector{<:Number}},  # line segments to multiply with; vectors of length N
     ∆l′⁻¹::NTuple{K,AbstractVector{<:Number}},  # inverse of line segments to divide by; vectors of length N
