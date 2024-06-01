@@ -80,7 +80,7 @@ function create_minfo(
     Jₛ = circshift(Jₛ, shifts.data)
 
     # Align ∆w and ∆w′⁻¹ in the w-direction.
-    vec1 =  @SVector ones(Int,K)
+    vec1 =  ones(SVector{K,Int})
     sizew = @. !ŵ * vec1 + ŵ * N  # [1,Ny,1] for w == y
     ∆W = reshape(∆w, sizew.data)
     ∆W′⁻¹ = reshape(∆w′⁻¹, sizew.data)

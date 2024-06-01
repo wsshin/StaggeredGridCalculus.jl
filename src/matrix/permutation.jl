@@ -10,12 +10,11 @@ export create_πcmp, create_πcell, create_invπcmp, create_invπcell
 create_πcmp(
     N::AbstractVector{<:Integer},  # size of grid
     cmpperm::AbstractVector{<:Integer};  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
-    scale::AbstractVector{<:Number}=ones(Int,length(cmpperm)),  # scale[w]: scale factor to w-component of input field
-    cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
+    kwargs...
 ) = (
     K = length(N);
     Kf = length(cmpperm);
-    create_πcmp(SVector{K,Int}(N), SVector{Kf,Int}(cmpperm), scale=SVector{Kf}(scale); cmpfirst)
+    create_πcmp(SVector{K,Int}(N), SVector{Kf,Int}(cmpperm); kwargs...)
 )
 
 # Create the permutation matrix that permutes the order of Cartesian components of a vector
@@ -23,9 +22,11 @@ create_πcmp(
 function create_πcmp(
     N::SVector{K,Int},  # size of grid
     cmpperm::SVector{Kf,Int};  # e.g., cmpperm = [3,1,2] transforms [F1,F2,F3] to [F3,F1,F2]
-    scale::SVector{Kf,T}=@SVector(ones(Int,Val(Kf))),  # scale[w]: scale factor to w-component of input field
+    scale::AbstractVector{T}=ones(SVector{Kf,Int}),  # scale[w]: scale factor to w-component of input field
     cmpfirst::Bool=true  # true to use Cartesian-component-major ordering for more tightly banded matrix
 ) where {K,Kf,T<:Number}
+    @argcheck length(scale) == Kf
+
     M = prod(N)
     KfM = Kf * M
 
@@ -50,8 +51,8 @@ function create_πcmp(
 end
 
 # Take the same argument as create_πcmp(), but returns its inverse.
-function create_invπcmp(N, cmpperm; scale=@SVector(ones(Int, Val(length(cmpperm)))), kwargs...)
-    invscale = all(isone.(scale)) ? scale : 1 ./ scale
+function create_invπcmp(N, cmpperm; scale=ones(SVector{length(cmpperm),Int}), kwargs...)
+    invscale = all(isone.(scale)) ? scale : 1 ./ scale  # to preserve eltype Int in case scale = [1,...,1]
 
     return transpose(create_πcmp(N, cmpperm; scale=invscale, kwargs...))
 end
