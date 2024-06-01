@@ -97,7 +97,7 @@ function create_line_avg(
     @argcheck all(1 .≤ cmp_in .≤ K)
     @argcheck allunique(cmp_in)
 
-    T = promote_type(eltype.(∆l)..., eltype.(∆l′⁻¹)..., eltype(e⁻ⁱᵏᴸ))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
+    T = promote_type(eltype.(∆l)..., eltype.(∆l′⁻¹)..., eltype(e⁻ⁱᵏᴸ), typeof(0.5))  # eltype(eltype(∆l)) can be Any if ∆l is inhomogeneous
     N = SVector(length.(∆l))
     M = prod(N)
     KM = K * M

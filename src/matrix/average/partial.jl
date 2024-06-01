@@ -92,7 +92,7 @@ function create_minfo(
     # To figure out the entries of V₀ and Vₛ, it is most convenient to figure out the entire
     # 3D arrays V₀ and Vₛ, instead of entry by entry.  In doing so, note that the entries
     # with the same subscripts correspond to the same *output* field (= same row index).
-    T = promote_type(eltype(∆w), eltype(∆w′⁻¹), eltype(e⁻ⁱᵏᴸ))
+    T = promote_type(eltype(∆w), eltype(∆w′⁻¹), eltype(e⁻ⁱᵏᴸ), typeof(0.5))
     V₀ = fill(T(0.5), N.data) .* ∆W .* ∆W′⁻¹  # values of diagonal entries
 
     Vₛ = fill(T(0.5), N.data) .* ∆W  # values of off-diagonal entries (division later)
