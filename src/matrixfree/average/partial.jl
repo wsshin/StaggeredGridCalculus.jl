@@ -12,56 +12,56 @@ export apply_m̂!
 
 # Arithmetic m̂ for 3D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = 1, 2, 3)
+    Gᵤ::AbstractArray{<:Number,3},  # u-component of output field (v = 1, 2, 3)
     Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = 1, 2, 3)
     nw::Integer,  # 1|2|3 for averaging along direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵤ: Gᵤ += α m(Fᵤ)
     overwrite::Bool=true  # false to add result to output storage G
 )
-    @assert size(Gᵥ)==size(Fᵤ)
+    @assert size(Gᵤ)==size(Fᵤ)
 
     Nx, Ny, Nz = size(Fᵤ)
     α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
-    overwrite && (Gᵥ .= 0)
+    overwrite && (Gᵤ .= 0)
     if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
                 @threads for k = 1:Nz
                     for j = 1:Ny, i = 1:Nx-1
-                        @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i+1,j,k] + Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i+1,j,k] + Fᵤ[i,j,k])
                     end
                 end
 
                 # 2. At the positive end of the x-direction (where the boundary fields are
                 # taken from the negative-end boundary)
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[Nx,j,k] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[1,j,k] + Fᵤ[Nx,j,k])  # Fᵤ[Nx+1,j,k] = exp(-i kx Lx) * Fᵤ[1,j,k]
+                    @inbounds Gᵤ[Nx,j,k] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[1,j,k] + Fᵤ[Nx,j,k])  # Fᵤ[Nx+1,j,k] = exp(-i kx Lx) * Fᵤ[1,j,k]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
                 @threads for k = 1:Nz
                     for j = 1:Ny, i = 2:Nx-1
-                        @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i+1,j,k] + Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i+1,j,k] + Fᵤ[i,j,k])
                     end
                 end
 
                 # 2. At the negative end of the x-direction (where the boundary fields are
                 # assumed zero)
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[1,j,k] += α2 * Fᵤ[2,j,k]  # Fᵤ[1,j,k] == 0
+                    @inbounds Gᵤ[1,j,k] += α2 * Fᵤ[2,j,k]  # Fᵤ[1,j,k] == 0
                 end
 
                 # 3. At the positive end of the x-direction (where the boundary fields are
                 # assumed zero)
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[Nx,j,k] += α2 * Fᵤ[Nx,j,k]  # Fᵤ[Nx+1,j,k] == 0
+                    @inbounds Gᵤ[Nx,j,k] += α2 * Fᵤ[Nx,j,k]  # Fᵤ[Nx+1,j,k] == 0
                 end
             end
         elseif nw == 2  # w = y
@@ -69,34 +69,34 @@ function apply_m̂!(
                 # 1. At locations except for the positive end of the y-direction
                 @threads for k = 1:Nz
                     for j = 1:Ny-1, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i,j+1,k] + Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i,j+1,k] + Fᵤ[i,j,k])
                     end
                 end
 
                 # 2. At the positive end of the y-direction (where the boundary fields are
                 # taken from the negative-end boundary)
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,Ny,k] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[i,1,k] + Fᵤ[i,Ny,k])  # Fᵤ[i,Ny+1,k] = exp(-i ky Ly) * Fᵤ[i,1,k]
+                    @inbounds Gᵤ[i,Ny,k] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[i,1,k] + Fᵤ[i,Ny,k])  # Fᵤ[i,Ny+1,k] = exp(-i ky Ly) * Fᵤ[i,1,k]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
                 @threads for k = 1:Nz
                     for j = 2:Ny-1, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i,j+1,k] + Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i,j+1,k] + Fᵤ[i,j,k])
                     end
                 end
 
                 # 2. At the negative end of the y-direction (where the boundary fields are
                 # assumed zero)
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,1,k] += α2 * Fᵤ[i,2,k]  # Fᵤ[i,1,k] == 0
+                    @inbounds Gᵤ[i,1,k] += α2 * Fᵤ[i,2,k]  # Fᵤ[i,1,k] == 0
                 end
 
                 # 3. At the positive end of the y-direction (where the boundary fields are
                 # assumed zero)
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,Ny,k] += α2 * Fᵤ[i,Ny,k]  # Fᵤ[i,Ny+1,k] == 0
+                    @inbounds Gᵤ[i,Ny,k] += α2 * Fᵤ[i,Ny,k]  # Fᵤ[i,Ny+1,k] == 0
                 end
             end
         else  # nw == 3; w = z
@@ -104,34 +104,34 @@ function apply_m̂!(
                 # 1. At locations except for the positive end of the z-direction
                 @threads for k = 1:Nz-1
                     for j = 1:Ny, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i,j,k+1] + Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i,j,k+1] + Fᵤ[i,j,k])
                     end
                 end
 
                 # 2. At the positive end of the z-direction (where the boundary fields are
                 # taken from the negative-end boundary)
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,Nz] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[i,j,1] + Fᵤ[i,j,Nz])  # Fᵤ[i,j,Nz+1] = exp(-i kz Lz) * Fᵤ[i,j,1]
+                    @inbounds Gᵤ[i,j,Nz] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[i,j,1] + Fᵤ[i,j,Nz])  # Fᵤ[i,j,Nz+1] = exp(-i kz Lz) * Fᵤ[i,j,1]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # z-direction
                 @threads for k = 2:Nz-1
                     for j = 1:Ny, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i,j,k+1] + Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i,j,k+1] + Fᵤ[i,j,k])
                     end
                 end
 
                 # 2. At the negative end of the z-direction (where the boundary fields are
                 # assumed zero)
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,1] += α2 * Fᵤ[i,j,2]  # Fᵤ[i,j,1] == 0
+                    @inbounds Gᵤ[i,j,1] += α2 * Fᵤ[i,j,2]  # Fᵤ[i,j,1] == 0
                 end
 
                 # 3. At the positive end of the z-direction (where the boundary fields are
                 # assumed zero)
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,Nz] += α2 * Fᵤ[i,j,Nz]  # Fᵤ[i,j,Nz+1] == 0
+                    @inbounds Gᵤ[i,j,Nz] += α2 * Fᵤ[i,j,Nz]  # Fᵤ[i,j,Nz+1] == 0
                 end
             end
         end  # if nw == ...
@@ -142,7 +142,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for k = 1:Nz
                 for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
-                    @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i,j,k] + Fᵤ[i-1,j,k])
+                    @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i,j,k] + Fᵤ[i-1,j,k])
                 end
             end
 
@@ -150,11 +150,11 @@ function apply_m̂!(
             # from the positive-end boundary for the Bloch boundary condition)
             if isbloch
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[1,j,k] += α2 * (Fᵤ[1,j,k] + Fᵤ[Nx,j,k]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j,k] = Fᵤ[Nx,j,k] / exp(-i kx Lx)
+                    @inbounds Gᵤ[1,j,k] += α2 * (Fᵤ[1,j,k] + Fᵤ[Nx,j,k]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j,k] = Fᵤ[Nx,j,k] / exp(-i kx Lx)
                 end
             else  # symmetry boundary
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[1,j,k] += α * Fᵤ[1,j,k]  # Fᵤ[0,j,k] = Fᵤ[1,j,k]; use α instead of α2 as field is doubled
+                    @inbounds Gᵤ[1,j,k] += α * Fᵤ[1,j,k]  # Fᵤ[0,j,k] = Fᵤ[1,j,k]; use α instead of α2 as field is doubled
                 end
             end
         elseif nw == 2  # w = y
@@ -163,7 +163,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for k = 1:Nz
                 for j = 2:Ny, i = 1:Nx  # not j = 2:Ny-1
-                    @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i,j,k] + Fᵤ[i,j-1,k])
+                    @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i,j,k] + Fᵤ[i,j-1,k])
                 end
             end
 
@@ -171,11 +171,11 @@ function apply_m̂!(
             # from the positive-end boundary for the Bloch boundary condition)
             if isbloch
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,1,k] += α2 * (Fᵤ[i,1,k] + Fᵤ[i,Ny,k]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0,k] = Fᵤ[0,Ny,k] / exp(-i ky Ly)
+                    @inbounds Gᵤ[i,1,k] += α2 * (Fᵤ[i,1,k] + Fᵤ[i,Ny,k]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0,k] = Fᵤ[0,Ny,k] / exp(-i ky Ly)
                 end
             else  # symmetry boundary
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,1,k] += α * Fᵤ[i,1,k]  # Fᵤ[i,0,k] = Fᵤ[i,1,k]; use α instead of α2 as field is doubled
+                    @inbounds Gᵤ[i,1,k] += α * Fᵤ[i,1,k]  # Fᵤ[i,0,k] = Fᵤ[i,1,k]; use α instead of α2 as field is doubled
                 end
             end
         else  # nw == 3; w = z
@@ -184,7 +184,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for k = 2:Nz
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,k] += α2 * (Fᵤ[i,j,k] + Fᵤ[i,j,k-1])
+                    @inbounds Gᵤ[i,j,k] += α2 * (Fᵤ[i,j,k] + Fᵤ[i,j,k-1])
                 end
             end
 
@@ -192,11 +192,11 @@ function apply_m̂!(
             # from the positive-end boundary for the Bloch boundary condition)
             if isbloch
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,1] += α2 * (Fᵤ[i,j,1] + Fᵤ[i,j,Nz]/e⁻ⁱᵏᴸ)  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz] / exp(-i kz Lz)
+                    @inbounds Gᵤ[i,j,1] += α2 * (Fᵤ[i,j,1] + Fᵤ[i,j,Nz]/e⁻ⁱᵏᴸ)  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz] / exp(-i kz Lz)
                 end
             else  # symmetry boundary
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,1] += α * Fᵤ[i,j,1]  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz]; use α instead of α2 as field is doubled
+                    @inbounds Gᵤ[i,j,1] += α * Fᵤ[i,j,1]  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz]; use α instead of α2 as field is doubled
                 end
             end
         end  # if nw == ...
@@ -207,56 +207,56 @@ end
 
 # Arithmetic m̂ for 2D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = 1, 2)
+    Gᵤ::AbstractArray{<:Number,2},  # u-component of output field (v = 1, 2)
     Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = 1, 2)
     nw::Integer,  # 1|2 for averaging along direction 1|2
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵤ: Gᵤ += α m(Fᵤ)
     overwrite::Bool=true  # false to add result to output storage G
 )
-    @assert size(Gᵥ)==size(Fᵤ)
+    @assert size(Gᵤ)==size(Fᵤ)
 
     Nx, Ny = size(Fᵤ)
     α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
-    overwrite && (Gᵥ .= 0)
+    overwrite && (Gᵤ .= 0)
     if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
                 @threads for j = 1:Ny
                     for i = 1:Nx-1
-                        @inbounds Gᵥ[i,j] += α2 * (Fᵤ[i+1,j] + Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += α2 * (Fᵤ[i+1,j] + Fᵤ[i,j])
                     end
                 end
 
                 # 2. At the positive end of the x-direction (where the boundary fields are
                 # taken from the negative-end boundary)
                 for j = 1:Ny
-                    @inbounds Gᵥ[Nx,j] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[1,j] + Fᵤ[Nx,j])  # Fᵤ[Nx+1,j] = exp(-i kx Lx) * Fᵤ[1,j]
+                    @inbounds Gᵤ[Nx,j] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[1,j] + Fᵤ[Nx,j])  # Fᵤ[Nx+1,j] = exp(-i kx Lx) * Fᵤ[1,j]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
                 @threads for j = 1:Ny
                     for i = 2:Nx-1
-                        @inbounds Gᵥ[i,j] += α2 * (Fᵤ[i+1,j] + Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += α2 * (Fᵤ[i+1,j] + Fᵤ[i,j])
                     end
                 end
 
                 # 2. At the negative end of the x-direction (where the boundary fields are
                 # assumed zero)
                 for j = 1:Ny
-                    @inbounds Gᵥ[1,j] += α2 * Fᵤ[2,j]  # Fᵤ[1,j] == 0
+                    @inbounds Gᵤ[1,j] += α2 * Fᵤ[2,j]  # Fᵤ[1,j] == 0
                 end
 
                 # 3. At the positive end of the x-direction (where the boundary fields are
                 # assumed zero)
                 for j = 1:Ny
-                    @inbounds Gᵥ[Nx,j] += α2 * Fᵤ[Nx,j]  # Fᵤ[Nx+1,j] == 0
+                    @inbounds Gᵤ[Nx,j] += α2 * Fᵤ[Nx,j]  # Fᵤ[Nx+1,j] == 0
                 end
             end
         else  # nw == 2; w = y
@@ -264,34 +264,34 @@ function apply_m̂!(
                 # 1. At locations except for the positive end of the y-direction
                 @threads for j = 1:Ny-1
                     for i = 1:Nx
-                        @inbounds Gᵥ[i,j] += α2 * (Fᵤ[i,j+1] + Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += α2 * (Fᵤ[i,j+1] + Fᵤ[i,j])
                     end
                 end
 
                 # 2. At the positive end of the y-direction (where the boundary fields are
                 # taken from the negative-end boundary)
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,Ny] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[i,1] + Fᵤ[i,Ny])  # Fᵤ[i,Ny+1] = exp(-i ky Ly) * Fᵤ[i,1]
+                    @inbounds Gᵤ[i,Ny] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[i,1] + Fᵤ[i,Ny])  # Fᵤ[i,Ny+1] = exp(-i ky Ly) * Fᵤ[i,1]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
                 @threads for j = 2:Ny-1
                     for i = 1:Nx
-                        @inbounds Gᵥ[i,j] += α2 * (Fᵤ[i,j+1] + Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += α2 * (Fᵤ[i,j+1] + Fᵤ[i,j])
                     end
                 end
 
                 # 2. At the negative end of the y-direction (where the boundary fields are
                 # assumed zero)
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,1] += α2 * Fᵤ[i,2]  # Fᵤ[i,1] == 0
+                    @inbounds Gᵤ[i,1] += α2 * Fᵤ[i,2]  # Fᵤ[i,1] == 0
                 end
 
                 # 3. At the positive end of the y-direction (where the boundary fields are
                 # assumed zero)
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,Ny] += α2 * Fᵤ[i,Ny]  # Fᵤ[i,Ny+1] == 0
+                    @inbounds Gᵤ[i,Ny] += α2 * Fᵤ[i,Ny]  # Fᵤ[i,Ny+1] == 0
                 end
             end
         end  # if nw == ...
@@ -302,7 +302,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for j = 1:Ny
                 for i = 2:Nx  # not i = 2:Nx-1
-                    @inbounds Gᵥ[i,j] += α2 * (Fᵤ[i,j] + Fᵤ[i-1,j])
+                    @inbounds Gᵤ[i,j] += α2 * (Fᵤ[i,j] + Fᵤ[i-1,j])
                 end
             end
 
@@ -310,11 +310,11 @@ function apply_m̂!(
             # from the positive-end boundary for the Bloch boundary condition)
             if isbloch
                 for j = 1:Ny
-                    @inbounds Gᵥ[1,j] += α2 * (Fᵤ[1,j] + Fᵤ[Nx,j]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j] = Fᵤ[Nx,j] / exp(-i kx Lx)
+                    @inbounds Gᵤ[1,j] += α2 * (Fᵤ[1,j] + Fᵤ[Nx,j]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j] = Fᵤ[Nx,j] / exp(-i kx Lx)
                 end
             else  # symmetry boundary
                 for j = 1:Ny
-                    @inbounds Gᵥ[1,j] += α * Fᵤ[1,j]  # Fᵤ[0,j] = Fᵤ[1,j]; use α instead of α2 as field is doubled
+                    @inbounds Gᵤ[1,j] += α * Fᵤ[1,j]  # Fᵤ[0,j] = Fᵤ[1,j]; use α instead of α2 as field is doubled
                 end
             end
         elseif nw == 2  # w = y
@@ -323,7 +323,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for j = 2:Ny
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,j] += α2 * (Fᵤ[i,j] + Fᵤ[i,j-1])
+                    @inbounds Gᵤ[i,j] += α2 * (Fᵤ[i,j] + Fᵤ[i,j-1])
                 end
             end
 
@@ -331,11 +331,11 @@ function apply_m̂!(
             # from the positive-end boundary for the Bloch boundary condition)
             if isbloch
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,1] += α2 * (Fᵤ[i,1] + Fᵤ[i,Ny]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0] = Fᵤ[0,Ny] / exp(-i ky Ly)
+                    @inbounds Gᵤ[i,1] += α2 * (Fᵤ[i,1] + Fᵤ[i,Ny]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0] = Fᵤ[0,Ny] / exp(-i ky Ly)
                 end
             else  # symmetry boundary
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,1] += α * Fᵤ[i,1]  # Fᵤ[i,0] = Fᵤ[i,1]; use α instead of α2 as field is doubled
+                    @inbounds Gᵤ[i,1] += α * Fᵤ[i,1]  # Fᵤ[i,0] = Fᵤ[i,1]; use α instead of α2 as field is doubled
                 end
             end
         end  # if nw == ...
@@ -346,61 +346,61 @@ end
 
 # Arithmetic m̂ for 1D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = 1)
+    Gᵤ::AbstractArray{<:Number,1},  # u-component of output field (v = 1)
     Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = 1)
     nw::Integer,  # 1 for averaging along direction 1
     isfwd::Bool,  # true|false for forward|backward averaging
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵤ: Gᵤ += α m(Fᵤ)
     overwrite::Bool=true  # false to add result to output storage G
 )
-    @assert size(Gᵥ)==size(Fᵤ)
+    @assert size(Gᵤ)==size(Fᵤ)
     @argcheck nw==1
 
     Nx = length(Fᵤ)  # not size(Fᵤ) unlike code for 2D and 3D
     α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
-    overwrite && (Gᵥ .= 0)
+    overwrite && (Gᵤ .= 0)
     if isfwd
         if isbloch
             # 1. At locations except for the positive end of the x-direction
             @threads for i = 1:Nx-1
-                @inbounds Gᵥ[i] += α2 * (Fᵤ[i+1] + Fᵤ[i])
+                @inbounds Gᵤ[i] += α2 * (Fᵤ[i+1] + Fᵤ[i])
             end
 
             # 2. At the positive end of the x-direction (where the boundary fields are taken
             # from the negative-end boundary)
-            @inbounds Gᵥ[Nx] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[1] + Fᵤ[Nx])  # Fᵤ[Nx+1] = exp(-i kx Lx) * Fᵤ[1]
+            @inbounds Gᵤ[Nx] += α2 * (e⁻ⁱᵏᴸ*Fᵤ[1] + Fᵤ[Nx])  # Fᵤ[Nx+1] = exp(-i kx Lx) * Fᵤ[1]
         else  # symmetry boundary
             # 1. At the locations except for the positive and negative ends of the x-direction
             @threads for i = 2:Nx-1
-                @inbounds Gᵥ[i] += α2 * (Fᵤ[i+1] + Fᵤ[i])
+                @inbounds Gᵤ[i] += α2 * (Fᵤ[i+1] + Fᵤ[i])
             end
 
             # 2. At the negative end of the x-direction (where the boundary fields are assumed
             # zero)
-            @inbounds Gᵥ[1] += α2 * Fᵤ[2]  # Fᵤ[1] == 0
+            @inbounds Gᵤ[1] += α2 * Fᵤ[2]  # Fᵤ[1] == 0
 
             # 3. At the positive end of the x-direction (where the boundary fields are assumed
             # zero)
-            @inbounds Gᵥ[Nx] += α2 * Fᵤ[Nx]  # Fᵤ[Nx+1] == 0
+            @inbounds Gᵤ[Nx] += α2 * Fᵤ[Nx]  # Fᵤ[Nx+1] == 0
         end
     else  # backward averaging
         # 1. At the locations except for the negative end of the x-direction; unlike for the
         # forward difference, for the backward difference this part of the code is common
         # for both the Bloch and symmetry boundary conditions.
         @threads for i = 2:Nx
-            @inbounds Gᵥ[i] += α2 * (Fᵤ[i] + Fᵤ[i-1])
+            @inbounds Gᵤ[i] += α2 * (Fᵤ[i] + Fᵤ[i-1])
         end
 
         # 2. At the negative end of the x-direction (where the boundary fields are taken
         # from the positive-end boundary for the Bloch boundary condition)
         if isbloch
-            @inbounds Gᵥ[1] += α2 * (Fᵤ[1] + Fᵤ[Nx]/e⁻ⁱᵏᴸ)  # Fᵤ[0] = Fᵤ[Nx] / exp(-i kx Lx)
+            @inbounds Gᵤ[1] += α2 * (Fᵤ[1] + Fᵤ[Nx]/e⁻ⁱᵏᴸ)  # Fᵤ[0] = Fᵤ[Nx] / exp(-i kx Lx)
         else  # symmetry boundary
-            @inbounds Gᵥ[1] += α * Fᵤ[1]  # Fᵤ[0] = Fᵤ[1]; use α instead of α2 as field is doubled
+            @inbounds Gᵤ[1] += α * Fᵤ[1]  # Fᵤ[0] = Fᵤ[1]; use α instead of α2 as field is doubled
         end
     end  # if isfwd
 
@@ -410,7 +410,7 @@ end
 
 # Weighted m̂ for 3D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,3},  # v-component of output field (v = 1 ,2, 3)
+    Gᵤ::AbstractArray{<:Number,3},  # u-component of output field (v = 1 ,2, 3)
     Fᵤ::AbstractArray{<:Number,3},  # u-component of input field (u = 1, 2, 3)
     nw::Integer,  # 1|2|3 for averaging along direction 1|2|3
     isfwd::Bool,  # true|false for forward|backward averaging
@@ -418,10 +418,10 @@ function apply_m̂!(
     ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵤ: Gᵤ += α m(Fᵤ)
     overwrite::Bool=true  # false to add result to output storage G
 )
-    @assert size(Gᵥ)==size(Fᵤ)
+    @assert size(Gᵤ)==size(Fᵤ)
     @assert size(Fᵤ,nw)==length(∆w)
     @assert length(∆w)==length(∆w′⁻¹)
 
@@ -429,14 +429,14 @@ function apply_m̂!(
     α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
-    overwrite && (Gᵥ .= 0)
+    overwrite && (Gᵤ .= 0)
     if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
                 @threads for k = 1:Nz
                     for j = 1:Ny, i = 1:Nx-1
-                        @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j,k] + ∆w[i]*Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j,k] + ∆w[i]*Fᵤ[i,j,k])
                     end
                 end
 
@@ -444,14 +444,14 @@ function apply_m̂!(
                 # taken from the negative-end boundary)
                 β = α2 * ∆w′⁻¹[Nx]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[Nx,j,k] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[1,j,k] + ∆w[Nx]*Fᵤ[Nx,j,k])  # Fᵤ[Nx+1,j,k] = exp(-i kx Lx) * Fᵤ[1,j,k]
+                    @inbounds Gᵤ[Nx,j,k] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[1,j,k] + ∆w[Nx]*Fᵤ[Nx,j,k])  # Fᵤ[Nx+1,j,k] = exp(-i kx Lx) * Fᵤ[1,j,k]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
                 @threads for k = 1:Nz
                     for j = 1:Ny, i = 2:Nx-1
-                        @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j,k] + ∆w[i]*Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j,k] + ∆w[i]*Fᵤ[i,j,k])
                     end
                 end
 
@@ -459,14 +459,14 @@ function apply_m̂!(
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[1,j,k] += β * ∆w[2]*Fᵤ[2,j,k]  # Fᵤ[1,j,k] == 0
+                    @inbounds Gᵤ[1,j,k] += β * ∆w[2]*Fᵤ[2,j,k]  # Fᵤ[1,j,k] == 0
                 end
 
                 # 3. At the positive end of the x-direction (where the boundary fields are
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[Nx]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[Nx,j,k] += β * ∆w[Nx]*Fᵤ[Nx,j,k]  # Fᵤ[Nx+1,j,k] == 0
+                    @inbounds Gᵤ[Nx,j,k] += β * ∆w[Nx]*Fᵤ[Nx,j,k]  # Fᵤ[Nx+1,j,k] == 0
                 end
             end
         elseif nw == 2  # w = y
@@ -474,7 +474,7 @@ function apply_m̂!(
                 # 1. At locations except for the positive end of the y-direction
                 @threads for k = 1:Nz
                     for j = 1:Ny-1, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1,k] + ∆w[j]*Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1,k] + ∆w[j]*Fᵤ[i,j,k])
                     end
                 end
 
@@ -482,14 +482,14 @@ function apply_m̂!(
                 # taken from the negative-end boundary)
                 β = α2 * ∆w′⁻¹[Ny]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,Ny,k] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[i,1,k] + ∆w[Ny]*Fᵤ[i,Ny,k])  # Fᵤ[i,Ny+1,k] = exp(-i ky Ly) * Fᵤ[i,1,k]
+                    @inbounds Gᵤ[i,Ny,k] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[i,1,k] + ∆w[Ny]*Fᵤ[i,Ny,k])  # Fᵤ[i,Ny+1,k] = exp(-i ky Ly) * Fᵤ[i,1,k]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
                 @threads for k = 1:Nz
                     for j = 2:Ny-1, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1,k] + ∆w[j]*Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1,k] + ∆w[j]*Fᵤ[i,j,k])
                     end
                 end
 
@@ -497,14 +497,14 @@ function apply_m̂!(
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,1,k] += β * ∆w[2]*Fᵤ[i,2,k]  # Fᵤ[i,1,k] == 0
+                    @inbounds Gᵤ[i,1,k] += β * ∆w[2]*Fᵤ[i,2,k]  # Fᵤ[i,1,k] == 0
                 end
 
                 # 3. At the positive end of the y-direction (where the boundary fields are
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[Ny]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,Ny,k] += β * ∆w[Ny]*Fᵤ[i,Ny,k]  # Fᵤ[i,Ny+1,k] == 0
+                    @inbounds Gᵤ[i,Ny,k] += β * ∆w[Ny]*Fᵤ[i,Ny,k]  # Fᵤ[i,Ny+1,k] == 0
                 end
             end
         else  # nw == 3; w = z
@@ -512,7 +512,7 @@ function apply_m̂!(
                 # 1. At locations except for the positive end of the z-direction
                 @threads for k = 1:Nz-1
                     for j = 1:Ny, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fᵤ[i,j,k+1] + ∆w[k]*Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fᵤ[i,j,k+1] + ∆w[k]*Fᵤ[i,j,k])
                     end
                 end
 
@@ -520,14 +520,14 @@ function apply_m̂!(
                 # taken from the negative-end boundary)
                 β = α2 * ∆w′⁻¹[Nz]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,Nz] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[i,j,1] + ∆w[Nz]*Fᵤ[i,j,Nz])  # Fᵤ[i,j,Nz+1] = exp(-i kz Lz) * Fᵤ[i,j,1]
+                    @inbounds Gᵤ[i,j,Nz] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[i,j,1] + ∆w[Nz]*Fᵤ[i,j,Nz])  # Fᵤ[i,j,Nz+1] = exp(-i kz Lz) * Fᵤ[i,j,1]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # z-direction
                 @threads for k = 2:Nz-1
                     for j = 1:Ny, i = 1:Nx
-                        @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fᵤ[i,j,k+1] + ∆w[k]*Fᵤ[i,j,k])
+                        @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[k]) * (∆w[k+1]*Fᵤ[i,j,k+1] + ∆w[k]*Fᵤ[i,j,k])
                     end
                 end
 
@@ -535,14 +535,14 @@ function apply_m̂!(
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,1] += β * ∆w[2]*Fᵤ[i,j,2]  # Fᵤ[i,j,1] == 0
+                    @inbounds Gᵤ[i,j,1] += β * ∆w[2]*Fᵤ[i,j,2]  # Fᵤ[i,j,1] == 0
                 end
 
                 # 3. At the positive end of the z-direction (where the boundary fields are
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[Nz]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,Nz] += β * ∆w[Nz]*Fᵤ[i,j,Nz]  # Fᵤ[i,j,Nz+1] == 0
+                    @inbounds Gᵤ[i,j,Nz] += β * ∆w[Nz]*Fᵤ[i,j,Nz]  # Fᵤ[i,j,Nz+1] == 0
                 end
             end
         end  # if nw == ...
@@ -553,7 +553,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for k = 1:Nz
                 for j = 1:Ny, i = 2:Nx  # not i = 2:Nx-1
-                    @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fᵤ[i,j,k] + ∆w[i-1]*Fᵤ[i-1,j,k])
+                    @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fᵤ[i,j,k] + ∆w[i-1]*Fᵤ[i-1,j,k])
                 end
             end
 
@@ -562,12 +562,12 @@ function apply_m̂!(
             if isbloch
                 β = α2 * ∆w′⁻¹[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[1,j,k] += β * (∆w[1]*Fᵤ[1,j,k] + ∆w[Nx]*Fᵤ[Nx,j,k]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j,k] = Fᵤ[Nx,j,k] / exp(-i kx Lx)
+                    @inbounds Gᵤ[1,j,k] += β * (∆w[1]*Fᵤ[1,j,k] + ∆w[Nx]*Fᵤ[Nx,j,k]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j,k] = Fᵤ[Nx,j,k] / exp(-i kx Lx)
                 end
             else  # symmetry boundary
                 β = α * ∆w′⁻¹[1]
                 for k = 1:Nz, j = 1:Ny
-                    @inbounds Gᵥ[1,j,k] += β * ∆w[1]*Fᵤ[1,j,k]  # Fᵤ[0,j,k] = Fᵤ[1,j,k]
+                    @inbounds Gᵤ[1,j,k] += β * ∆w[1]*Fᵤ[1,j,k]  # Fᵤ[0,j,k] = Fᵤ[1,j,k]
                 end
             end
         elseif nw == 2  # w = y
@@ -576,7 +576,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for k = 1:Nz
                 for j = 2:Ny, i = 1:Nx  # not j = 2:Ny-1
-                    @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fᵤ[i,j,k] + ∆w[j-1]*Fᵤ[i,j-1,k])
+                    @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fᵤ[i,j,k] + ∆w[j-1]*Fᵤ[i,j-1,k])
                 end
             end
 
@@ -585,12 +585,12 @@ function apply_m̂!(
             if isbloch
                 β = α2 * ∆w′⁻¹[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,1,k] += β * (∆w[1]*Fᵤ[i,1,k] + ∆w[Ny]*Fᵤ[i,Ny,k]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0,k] = Fᵤ[0,Ny,k] / exp(-i ky Ly)
+                    @inbounds Gᵤ[i,1,k] += β * (∆w[1]*Fᵤ[i,1,k] + ∆w[Ny]*Fᵤ[i,Ny,k]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0,k] = Fᵤ[0,Ny,k] / exp(-i ky Ly)
                 end
             else  # symmetry boundary
                 β = α * ∆w′⁻¹[1]
                 for k = 1:Nz, i = 1:Nx
-                    @inbounds Gᵥ[i,1,k] += β * ∆w[1]*Fᵤ[i,1,k]  # Fᵤ[i,0,k] = Fᵤ[i,1,k]
+                    @inbounds Gᵤ[i,1,k] += β * ∆w[1]*Fᵤ[i,1,k]  # Fᵤ[i,0,k] = Fᵤ[i,1,k]
                 end
             end
         else  # nw == 3; w = z
@@ -599,7 +599,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for k = 2:Nz
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,k] += (α2 * ∆w′⁻¹[k]) * (∆w[k]*Fᵤ[i,j,k] + ∆w[k-1]*Fᵤ[i,j,k-1])
+                    @inbounds Gᵤ[i,j,k] += (α2 * ∆w′⁻¹[k]) * (∆w[k]*Fᵤ[i,j,k] + ∆w[k-1]*Fᵤ[i,j,k-1])
                 end
             end
 
@@ -608,12 +608,12 @@ function apply_m̂!(
             if isbloch
                 β = α2 * ∆w′⁻¹[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,1] += β * (∆w[1]*Fᵤ[i,j,1] + ∆w[Nz]*Fᵤ[i,j,Nz]/e⁻ⁱᵏᴸ)  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz] / exp(-i kz Lz)
+                    @inbounds Gᵤ[i,j,1] += β * (∆w[1]*Fᵤ[i,j,1] + ∆w[Nz]*Fᵤ[i,j,Nz]/e⁻ⁱᵏᴸ)  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz] / exp(-i kz Lz)
                 end
             else  # symmetry boundary
                 β = α * ∆w′⁻¹[1]
                 for j = 1:Ny, i = 1:Nx
-                    @inbounds Gᵥ[i,j,1] += β * ∆w[1]*Fᵤ[i,j,1]  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz]
+                    @inbounds Gᵤ[i,j,1] += β * ∆w[1]*Fᵤ[i,j,1]  # Fᵤ[i,j,0] = Fᵤ[i,j,Nz]
                 end
             end
         end  # if nw == ...
@@ -624,7 +624,7 @@ end
 
 # Weighted m̂ for 2D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,2},  # v-component of output field (v = 1, 2)
+    Gᵤ::AbstractArray{<:Number,2},  # u-component of output field (v = 1, 2)
     Fᵤ::AbstractArray{<:Number,2},  # u-component of input field (u = 1, 2)
     nw::Integer,  # 1|2 for averaging along direction 1|2
     isfwd::Bool,  # true|false for forward|backward averaging
@@ -632,10 +632,10 @@ function apply_m̂!(
     ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵤ: Gᵤ += α m(Fᵤ)
     overwrite::Bool=true  # false to add result to output storage G
 )
-    @assert size(Gᵥ)==size(Fᵤ)
+    @assert size(Gᵤ)==size(Fᵤ)
     @assert size(Fᵤ,nw)==length(∆w)
     @assert length(∆w)==length(∆w′⁻¹)
 
@@ -643,14 +643,14 @@ function apply_m̂!(
     α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
-    overwrite && (Gᵥ .= 0)
+    overwrite && (Gᵤ .= 0)
     if isfwd
         if nw == 1  # w = x
             if isbloch
                 # 1. At locations except for the positive end of the x-direction
                 @threads for j = 1:Ny
                     for i = 1:Nx-1
-                        @inbounds Gᵥ[i,j] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j] + ∆w[i]*Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j] + ∆w[i]*Fᵤ[i,j])
                     end
                 end
 
@@ -658,14 +658,14 @@ function apply_m̂!(
                 # taken from the negative-end boundary)
                 β = α2 * ∆w′⁻¹[Nx]
                 for j = 1:Ny
-                    @inbounds Gᵥ[Nx,j] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[1,j] + ∆w[Nx]*Fᵤ[Nx,j])  # Fᵤ[Nx+1,j] = exp(-i kx Lx) * Fᵤ[1,j]
+                    @inbounds Gᵤ[Nx,j] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[1,j] + ∆w[Nx]*Fᵤ[Nx,j])  # Fᵤ[Nx+1,j] = exp(-i kx Lx) * Fᵤ[1,j]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # x-direction
                 @threads for j = 1:Ny
                     for i = 2:Nx-1
-                        @inbounds Gᵥ[i,j] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j] + ∆w[i]*Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1,j] + ∆w[i]*Fᵤ[i,j])
                     end
                 end
 
@@ -673,14 +673,14 @@ function apply_m̂!(
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[1]
                 for j = 1:Ny
-                    @inbounds Gᵥ[1,j] += β * ∆w[2]*Fᵤ[2,j]  # Fᵤ[1,j] == 0
+                    @inbounds Gᵤ[1,j] += β * ∆w[2]*Fᵤ[2,j]  # Fᵤ[1,j] == 0
                 end
 
                 # 3. At the positive end of the x-direction (where the boundary fields are
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[Nx]
                 for j = 1:Ny
-                    @inbounds Gᵥ[Nx,j] += β * ∆w[Nx]*Fᵤ[Nx,j]  # Fᵤ[Nx+1,j] == 0
+                    @inbounds Gᵤ[Nx,j] += β * ∆w[Nx]*Fᵤ[Nx,j]  # Fᵤ[Nx+1,j] == 0
                 end
             end
         else  # nw == 2; w = y
@@ -688,7 +688,7 @@ function apply_m̂!(
                 # 1. At locations except for the positive end of the y-direction
                 @threads for j = 1:Ny-1
                     for i = 1:Nx
-                        @inbounds Gᵥ[i,j] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1] + ∆w[j]*Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1] + ∆w[j]*Fᵤ[i,j])
                     end
                 end
 
@@ -696,14 +696,14 @@ function apply_m̂!(
                 # taken from the negative-end boundary)
                 β = α2 * ∆w′⁻¹[Ny]
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,Ny] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[i,1] + ∆w[Ny]*Fᵤ[i,Ny])  # Fᵤ[i,Ny+1] = exp(-i ky Ly) * Fᵤ[i,1]
+                    @inbounds Gᵤ[i,Ny] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[i,1] + ∆w[Ny]*Fᵤ[i,Ny])  # Fᵤ[i,Ny+1] = exp(-i ky Ly) * Fᵤ[i,1]
                 end
             else  # symmetry boundary
                 # 1. At the locations except for the positive and negative ends of the
                 # y-direction
                 @threads for j = 2:Ny-1
                     for i = 1:Nx
-                        @inbounds Gᵥ[i,j] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1] + ∆w[j]*Fᵤ[i,j])
+                        @inbounds Gᵤ[i,j] += (α2 * ∆w′⁻¹[j]) * (∆w[j+1]*Fᵤ[i,j+1] + ∆w[j]*Fᵤ[i,j])
                     end
                 end
 
@@ -711,14 +711,14 @@ function apply_m̂!(
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[1]
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,1] += β * ∆w[2]*Fᵤ[i,2]  # Fᵤ[i,1] == 0
+                    @inbounds Gᵤ[i,1] += β * ∆w[2]*Fᵤ[i,2]  # Fᵤ[i,1] == 0
                 end
 
                 # 3. At the positive end of the y-direction (where the boundary fields are
                 # assumed zero)
                 β = α2 * ∆w′⁻¹[Ny]
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,Ny] += β * ∆w[Ny]*Fᵤ[i,Ny]  # Fᵤ[i,Ny+1] == 0
+                    @inbounds Gᵤ[i,Ny] += β * ∆w[Ny]*Fᵤ[i,Ny]  # Fᵤ[i,Ny+1] == 0
                 end
             end
         end  # if nw == ...
@@ -729,7 +729,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for j = 1:Ny
                 for i = 2:Nx  # not i = 2:Nx-1
-                    @inbounds Gᵥ[i,j] += (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fᵤ[i,j] + ∆w[i-1]*Fᵤ[i-1,j])
+                    @inbounds Gᵤ[i,j] += (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fᵤ[i,j] + ∆w[i-1]*Fᵤ[i-1,j])
                 end
             end
 
@@ -738,12 +738,12 @@ function apply_m̂!(
             if isbloch
                 β = α2 * ∆w′⁻¹[1]
                 for j = 1:Ny
-                    @inbounds Gᵥ[1,j] += β * (∆w[1]*Fᵤ[1,j] + ∆w[Nx]*Fᵤ[Nx,j]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j] = Fᵤ[Nx,j] / exp(-i kx Lx)
+                    @inbounds Gᵤ[1,j] += β * (∆w[1]*Fᵤ[1,j] + ∆w[Nx]*Fᵤ[Nx,j]/e⁻ⁱᵏᴸ)  # Fᵤ[0,j] = Fᵤ[Nx,j] / exp(-i kx Lx)
                 end
             else  # symmetry boundary
                 β = α * ∆w′⁻¹[1]
                 for j = 1:Ny
-                    @inbounds Gᵥ[1,j] += β * ∆w[1]*Fᵤ[1,j]  # Fᵤ[0,j] = Fᵤ[1,j]
+                    @inbounds Gᵤ[1,j] += β * ∆w[1]*Fᵤ[1,j]  # Fᵤ[0,j] = Fᵤ[1,j]
                 end
             end
         elseif nw == 2  # w = y
@@ -752,7 +752,7 @@ function apply_m̂!(
             # common for both the Bloch and symmetry boundary conditions.
             @threads for j = 2:Ny
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,j] += (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fᵤ[i,j] + ∆w[j-1]*Fᵤ[i,j-1])
+                    @inbounds Gᵤ[i,j] += (α2 * ∆w′⁻¹[j]) * (∆w[j]*Fᵤ[i,j] + ∆w[j-1]*Fᵤ[i,j-1])
                 end
             end
 
@@ -761,12 +761,12 @@ function apply_m̂!(
             if isbloch
                 β = α2 * ∆w′⁻¹[1]
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,1] += β * (∆w[1]*Fᵤ[i,1] + ∆w[Ny]*Fᵤ[i,Ny]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0] = Fᵤ[0,Ny] / exp(-i ky Ly)
+                    @inbounds Gᵤ[i,1] += β * (∆w[1]*Fᵤ[i,1] + ∆w[Ny]*Fᵤ[i,Ny]/e⁻ⁱᵏᴸ)  # Fᵤ[i,0] = Fᵤ[0,Ny] / exp(-i ky Ly)
                 end
             else  # symmetry boundary
                 β = α * ∆w′⁻¹[1]
                 for i = 1:Nx
-                    @inbounds Gᵥ[i,1] += β * ∆w[1]*Fᵤ[i,1]  # Fᵤ[i,0] = Fᵤ[i,1]
+                    @inbounds Gᵤ[i,1] += β * ∆w[1]*Fᵤ[i,1]  # Fᵤ[i,0] = Fᵤ[i,1]
                 end
             end
         end  # if nw == ...
@@ -777,7 +777,7 @@ end
 
 # Weighted m̂ for 1D
 function apply_m̂!(
-    Gᵥ::AbstractArray{<:Number,1},  # v-component of output field (v = 1)
+    Gᵤ::AbstractArray{<:Number,1},  # u-component of output field (v = 1)
     Fᵤ::AbstractArray{<:Number,1},  # u-component of input field (u = 1)
     nw::Integer,  # 1 for averaging along direction 1
     isfwd::Bool,  # true|false for forward|backward averaging
@@ -785,10 +785,10 @@ function apply_m̂!(
     ∆w′⁻¹::AbstractVector{<:Number},  # inverse of line segments to divide by; vector of length N[nw]
     isbloch::Bool,  # boundary condition in w-direction
     e⁻ⁱᵏᴸ::Number=1;  # Bloch phase factor
-    α::Number=1,  # scale factor to multiply to result before adding it to Gᵥ: Gᵥ += α m(Fᵤ)
+    α::Number=1,  # scale factor to multiply to result before adding it to Gᵤ: Gᵤ += α m(Fᵤ)
     overwrite::Bool=true  # false to add result to output storage G
 )
-    @assert size(Gᵥ)==size(Fᵤ)
+    @assert size(Gᵤ)==size(Fᵤ)
     @assert size(Fᵤ,nw)==length(∆w)
     @assert length(∆w)==length(∆w′⁻¹)
     @argcheck nw==1
@@ -797,50 +797,50 @@ function apply_m̂!(
     α2 = 0.5α
 
     # Make sure not to include branches inside for loops.
-    overwrite && (Gᵥ .= 0)
+    overwrite && (Gᵤ .= 0)
     if isfwd
         if isbloch
             # 1. At locations except for the positive end of the x-direction
             @threads for i = 1:Nx-1
-                @inbounds Gᵥ[i] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1] + ∆w[i]*Fᵤ[i])
+                @inbounds Gᵤ[i] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1] + ∆w[i]*Fᵤ[i])
             end
 
             # 2. At the positive end of the x-direction (where the boundary fields are taken
             # from the negative-end boundary)
             β = α2 * ∆w′⁻¹[Nx]
-            @inbounds Gᵥ[Nx] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[1] + ∆w[Nx]*Fᵤ[Nx])  # Fᵤ[Nx+1] = exp(-i kx Lx) * Fᵤ[1]
+            @inbounds Gᵤ[Nx] += β * (∆w[1]*e⁻ⁱᵏᴸ*Fᵤ[1] + ∆w[Nx]*Fᵤ[Nx])  # Fᵤ[Nx+1] = exp(-i kx Lx) * Fᵤ[1]
         else  # symmetry boundary
             # 1. At the locations except for the positive and negative ends of the x-direction
             @threads for i = 2:Nx-1
-                @inbounds Gᵥ[i] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1] + ∆w[i]*Fᵤ[i])
+                @inbounds Gᵤ[i] += (α2 * ∆w′⁻¹[i]) * (∆w[i+1]*Fᵤ[i+1] + ∆w[i]*Fᵤ[i])
             end
 
             # 2. At the negative end of the x-direction (where the boundary fields are assumed
             # zero)
             β = α2 * ∆w′⁻¹[1]
-            @inbounds Gᵥ[1] += β * ∆w[2]*Fᵤ[2]  # Fᵤ[1] == 0
+            @inbounds Gᵤ[1] += β * ∆w[2]*Fᵤ[2]  # Fᵤ[1] == 0
 
             # 3. At the positive end of the x-direction (where the boundary fields are assumed
             # zero)
             β = α2 * ∆w′⁻¹[Nx]
-            @inbounds Gᵥ[Nx] += β * ∆w[Nx]*Fᵤ[Nx]  # Fᵤ[Nx+1] == 0
+            @inbounds Gᵤ[Nx] += β * ∆w[Nx]*Fᵤ[Nx]  # Fᵤ[Nx+1] == 0
         end
     else  # backward averaging
         # 1. At the locations except for the negative end of the x-direction; unlike for the
         # forward difference, for the backward difference this part of the code is common
         # for both the Bloch and symmetry boundary conditions.
         @threads for i = 2:Nx
-            @inbounds Gᵥ[i] += (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fᵤ[i] + ∆w[i-1]*Fᵤ[i-1])
+            @inbounds Gᵤ[i] += (α2 * ∆w′⁻¹[i]) * (∆w[i]*Fᵤ[i] + ∆w[i-1]*Fᵤ[i-1])
         end
 
         # 2. At the negative end of the x-direction (where the boundary fields are taken
         # from the positive-end boundary for the Bloch boundary condition)
         if isbloch
             β = α2 * ∆w′⁻¹[1]
-            @inbounds Gᵥ[1] += β * (∆w[1]*Fᵤ[1] + ∆w[Nx]*Fᵤ[Nx]/e⁻ⁱᵏᴸ)  # Fᵤ[0] = Fᵤ[Nx] / exp(-i kx Lx)
+            @inbounds Gᵤ[1] += β * (∆w[1]*Fᵤ[1] + ∆w[Nx]*Fᵤ[Nx]/e⁻ⁱᵏᴸ)  # Fᵤ[0] = Fᵤ[Nx] / exp(-i kx Lx)
         else  # symmetry boundary
             β = α * ∆w′⁻¹[1]
-            @inbounds Gᵥ[1] += β * ∆w[1]*Fᵤ[1]  # Fᵤ[0] = Fᵤ[1]
+            @inbounds Gᵤ[1] += β * ∆w[1]*Fᵤ[1]  # Fᵤ[0] = Fᵤ[1]
         end
     end  # if isfwd
 
