@@ -117,8 +117,8 @@ function create_stretched_∆l(
     ω::Number,  # angular frequency
     ∆l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point spacings at primal and dual grid point locations
     l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # locations of primal and dual grid points w/o ghost points
-    bounds::NTuple{2,SVector{K,<:Real}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
-    Npml::NTuple{2,SVector{K,<:Integer}},  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
+    bounds::NTuple{2,SVector{K,<:Real}},  # bounds[LowerBound()][k] = boundary of domain at (-) end in k-direction
+    Npml::NTuple{2,SVector{K,<:Integer}},  # Npml[LowerBound()][k] = number of cells inside PML at (-) end in k-direction
     pml::PMLParam=PMLParam()  # PML parameters
 ) where {K}
     if all(iszero.(Npml))
@@ -158,8 +158,8 @@ function create_sfactor(
     N = length.(l[nPR])  # (Nx, Ny, Nz)
     sfactor = (ones.(ComplexF64,N), ones.(ComplexF64,N))
     for k = 1:K
-        lpmlₙ, lpmlₚ = lpml[nN][k], lpml[nP][k]
-        Lpmlₙ, Lpmlₚ = Lpml[nN][k], Lpml[nP][k]
+        lpmlₙ, lpmlₚ = lpml[LowerBound()][k], lpml[UpperBound()][k]
+        Lpmlₙ, Lpmlₚ = Lpml[LowerBound()][k], Lpml[UpperBound()][k]
         for ngt = nPD
             r = l[ngt][k]
             s = sfactor[ngt][k]
@@ -202,14 +202,14 @@ pml_loc(
 # Therefore, the boundary information is passed separately.
 function pml_loc(
     lprim::NTuple{K,AbstractVector{<:Real}},  # lprim[k] = primal vertex locations in k-direction (excluding ghost location at (+) end)
-    bounds::NTuple{2,SVector{K,<:Real}},  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
-    Npml::NTuple{2,SVector{K,<:Integer}}  # Npml[NEG][k] = number of cells inside PML at (-) end in k-direction
+    bounds::NTuple{2,SVector{K,<:Real}},  # bounds[LowerBound()][k] = boundary of domain at (-) end in k-direction
+    Npml::NTuple{2,SVector{K,<:Integer}}  # Npml[LowerBound()][k] = number of cells inside PML at (-) end in k-direction
 ) where {K}
-    # Below, if Npml[nP] = 0, lprim[end+1-Npml[nP]] = lprim[end+1] is out of bound.  Because
+    # Below, if Npml[UpperBound()] = 0, lprim[end+1-Npml[UpperBound()]] = lprim[end+1] is out of bound.  Because
     # lprim[end+1] points to the ghost point, we return the positive-end boundary in this
     # case.
-    lpml = (map((v,n)->v[1+n], lprim, Npml[nN]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[nP], Npml[nP]))  # NTuple{2,SFloat{K}}
-    Lpml = (lpml[nN]-bounds[nN], bounds[nP]-lpml[nP])  # NTuple{2,SFloat{K}}
+    lpml = (map((v,n)->v[1+n], lprim, Npml[LowerBound()]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[UpperBound()], Npml[UpperBound()]))  # NTuple{2,SFloat{K}}
+    Lpml = (lpml[LowerBound()]-bounds[LowerBound()], bounds[UpperBound()]-lpml[UpperBound()])  # NTuple{2,SFloat{K}}
 
     return lpml, Lpml
 end

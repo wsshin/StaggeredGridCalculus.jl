@@ -2,25 +2,24 @@
 
 @testset "instances" begin
     @test instances(GridType) == (PRIM, DUAL)
-    @test instances(Sign) == (NEG, POS)
+    @test instances(AbstractBoundType) == (LowerBound(), UpperBound())
 end
 
 @testset "numel" begin
     @test numel(GridType) == 2
-    @test numel(Sign) == 2
+    @test numel(AbstractBoundType) == 2
 end
 
 @testset "integers" begin
     @test Int.(SVector(instances(GridType))) == nPD == [nPR, nDL]
-    @test Int.(SVector(instances(Sign))) == nNP == [nN, nP]
 end
 
 @testset "next and alter" begin
     @test alter(PRIM) == DUAL
     @test alter(DUAL) == PRIM
 
-    @test alter(NEG) == POS
-    @test alter(POS) == NEG
+    @test conj(LowerBound()) == UpperBound()
+    @test conj(UpperBound()) == LowerBound()
 end
 
 end  # @testset "enumtype"

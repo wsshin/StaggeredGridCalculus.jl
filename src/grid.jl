@@ -161,7 +161,7 @@ struct Grid{K}
     ∆l::NTuple{2,NTuple{K,Vector{Float64}}}  # ∆l[PRIM][k] = (∆l at primal vertices in k) == diff(l[DUAL][k] including ghost point)
     isbloch::SVector{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
     σ::NTuple{2,NTuple{K,Vector{Bool}}}  # false only for non-ghost points exactly on symmetry boundary (= first point in primal grid)
-    bounds::NTuple{2,SVector{K,Float64}}  # bounds[NEG][k] = boundary of domain at (-) end in k-direction
+    bounds::NTuple{2,SVector{K,Float64}}  # bounds[LowerBound()][k] = boundary of domain at (-) end in k-direction
     ghosted::Ghosted{K}  # data related to ghost points
 end
 
@@ -185,13 +185,13 @@ function Grid(
 
     lbound = SVector(lprim)  # SVector{K,Vector{<:Real}}; to make broadcast and map on lprim to produce SVector
     bounds = (getindex.(lbound,1), getindex.(lbound,lastindex.(lbound)))  # NTuple{2,SVector{K,<:Real}}
-    L = bounds[nP] - bounds[nN]  # SVector{K,<:Real}
+    L = bounds[UpperBound()] - bounds[LoweBound()]  # SVector{K,<:Real}
 
     # Prepare lprim and ldual to calculate ∆lprim and ∆ldual.
     # Note that ∆lprim is not ∆'s or lprim, but ∆'s defined at lprim locations.
     for k = 1:K
         # To calculate ∆'s at lprim, we need one more ldual outside the negative boundary.
-        ldual₀ = isbloch[k] ? ldual[k][end]-L[k] : 2bounds[nN][k]-ldual[k][1]
+        ldual₀ = isbloch[k] ? ldual[k][end]-L[k] : 2bounds[LowerBound()][k]-ldual[k][1]
         prepend!(ldual[k], ldual₀)  # length(ldual[k]) = N[k]+1
     end
 
@@ -265,7 +265,7 @@ end
 
 # Additional functions
 Base.ndims(::Grid{K}) where {K} = K
-Base.in(l::SVector{K}, g::Grid{K}) where {K} = all(g.bounds[nN] .≤ l .≤ g.bounds[nP])
+Base.in(l::SVector{K}, g::Grid{K}) where {K} = all(g.bounds[LowerBound()] .≤ l .≤ g.bounds[UpperBound()])
 
 # For the Bloch boundary, check if e⁻ⁱᵏᴸ is indeed a phase factor (i.e., amplitude = 1).
 # For the non-Bloch (= symmetry) boundary, check if e⁻ⁱᵏᴸ = 1.

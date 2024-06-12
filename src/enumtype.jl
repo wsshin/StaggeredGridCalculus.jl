@@ -1,19 +1,31 @@
 # enumerated types
-export GridType, Sign
-export NP, nN, nP, nNP
+export AbstractBoundType, LowerBound, UpperBound, BoundTypes
+
+export GridType
 export PD, nPR, nDL, nPD
 
 # functions
 export gt_w, numel, alter
 
 # Signs
-const nN, nP = 1, 2  # negative, positive directions
-const nNP = SVector(nN,nP)  # tuple allocation is more efficient than array allocation
-@enum Sign NEG=nN POS
-const NP = SVector(NEG, POS)
-for ins in instances(Sign); @eval export $(Symbol(ins)); end  # export all instances
-Base.string(ins::Sign) = ins==NEG ? "negative" : "positive"
-alter(ins::Sign) = ins==NEG ? POS : NEG
+abstract type AbstractBoundType end
+show(io::IO, ::MIME"text/plain", bt::AbstractBoundType) = show(io, bt)
+
+struct LowerBound <: AbstractBoundType end
+show(io::IO, ::LowerBound) = print(io, "lower bound")
+getindex(A::Tuple, ::LowerBound) = first(A)
+getindex(A::AbstractVector, ::LowerBound) = first(A)
+setindex!(A, a, ::LowerBound) = setindex!(A, a, firstindex(A))  # (A[begin] = a; A)
+conj(::LowerBound) = UpperBound()
+
+struct UpperBound <: AbstractBoundType end
+show(io::IO, ::UpperBound) = print(io, "upper bound")
+getindex(A::Tuple, ::UpperBound) = last(A)
+getindex(A::AbstractVector, ::UpperBound) = last(A)
+setindex!(A, a, ::UpperBound) = setindex!(A, a, lastindex(A))  # (A[end] = a; A)
+conj(::UpperBound) = LowerBound()
+
+instances(AbstractBoundType) = (LowerBound(), UpperBound())
 
 
 # Grid types
@@ -36,5 +48,5 @@ gt_w(
 
 
 # Functions for enumerated types
-numel(::Type{T}) where {T<:Enum} = length(instances(T))
+numel(::Type{T}) where {T} = length(instances(T))
 alter(n::Int) = 3-n
