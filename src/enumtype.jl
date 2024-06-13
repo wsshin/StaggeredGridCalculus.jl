@@ -11,16 +11,20 @@ show(io::IO, ::MIME"text/plain", bt::AbstractBoundType) = show(io, bt)
 
 struct LowerBound <: AbstractBoundType end
 show(io::IO, ::LowerBound) = print(io, "lower bound")
+
 getindex(A::Tuple, ::LowerBound) = first(A)
 getindex(A::AbstractVector, ::LowerBound) = first(A)
 setindex!(A, a, ::LowerBound) = setindex!(A, a, firstindex(A))  # (A[begin] = a; A)
+
 conj(::LowerBound) = UpperBound()
 
 struct UpperBound <: AbstractBoundType end
 show(io::IO, ::UpperBound) = print(io, "upper bound")
+
 getindex(A::Tuple, ::UpperBound) = last(A)
 getindex(A::AbstractVector, ::UpperBound) = last(A)
 setindex!(A, a, ::UpperBound) = setindex!(A, a, lastindex(A))  # (A[end] = a; A)
+
 conj(::UpperBound) = LowerBound()
 
 instances(::Type{AbstractBoundType}) = (LowerBound(), UpperBound())
@@ -28,7 +32,7 @@ instances(::Type{AbstractBoundType}) = (LowerBound(), UpperBound())
 
 # Grid types
 abstract type AbstractGridType end
-show(io::IO, ::MIME"text/plain", bt::AbstractGridType) = show(io, bt)
+show(io::IO, ::MIME"text/plain", gt::AbstractGridType) = show(io, gt)
 
 struct PrimalGrid <: AbstractGridType end
 show(io::IO, ::PrimalGrid) = print(io, "primal grid")
