@@ -1,13 +1,11 @@
 # enumerated types
-export AbstractBoundType, LowerBound, UpperBound, BoundTypes
-
+export AbstractBoundType, LowerBound, UpperBound
 export GridType
 export PD, nPR, nDL, nPD
-
 # functions
 export gt_w, numel, alter
 
-# Signs
+# Bound types
 abstract type AbstractBoundType end
 show(io::IO, ::MIME"text/plain", bt::AbstractBoundType) = show(io, bt)
 
@@ -25,7 +23,7 @@ getindex(A::AbstractVector, ::UpperBound) = last(A)
 setindex!(A, a, ::UpperBound) = setindex!(A, a, lastindex(A))  # (A[end] = a; A)
 conj(::UpperBound) = LowerBound()
 
-instances(AbstractBoundType) = (LowerBound(), UpperBound())
+instances(::Type{AbstractBoundType}) = (LowerBound(), UpperBound())
 
 
 # Grid types
