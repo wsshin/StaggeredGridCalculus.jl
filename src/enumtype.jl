@@ -3,7 +3,7 @@ export AbstractBoundType, LowerBound, UpperBound
 export AbstractGridType, PrimalGrid, DualGrid
 
 # functions
-export gt_w, numel, alter
+export gt_w
 
 # Bound types
 abstract type AbstractBoundType end
@@ -36,31 +36,27 @@ show(io::IO, ::MIME"text/plain", gt::AbstractGridType) = show(io, gt)
 
 struct PrimalGrid <: AbstractGridType end
 show(io::IO, ::PrimalGrid) = print(io, "primal grid")
-getindex(A::Tuple, ::PrimalGrid) = first(A)
-getindex(A::AbstractVector, ::PrimalGrid) = first(A)
+getindex(A::Tuple, ::PrimalGrid) = A[begin]
+getindex(A::AbstractVector, ::PrimalGrid) = A[begin]
 setindex!(A, a, ::PrimalGrid) = setindex!(A, a, firstindex(A))  # (A[begin] = a; A)
 conj(::PrimalGrid) = DualGrid()
 
 struct DualGrid <: AbstractGridType end
 show(io::IO, ::DualGrid) = print(io, "dual grid")
-getindex(A::Tuple, ::DualGrid) = last(A)
-getindex(A::AbstractVector, ::DualGrid) = last(A)
-setindex!(A, a, ::DualGrid) = setindex!(A, a, lastindex(A))  # (A[end] = a; A)
+getindex(A::Tuple, ::DualGrid) = A[begin+1]
+getindex(A::AbstractVector, ::DualGrid) = A[begin+1]
+setindex!(A, a, ::DualGrid) = setindex!(A, a, firstindex(A)+1)  # (A[end] = a; A)
 conj(::DualGrid) = PrimalGrid()
 
 instances(::Type{AbstractGridType}) = (PrimalGrid(), DualGrid())
 
 
 # Return grid types of the w-component of the field F, given the grid types gt₀ of the
-# corners of the voxels whose edges are the field lines.
+# corners of the voxels whose edges are the field F lines.
 # If w is not one of the valid axes, return the voxel corner grid types gt₀.
 gt_w(
     nw::Int,  # component index of field
     gt₀::SVector{K,AbstractGridType}  # grid type of corners of voxel whose edges are field lines
 ) where {K} =
-    broadcast((a,w,g)->(a==w ? alter(g) : g), SVector{K}(1:K), nw, gt₀)  # no change from gt₀ for nw ∉ {1,...,K}
-
-
-# Functions for enumerated types
-numel(::Type{T}) where {T} = length(instances(T))
-alter(n::Int) = 3-n
+    # Below, map() doesn't work because length(nw) is 1, not K.
+    broadcast((ax,w,g)->(ax==w ? alter(g) : g), 1:K, nw, gt₀)  # no change from gt₀ for nw ∉ {1,...,K}
