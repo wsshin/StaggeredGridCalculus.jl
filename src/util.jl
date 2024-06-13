@@ -28,11 +28,16 @@ export getindex_col, invert_∆l
 # taken from the kth vector.  Which entry to take from the kth vector is specified
 # by indices.
 # E.g., t_ind(([0.1,0.2,0.3,0.4], [1.0,2.0,3.0,4.0], [10.0,20.0,30.0,40.0]), 3, 1, 4) = SVector(0.3, 1.0, 40.0)
-@inline t_ind(t::NTuple{3,AbstractVector}, i::Int, j::Int, k::Int) = t_ind(t, SVector(i,j,k))
-@inline t_ind(t::NTuple{2,AbstractVector}, i::Int, j::Int) = t_ind(t, SVector(i,j))
-@inline t_ind(t::NTuple{K,AbstractVector}, ind::CartesianIndex{K}) where {K} = t_ind(t, ind.I)
-@inline t_ind(t::NTuple{K,AbstractVector}, ind::NTuple{K,Int}) where {K} = t_ind(t, SVector(ind))
-@inline t_ind(t::NTuple{K,AbstractVector}, ind::SVector{K,Int}) where {K} = map((tₖ,iₖ) -> tₖ[iₖ], SVector(t), ind)  # SVector{K}
+# When K = 2, this could be ambiguous with respect to the above.  However, this mainly
+# designed for t that is a tuple of non-SVector, for which the ambiguity doesn't exist.
+#
+# Still, this is confusing.  I'm just going to use getindex.(t, ind).
+
+# @inline t_ind(t::NTuple{K,AbstractVector}, ind::Vararg{Any,K}) where {K} = t_ind(t, ind)
+# @inline t_ind(t::NTuple{K,AbstractVector}, ind::CartesianIndex{K}) where {K} = t_ind(t, ind.I)
+# @inline t_ind(t::NTuple{K,AbstractVector}, ind::NTuple{K,Int}) where {K} = t_ind(t, SVector(ind))
+# @inline t_ind(t::NTuple{K,AbstractVector}, ind::SVector{K,Int}) where {K} =
+#     SVector(ntuple(k->t[k][ind[k]], K))  # SVector{K}
 
 
 function invert_∆l(∆l::NTuple{2,Tuple{Vararg{AbstractVector{<:Number}}}})  # ∆l[PR][k]: grid point spacings at primal grid point locations on k-axis
