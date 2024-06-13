@@ -3,7 +3,7 @@ export AbstractBoundType, LowerBound, UpperBound
 export AbstractGridType, PrimalGrid, DualGrid
 
 # functions
-export gt_w
+export gt4Fw
 
 # Bound types
 abstract type AbstractBoundType end
@@ -54,7 +54,7 @@ instances(::Type{AbstractGridType}) = (PrimalGrid(), DualGrid())
 # Return grid types of the w-component of the field F, given the grid types gt₀ of the
 # corners of the voxels whose edges are the field F lines.
 # If w is not one of the valid axes, return the voxel corner grid types gt₀.
-gt_w(
+gt4Fw(
     nw::Int,  # component index of field
     gt₀::SVector{K,AbstractGridType}  # grid type of corners of voxel whose edges are field lines
 ) where {K} =
