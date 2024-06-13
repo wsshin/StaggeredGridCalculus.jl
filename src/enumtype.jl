@@ -1,7 +1,7 @@
 # enumerated types
 export AbstractBoundType, LowerBound, UpperBound
-export GridType
-export PD, nPR, nDL, nPD
+export AbstractGridType, PrimalGrid, DualGrid
+
 # functions
 export gt_w, numel, alter
 
@@ -27,13 +27,25 @@ instances(::Type{AbstractBoundType}) = (LowerBound(), UpperBound())
 
 
 # Grid types
-const nPR, nDL = 1, 2  # primal, dual grids
-const nPD = SVector(nPR,nDL)  # tuple allocation is more efficient than array allocation
-@enum GridType PRIM=nPR DUAL
-const PD = SVector(PRIM, DUAL)
-for ins in instances(GridType); @eval export $(Symbol(ins)); end  # export all instances
-Base.string(ins::GridType) = ins==PRIM ? "primal" : "dual"
-alter(ins::GridType) = ins==PRIM ? DUAL : PRIM
+abstract type AbstractGridType end
+show(io::IO, ::MIME"text/plain", bt::AbstractGridType) = show(io, bt)
+
+struct PrimalGrid <: AbstractGridType end
+show(io::IO, ::PrimalGrid) = print(io, "primal grid")
+getindex(A::Tuple, ::PrimalGrid) = first(A)
+getindex(A::AbstractVector, ::PrimalGrid) = first(A)
+setindex!(A, a, ::PrimalGrid) = setindex!(A, a, firstindex(A))  # (A[begin] = a; A)
+conj(::PrimalGrid) = DualGrid()
+
+struct DualGrid <: AbstractGridType end
+show(io::IO, ::DualGrid) = print(io, "dual grid")
+getindex(A::Tuple, ::DualGrid) = last(A)
+getindex(A::AbstractVector, ::DualGrid) = last(A)
+setindex!(A, a, ::DualGrid) = setindex!(A, a, lastindex(A))  # (A[end] = a; A)
+conj(::DualGrid) = PrimalGrid()
+
+instances(::Type{AbstractGridType}) = (PrimalGrid(), DualGrid())
+
 
 # Return grid types of the w-component of the field F, given the grid types gt₀ of the
 # corners of the voxels whose edges are the field lines.
