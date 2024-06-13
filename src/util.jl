@@ -1,4 +1,4 @@
-export t_ind, invert_∆l
+export getindex_col, invert_∆l
 
 # Below, t_ind returns
 # - a tuple if the first argument is a tuple of tuple, and
@@ -12,21 +12,17 @@ export t_ind, invert_∆l
 
 # From a tuple of two tuples 1 and 2, each with K entries, construct a tuple (with K entries)
 # whose kth entry is the kth entry of either tuple 1 or tuple 2.
-# E.g., t_ind(((0.1,0.2,0.3), (1.0,2.0,3.0)), 1, 2, 1) = (0.1, 2.0, 0.3)
-@inline t_ind(t::NTuple{2,NTuple{3}}, i₁₂::T, j₁₂::T, k₁₂::T) where {T<:Union{GridType,Sign,Integer}} = t_ind(t, (i₁₂,j₁₂,k₁₂))  # i₁₂, j₁₂, k₁₂ = 1 or 2
-@inline t_ind(t::NTuple{2,NTuple{K}}, ind₁₂::CartesianIndex{K}) where {K} = t_ind(t, ind₁₂.I)  # ind₁₂.I: NTuple{K,Int}
-@inline t_ind(t::NTuple{2,NTuple{K}}, ind₁₂::SVector{K,T}) where {K,T<:Union{GridType,Sign,Integer}} = t_ind(t, ind₁₂.data)
-@inline t_ind(t::NTuple{2,NTuple{K}}, ind₁₂::NTuple{K,T}) where {K,T<:Union{GridType,Sign,Integer}} =  # ind₁₂[k] = 1 or 2
-    map((t₁,t₂,i) -> Int(i)==1 ? t₁ : t₂, t[1], t[2], ind₁₂)  # NTuple{K}
+# E.g., getindex_col(((0.1,0.2,0.3), (1.0,2.0,3.0)), 1, 2, 1) = (0.1, 2.0, 0.3)
+@inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::Vararg{Any,K}) where {K} = getindex_col(t, ind₁₂)  # ind = i₁₂, j₁₂, k₁₂, ..., each of whihc is 1 or 2
+@inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::CartesianIndex{K}) where {K} = getindex_col(t, ind₁₂.I)  # ind₁₂.I: NTuple{K,Int}
+@inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::NTuple{K,Any}) where {K} = getindex_col(t, SVector(ind₁₂))
+@inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::SVector{K}) where {K} =  # ind₁₂[k] = 1 or 2
+    ntuple(k->@inbounds(t[ind₁₂[k]])[k], K)  # NTuple{K}; without @inbounds, this is allocating for SVector{K} of abstract type such as AbstractBoundType
 
-# From a tuple of two SVecs 1 and 2, each with K entries, construct an SVector (with K
+# From a tuple of two SVectors 1 and 2, each with K entries, construct an SVector (with K
 # entries) whose kth entry is the kth entry of either SVector 1 or SVector 2.
-# E.g., t_ind((SVector(0.1,0.2,0.3), SVector(1.0,2.0,3.0)), 1, 2, 1) = SVector(0.1, 2.0, 0.3)
-@inline t_ind(t::NTuple{2,SVector{3}}, i₁₂::T, j₁₂::T, k₁₂::T) where {T<:Union{GridType,Sign}} = t_ind(t, SVector(i₁₂,j₁₂,k₁₂))
-# @inline t_ind(t::NTuple{2,SVector{K}}, ind₁₂::CartesianIndex{K}) where {K} = t_ind(t, ind₁₂.I)
-@inline t_ind(t::NTuple{2,SVector{K}}, ind₁₂::NTuple{K,T}) where {K,T<:Union{GridType,Sign}} = t_ind(t, SVector(ind₁₂))
-@inline t_ind(t::NTuple{2,SVector{K}}, ind₁₂::SVector{K,T}) where {K,T<:Union{GridType,Sign}} =  # ind₁₂[k] = 1 or 2
-    map((t₁,t₂,i) -> Int(i)==1 ? t₁ : t₂, t[1], t[2], ind₁₂)  # SVector{K}
+# E.g., getindex_col((SVector(0.1,0.2,0.3), SVector(1.0,2.0,3.0)), 1, 2, 1) = SVector(0.1, 2.0, 0.3)
+@inline getindex_col(t::NTuple{2,SVector}, args...) = SVector(getindex_col((t[1].data, t[2].data), args...))
 
 # From a tuple of K vectors, construct a vector with K entries whose kth entry is
 # taken from the kth vector.  Which entry to take from the kth vector is specified
