@@ -115,8 +115,8 @@ end  # @testset "1D, Npml = 0"
         pushfirst!(∆lprim[k], ldual[k][1]+L[k]-ldual[k][end])  # periodic boundary
     end
     ∆l = (∆lprim, ∆ldual)
-    s∆lprim = map((x,y)->x.*y, sfactor[nPR], ∆l[nPR])
-    s∆ldual = map((x,y)->x.*y, sfactor[nDL], ∆l[nDL])
+    s∆lprim = map((x,y)->x.*y, sfactor[PrimalGrid()], ∆l[PrimalGrid()])
+    s∆ldual = map((x,y)->x.*y, sfactor[DualGrid()], ∆l[DualGrid()])
 
     s∆l = create_stretched_∆l(ω, ∆l, l, bounds, Npml)
     @test s∆l == (s∆lprim, s∆ldual)

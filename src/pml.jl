@@ -82,7 +82,7 @@ function create_stretched_∆l(
 )
     s∆l = create_stretched_∆l(ω, tuple.(∆l), tuple.(l), SVector{1}.(bounds), SVector{1}.(Npml), pml)
 
-    return (s∆l[nPR][1], s∆l[nDL][1])
+    return (s∆l[PrimalGrid()][1], s∆l[DualGrid()][1])
 end
 
 # Wrapper for converting AbstractVector's to SVector's
@@ -122,14 +122,14 @@ function create_stretched_∆l(
     pml::PMLParam=PMLParam()  # PML parameters
 ) where {K}
     if all(iszero.(Npml))
-        s∆lprim = ∆l[nPR]  # AbstractVector{<:Real}
-        s∆ldual = ∆l[nDL]  # AbstractVector{<:Real}
+        s∆lprim = ∆l[PrimalGrid()]  # AbstractVector{<:Real}
+        s∆ldual = ∆l[DualGrid()]  # AbstractVector{<:Real}
     else
-        lpml, Lpml = pml_loc(l[nPR], bounds, Npml)
+        lpml, Lpml = pml_loc(l[PrimalGrid()], bounds, Npml)
         sfactor = create_sfactor(ω, l, lpml, Lpml, pml)
 
-        s∆lprim = map((x,y)->x.*y, sfactor[nPR], ∆l[nPR])  # AbstractVector{<:Number}
-        s∆ldual = map((x,y)->x.*y, sfactor[nDL], ∆l[nDL])  # AbstractVector{<:Number}
+        s∆lprim = map((x,y)->x.*y, sfactor[PrimalGrid()], ∆l[PrimalGrid()])  # AbstractVector{<:Number}
+        s∆ldual = map((x,y)->x.*y, sfactor[DualGrid()], ∆l[DualGrid()])  # AbstractVector{<:Number}
     end
 
     s∆l = (s∆lprim, s∆ldual)
@@ -155,14 +155,14 @@ function create_sfactor(
     Lpml::NTuple{2,SVector{K,<:Real}},  # thicknesses of PML
     pml::PMLParam=PMLParam()  # PML parameters
 ) where {K}
-    N = length.(l[nPR])  # (Nx, Ny, Nz)
+    N = length.(l[PrimalGrid()])  # (Nx, Ny, Nz)
     sfactor = (ones.(ComplexF64,N), ones.(ComplexF64,N))
     for k = 1:K
         lpmlₙ, lpmlₚ = lpml[LowerBound()][k], lpml[UpperBound()][k]
         Lpmlₙ, Lpmlₚ = Lpml[LowerBound()][k], Lpml[UpperBound()][k]
-        for ngt = nPD
-            r = l[ngt][k]
-            s = sfactor[ngt][k]
+        for gt = instances(AbstractGridType)
+            r = l[gt][k]
+            s = sfactor[gt][k]
             for i = 1:N[k]
                 r[i] < lpmlₙ && (s[i] = calc_sfactor(ω, lpmlₙ-r[i], Lpmlₙ, pml))
                 r[i] > lpmlₚ && (s[i] = calc_sfactor(ω, r[i]-lpmlₚ, Lpmlₚ, pml))

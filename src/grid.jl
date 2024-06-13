@@ -201,8 +201,8 @@ function Grid(
     ∆l = (∆lprim, ∆ldual)
 
     # Set N (number of grid cells along the axis).
-    @assert length.(∆l[nPR]) == length.(∆l[nDL])  # lprim, ldual, ∆lprim, ∆ldual have the same length
-    N = SVector(length.(∆l[nPR]))  # SInt{3}
+    @assert length.(∆l[PrimalGrid()]) == length.(∆l[DualGrid()])  # lprim, ldual, ∆lprim, ∆ldual have the same length
+    N = SVector(length.(∆l[PrimalGrid()]))  # SInt{3}
 
     # Find the locations of the ghost points transformed into the domain by the boundary
     # conditions.  Note that regardless of the boundary condition, the primal ghost point is
@@ -221,15 +221,15 @@ function Grid(
     ∆τ = (zeros.((N.+1).data), zeros.((N.+1).data))  # NTuple{2,NTuple{K,Vector{Float64}}}
 
     for k = 1:K
-        τind[nPR][k][end] = τindg[nPR][k]  # N+1 for symmetry; 1 for Bloch
-        τind[nDL][k][1] = τindg[nDL][k]  # 2 for symmetry; N+1 for Bloch
+        τind[PrimalGrid()][k][end] = τindg[PrimalGrid()][k]  # N+1 for symmetry; 1 for Bloch
+        τind[DualGrid()][k][1] = τindg[DualGrid()][k]  # 2 for symmetry; N+1 for Bloch
 
         # Below, getindex() does not return an index, but the value at the given index.
-        τlg[nPR][k][end] = getindex(lprim[k], τind[nPR][k][end])  # lprim[k][τind[nPR][k][end]]
-        τlg[nDL][k][1] = getindex(ldual[k], τind[nDL][k][1])  # ldual[k][τind[nDL][k][1]]
+        τlg[PrimalGrid()][k][end] = getindex(lprim[k], τind[PrimalGrid()][k][end])  # lprim[k][τind[PrimalGrid()][k][end]]
+        τlg[DualGrid()][k][1] = getindex(ldual[k], τind[DualGrid()][k][1])  # ldual[k][τind[DualGrid()][k][1]]
 
-        ∆τ[nPR][k][end] = -L[k] * isbloch[k]
-        ∆τ[nDL][k][1] = L[k] * isbloch[k]
+        ∆τ[PrimalGrid()][k][end] = -L[k] * isbloch[k]
+        ∆τ[DualGrid()][k][1] = L[k] * isbloch[k]
     end
 
     ghosted = Ghosted{K}((deepcopy(lprim), deepcopy(ldual)), τlg, τind, ∆τ)

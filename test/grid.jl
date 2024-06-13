@@ -8,8 +8,8 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
        L::SVector{K,Float64},  # domain size
        isbloch::SVector{K,Bool}  # boundary condition
        ) where {K} =
-    (map((lprimₖ,Lₖ) -> lprimₖ[1]+Lₖ, SVector(l[nPR]), L),  # lg[PRIM]
-     map((isblochₖ,lprimₖ,ldualₖ,Lₖ) -> (isblochₖ ? ldualₖ[end]-Lₖ : 2lprimₖ[1]-ldualₖ[1]), isbloch, SVector(l[nPR]), SVector(l[nDL]), L))  # lg[DUAL]
+    (map((lprimₖ,Lₖ) -> lprimₖ[1]+Lₖ, SVector(l[PrimalGrid()]), L),  # lg[PRIM]
+     map((isblochₖ,lprimₖ,ldualₖ,Lₖ) -> (isblochₖ ? ldualₖ[end]-Lₖ : 2lprimₖ[1]-ldualₖ[1]), isbloch, SVector(l[PrimalGrid()]), SVector(l[DualGrid()]), L))  # lg[DUAL]
 
 @testset "grid" begin
 
@@ -40,17 +40,17 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
     @test g1.bounds ≈ ([lprim[1]], [lprim[end]+∆ldual[end]])
     @test SVector(-l₀) ∈ g1  # `∈` supports only SVector
     lg = lghost(((lprim,),(ldual,)), SVector(L), SVector{1}(isbloch))
-    lprim_g = g1.ghosted.lg[nPR][1]
-    ldual_g = g1.ghosted.lg[nDL][1]
-    @test lprim_g[1:end-1]≈lprim && lprim_g[end]≈lg[nPR][1] && ldual_g[2:end]≈ldual && ldual_g[1]≈lg[nDL][1]
-    τlprim_g = g1.ghosted.τlg[nPR][1]
-    τldual_g = g1.ghosted.τlg[nDL][1]
-    @test τlprim_g[1:end-1]≈lprim && τlprim_g[end]≈lg[nPR][1]-L && τldual_g[2:end]≈ldual && τldual_g[1]≈lg[nDL][1]+L
-    τindprim_g = g1.ghosted.τind[nPR][1]
-    τinddual_g = g1.ghosted.τind[nDL][1]
+    lprim_g = g1.ghosted.lg[PrimalGrid()][1]
+    ldual_g = g1.ghosted.lg[DualGrid()][1]
+    @test lprim_g[1:end-1]≈lprim && lprim_g[end]≈lg[PrimalGrid()][1] && ldual_g[2:end]≈ldual && ldual_g[1]≈lg[DualGrid()][1]
+    τlprim_g = g1.ghosted.τlg[PrimalGrid()][1]
+    τldual_g = g1.ghosted.τlg[DualGrid()][1]
+    @test τlprim_g[1:end-1]≈lprim && τlprim_g[end]≈lg[PrimalGrid()][1]-L && τldual_g[2:end]≈ldual && τldual_g[1]≈lg[DualGrid()][1]+L
+    τindprim_g = g1.ghosted.τind[PrimalGrid()][1]
+    τinddual_g = g1.ghosted.τind[DualGrid()][1]
     @test all(τindprim_g[1:end-1].==1:N) && τindprim_g[end]==1 && all(τinddual_g[2:end].==2:N+1) && τinddual_g[1]==N+1
-    ∆τprim_g = g1.ghosted.∆τ[nPR][1]
-    ∆τdual_g = g1.ghosted.∆τ[nDL][1]
+    ∆τprim_g = g1.ghosted.∆τ[PrimalGrid()][1]
+    ∆τdual_g = g1.ghosted.∆τ[DualGrid()][1]
     @test iszero(∆τprim_g[1:end-1]) && ∆τprim_g[end]≈-L && iszero(∆τdual_g[2:end]) && ∆τdual_g[1]≈L
 end  # @testset "Grid{1}, primal boundary"
 
@@ -93,17 +93,17 @@ end  # @testset "Grid{1}, primal boundary"
     @test -l₀ ∈ g3
     @test all(g3.bounds .∈ Ref(g3))
     lg = lghost((lprim,ldual), L, g3.isbloch)
-    lprim_g = g3.ghosted.lg[nPR]
-    ldual_g = g3.ghosted.lg[nDL]
-    @test pop!.(lprim_g)≈lg[nPR].data && popfirst!.(ldual_g)≈lg[nDL].data && lprim_g≈lprim && ldual_g≈ldual
-    τlprim_g = g3.ghosted.τlg[nPR]
-    τldual_g = g3.ghosted.τlg[nDL]
-    @test pop!.(τlprim_g)≈lg[nPR].data.-(0,0,L[3]) && popfirst!.(τldual_g)≈(ldual[1][1],ldual[2][1],lg[nDL][3]+L[3]) && τlprim_g≈lprim && τldual_g≈ldual
-    τindprim_g = g3.ghosted.τind[nPR]
-    τinddual_g = g3.ghosted.τind[nDL]
+    lprim_g = g3.ghosted.lg[PrimalGrid()]
+    ldual_g = g3.ghosted.lg[DualGrid()]
+    @test pop!.(lprim_g)≈lg[PrimalGrid()].data && popfirst!.(ldual_g)≈lg[DualGrid()].data && lprim_g≈lprim && ldual_g≈ldual
+    τlprim_g = g3.ghosted.τlg[PrimalGrid()]
+    τldual_g = g3.ghosted.τlg[DualGrid()]
+    @test pop!.(τlprim_g)≈lg[PrimalGrid()].data.-(0,0,L[3]) && popfirst!.(τldual_g)≈(ldual[1][1],ldual[2][1],lg[DualGrid()][3]+L[3]) && τlprim_g≈lprim && τldual_g≈ldual
+    τindprim_g = g3.ghosted.τind[PrimalGrid()]
+    τinddual_g = g3.ghosted.τind[DualGrid()]
     @test pop!.(τindprim_g)==(N[1]+1,N[2]+1,1) && popfirst!.(τinddual_g)==(2,2,N[3]+1) && τindprim_g==map(m->collect(1:m), tuple(N...)) && τinddual_g==map(m->collect(2:m+1), tuple(N...))
-    ∆τprim_g = g3.ghosted.∆τ[nPR]
-    ∆τdual_g = g3.ghosted.∆τ[nDL]
+    ∆τprim_g = g3.ghosted.∆τ[PrimalGrid()]
+    ∆τdual_g = g3.ghosted.∆τ[DualGrid()]
     @test pop!.(∆τprim_g)≈(0,0,-L[3]) && popfirst!.(∆τdual_g)≈(0,0,L[3]) && all(iszero.(∆τprim_g)) && all(iszero.(∆τdual_g))
 end  # @testset "Grid{3}"
 
@@ -137,7 +137,7 @@ end  # @testset "Grid{3}"
 #     zdual = (lprim[nHRZ][1:end-1] + lprim[nHRZ][2:end]) / 2
 #     xdual = (lprim[nVRT][1:end-1] + lprim[nVRT][2:end]) / 2
 #     ldual = (zdual, xdual)
-#     lprim = (nw->lprim[nw][1:end-1]).(nPD)
+#     lprim = (nw->lprim[nw][1:end-1]).(instances(AbstractGridTypes))
 #     @test l_(g2) ≈ (lprim, ldual)
 #     ∆lprim = (
 #         [ldual[nHRZ][1]+L[nHRZ]-ldual[1][end]; diff(zdual)],
