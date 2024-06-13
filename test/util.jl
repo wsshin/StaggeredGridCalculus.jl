@@ -34,19 +34,19 @@
 
     # @test t_ind(t3, (2,3,1)) == (2,3,1)
     # @test t_ind(t32, 1, 2, 1) == (1,4,5)
-    @test @inferred(t_ind(t23, PRIM, DUAL, PRIM)) == (1,5,3)
-    @test @inferred(t_ind(t23, CartesianIndex(1,2,1))) == (1,5,3)
-    @test @inferred(t_ind(t23, (PRIM,DUAL,PRIM))) == (1,5,3)
-    @test @inferred(t_ind(t23, SVector(PRIM,DUAL,PRIM))) == (1,5,3)
+    @test @inferred(getindex_col(t23, PrimalGrid(), DualGrid(), PrimalGrid())) == (1,5,3)
+    @test @inferred(getindex_col(t23, CartesianIndex(1,2,1))) == (1,5,3)
+    @test @inferred(getindex_col(t23, (PrimalGrid(),DualGrid(),PrimalGrid()))) == (1,5,3)
+    @test @inferred(getindex_col(t23, SVector(PrimalGrid(),DualGrid(),PrimalGrid()))) == (1,5,3)
 
-    @test @inferred(t_ind(t2a, 2, 3)) == [2,6]
-    @test @inferred(t_ind(t2sa, NEG, POS, NEG)) == [1,5,3]
-    @test @inferred(t_ind(t2sa, (NEG,POS,NEG))) == [1,5,3]
-    @test @inferred(t_ind(t2sa, SVector(NEG,POS,NEG))) == [1,5,3]
+    @test @inferred(broadcast(getindex, t2a, (2,3))) == (2,6)
+    @test @inferred(getindex_col(t2sa, LowerBound(), UpperBound(), LowerBound())) == [1,5,3]
+    @test @inferred(getindex_col(t2sa, (LowerBound(),UpperBound(),LowerBound()))) == [1,5,3]
+    @test @inferred(getindex_col(t2sa, SVector(LowerBound(),UpperBound(),LowerBound()))) == [1,5,3]
 
-    @test @inferred(t_ind(t3a, 2, 3, 4)) == [2,7,12]
-    @test @inferred(t_ind(t3a, CartesianIndex(2,3,4))) == [2,7,12]
-    @test @inferred(t_ind(t3a, SVector(2,3,4))) == [2,7,12]
+    @test @inferred(broadcast(getindex, t3a, (2,3,4))) == (2,7,12)
+    @test @inferred(broadcast(getindex, t3a, CartesianIndex(2,3,4).I)) == (2,7,12)
+    @test @inferred(broadcast(getindex, t3a, SVector(2,3,4))) == [2,7,12]
 end
 
 @testset "invert_∆l" begin

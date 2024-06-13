@@ -18,7 +18,7 @@ end  # @testset "PMLParam"
     ldual = StaggeredGridCalculus.movingavg(lprim)
 
     lpml = ([lprim[1+Npmln]], [lprim[end-Npmlp]])
-    Lpml = ([lpml[nN][1]-lprim[1]], [lprim[end]-lpml[nP][1]])
+    Lpml = ([lpml[LowerBound()][1]-lprim[1]], [lprim[end]-lpml[UpperBound()][1]])
 
     bounds = ([lprim[1]], [lprim[end]])
     lprim = lprim[1:end-1]
@@ -27,8 +27,8 @@ end  # @testset "PMLParam"
 
     ω = rand()
     pml = PMLParam()
-    σmax = (-(pml.m+1) * log(pml.R) / 2 ./ Lpml[nN], -(pml.m+1) * log(pml.R) / 2 ./ Lpml[nP])  # see calc_stretch_factor
-    f(l) = l≤lpml[nN][1] ? (1 + σmax[nN][1] * ((lpml[nN][1]-l)/Lpml[nN][1])^pml.m / (im*ω)) : (l≥lpml[nP][1] ? (1 + σmax[nP][1] * ((l-lpml[nP][1])/Lpml[nP][1])^pml.m / (im*ω)) : 1)
+    σmax = (-(pml.m+1) * log(pml.R) / 2 ./ Lpml[LowerBound()], -(pml.m+1) * log(pml.R) / 2 ./ Lpml[UpperBound()])  # see calc_stretch_factor
+    f(l) = l≤lpml[LowerBound()][1] ? (1 + σmax[LowerBound()][1] * ((lpml[LowerBound()][1]-l)/Lpml[LowerBound()][1])^pml.m / (im*ω)) : (l≥lpml[UpperBound()][1] ? (1 + σmax[UpperBound()][1] * ((l-lpml[UpperBound()][1])/Lpml[UpperBound()][1])^pml.m / (im*ω)) : 1)
     sprim = f.(lprim)
     sdual = f.(ldual)
 
@@ -47,7 +47,7 @@ end  # @testset "PMLParam"
     @test s∆l == (tuple(s∆lprim), tuple(s∆ldual))
 
     isbloch = [true]
-    g1 = Grid(tuple([lprim..., bounds[nP][1]]), isbloch)
+    g1 = Grid(tuple([lprim..., bounds[UpperBound()][1]]), isbloch)
     @test s∆l ≈ create_stretched_∆l(ω, g1, Npml)
 end  # @testset "1D"
 
@@ -91,8 +91,8 @@ end  # @testset "1D, Npml = 0"
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
     ldual = StaggeredGridCalculus.movingavg.(lprim)
 
-    lpml = (SVector{3}((w->lprim[w][1+Npml[nN][w]]).(1:3)), SVector{3}((w->lprim[w][end-Npml[nP][w]]).(1:3)))
-    Lpml = (lpml[nN].-SVector{3}((w->lprim[w][1]).(1:3)), SVector{3}((w->lprim[w][end]).(1:3)).-lpml[nP])
+    lpml = (SVector{3}((w->lprim[w][1+Npml[LowerBound()][w]]).(1:3)), SVector{3}((w->lprim[w][end-Npml[UpperBound()][w]]).(1:3)))
+    Lpml = (lpml[LowerBound()].-SVector{3}((w->lprim[w][1]).(1:3)), SVector{3}((w->lprim[w][end]).(1:3)).-lpml[UpperBound()])
 
     bounds = ([v[1] for v = lprim], [v[end] for v = lprim])
     lprim = map(v->v[1:end-1], lprim)
@@ -101,8 +101,8 @@ end  # @testset "1D, Npml = 0"
 
     ω = rand()
     pml = PMLParam()
-    σmax = (-(pml.m+1) * log(pml.R) / 2 ./ Lpml[nN], -(pml.m+1) * log(pml.R) / 2 ./ Lpml[nP])  # see calc_stretch_factor
-    f(l, nw) = l≤lpml[nN][nw] ? (1 + σmax[nN][nw] * ((lpml[nN][nw]-l)/Lpml[nN][nw])^pml.m / (im*ω)) : (l≥lpml[nP][nw] ? (1 + σmax[nP][nw] * ((l-lpml[nP][nw])/Lpml[nP][nw])^pml.m / (im*ω)) : 1)
+    σmax = (-(pml.m+1) * log(pml.R) / 2 ./ Lpml[LowerBound()], -(pml.m+1) * log(pml.R) / 2 ./ Lpml[UpperBound()])  # see calc_stretch_factor
+    f(l, nw) = l≤lpml[LowerBound()][nw] ? (1 + σmax[LowerBound()][nw] * ((lpml[LowerBound()][nw]-l)/Lpml[LowerBound()][nw])^pml.m / (im*ω)) : (l≥lpml[UpperBound()][nw] ? (1 + σmax[UpperBound()][nw] * ((l-lpml[UpperBound()][nw])/Lpml[UpperBound()][nw])^pml.m / (im*ω)) : 1)
     sprim = (f.(lprim[1],1), f.(lprim[2],2), f.(lprim[3],3))
     sdual = (f.(ldual[1],1), f.(ldual[2],2), f.(ldual[3],3))
 
@@ -122,7 +122,7 @@ end  # @testset "1D, Npml = 0"
     @test s∆l == (s∆lprim, s∆ldual)
 
     isbloch = [true,true,true]
-    g3 = Grid(ntuple(k->[lprim[k]..., bounds[nP][k]], 3), isbloch)
+    g3 = Grid(ntuple(k->[lprim[k]..., bounds[UpperBound()][k]], 3), isbloch)
     @test s∆l ≈ create_stretched_∆l(ω, g3, Npml)
 end  # @testset "3D"
 

@@ -1,7 +1,7 @@
 StaggeredGridCalculus# The following without the qualifier StaggeredGridCalculus cannot find the Grid constructor
 # of StaggeredGridCalculus:
 # Grid(lprim::AbstractVector{<:Real}, Npml::NTuple{2,Int}, isbloch::Bool) =
-#     StaggeredGridCalculus.Grid((lprim,), ([Npml[nN]], [Npml[nP]]), (isbloch,))
+#     StaggeredGridCalculus.Grid((lprim,), ([Npml[LowerBound()]], [Npml[UpperBound()]]), (isbloch,))
 
 # Calculate ghost points from l, L, and isbloch.
 lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
@@ -79,12 +79,12 @@ end  # @testset "Grid{1}, primal boundary"
     @test g3.isbloch == isbloch
     # @test g3.Npml == Npml
     # @test g3.Lpml ≈ (
-    #     [sum(∆ldual[d][1:Npml[nN][d]]) for d = 1:3],
-    #     [sum(∆ldual[d][end-Npml[nP][d]+1:end]) for d = 1:3],
+    #     [sum(∆ldual[d][1:Npml[LowerBound()][d]]) for d = 1:3],
+    #     [sum(∆ldual[d][end-Npml[UpperBound()][d]+1:end]) for d = 1:3],
     # )
     # @test g3.lpml ≈ (
-    #     [sum(∆ldual[d][1:Npml[nN][d]]) - l₀[d] for d = 1:3],
-    #     [sum(∆ldual[d]) - sum(∆ldual[d][end-Npml[nP][d]+1:end]) - l₀[d] for d = 1:3]
+    #     [sum(∆ldual[d][1:Npml[LowerBound()][d]]) - l₀[d] for d = 1:3],
+    #     [sum(∆ldual[d]) - sum(∆ldual[d][end-Npml[UpperBound()][d]+1:end]) - l₀[d] for d = 1:3]
     # )
     @test g3.bounds ≈ (
         [lprim[d][1] for d = 1:3],
@@ -147,12 +147,12 @@ end  # @testset "Grid{3}"
 #     @test isbloch_(g2) == isbloch
 #     @test Npml_(g2) == Npml
 #     @test Lpml_(g2) ≈ (
-#         (sum(∆ldual[nHRZ][1:Npml[nHRZ][nN]]), sum(∆ldual[nHRZ][end-Npml[nHRZ][nP]+1:end])),
-#         (sum(∆ldual[nVRT][1:Npml[nVRT][nN]]), sum(∆ldual[nVRT][end-Npml[nVRT][nP]+1:end]))
+#         (sum(∆ldual[nHRZ][1:Npml[nHRZ][LowerBound()]]), sum(∆ldual[nHRZ][end-Npml[nHRZ][UpperBound()]+1:end])),
+#         (sum(∆ldual[nVRT][1:Npml[nVRT][LowerBound()]]), sum(∆ldual[nVRT][end-Npml[nVRT][UpperBound()]+1:end]))
 #     )
 #     @test lpml_(g2) ≈ (
-#         (sum(∆ldual[nHRZ][1:Npml[nHRZ][nN]]) - l₀[nHRZ], sum(∆ldual[nHRZ]) - sum(∆ldual[nHRZ][end-Npml[nHRZ][nP]+1:end]) - l₀[nHRZ]),
-#         (sum(∆ldual[nVRT][1:Npml[nVRT][nN]]) - l₀[nVRT], sum(∆ldual[nVRT]) - sum(∆ldual[nVRT][end-Npml[nVRT][nP]+1:end]) - l₀[nVRT])
+#         (sum(∆ldual[nHRZ][1:Npml[nHRZ][LowerBound()]]) - l₀[nHRZ], sum(∆ldual[nHRZ]) - sum(∆ldual[nHRZ][end-Npml[nHRZ][UpperBound()]+1:end]) - l₀[nHRZ]),
+#         (sum(∆ldual[nVRT][1:Npml[nVRT][LowerBound()]]) - l₀[nVRT], sum(∆ldual[nVRT]) - sum(∆ldual[nVRT][end-Npml[nVRT][UpperBound()]+1:end]) - l₀[nVRT])
 #     )
 #     @test contains(g2, map(-,l₀))
 #     @test all(.!contains.(g2, [bounds_(g2,NEG), bounds_(g2,POS)], false))
