@@ -150,7 +150,7 @@ end
 # For example, for a voxel center l[gt][i], the surrounding voxel bounds are lvxlbounds[gt][i],
 # regardless of the value of gt.  You don't need to adjust i by ±1.
 #
-# Another option.  To get the voxel bounds for voxel centers at l[gt], take l[alter(gt)],
+# Another option.  To get the voxel bounds for voxel centers at l[gt], take l[conj(gt)],
 # and prepend or append the ghost point appropriately.  Let the resulting array lvxlbounds.
 # Then, for a voxel center l[gt][i], the voxel bounds are lvxlbounds[[i,i+1]], regardless of
 # the value of gt.
