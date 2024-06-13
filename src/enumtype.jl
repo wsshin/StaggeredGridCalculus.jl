@@ -12,8 +12,8 @@ show(io::IO, ::MIME"text/plain", bt::AbstractBoundType) = show(io, bt)
 struct LowerBound <: AbstractBoundType end
 show(io::IO, ::LowerBound) = print(io, "lower bound")
 
-getindex(A::Tuple, ::LowerBound) = first(A)
-getindex(A::AbstractVector, ::LowerBound) = first(A)
+getindex(A::Tuple, ::LowerBound) = A[begin]
+getindex(A::AbstractVector, ::LowerBound) = A[begin]
 setindex!(A, a, ::LowerBound) = setindex!(A, a, firstindex(A))  # (A[begin] = a; A)
 
 conj(::LowerBound) = UpperBound()
@@ -21,9 +21,9 @@ conj(::LowerBound) = UpperBound()
 struct UpperBound <: AbstractBoundType end
 show(io::IO, ::UpperBound) = print(io, "upper bound")
 
-getindex(A::Tuple, ::UpperBound) = last(A)
-getindex(A::AbstractVector, ::UpperBound) = last(A)
-setindex!(A, a, ::UpperBound) = setindex!(A, a, lastindex(A))  # (A[end] = a; A)
+getindex(A::Tuple, ::UpperBound) = A[begin+1]
+getindex(A::AbstractVector, ::UpperBound) = A[begin+1]
+setindex!(A, a, ::UpperBound) = setindex!(A, a, firstindex(A)+1)  # (A[end] = a; A)
 
 conj(::UpperBound) = LowerBound()
 
