@@ -8,8 +8,8 @@ lghost(l::NTuple{2,NTuple{K,AbstractVector{<:Real}}},  # grid point locations
        L::SVector{K,Float64},  # domain size
        isbloch::SVector{K,Bool}  # boundary condition
        ) where {K} =
-    (map((lprimₖ,Lₖ) -> lprimₖ[1]+Lₖ, SVector(l[PrimalGrid()]), L),  # lg[PRIM]
-     map((isblochₖ,lprimₖ,ldualₖ,Lₖ) -> (isblochₖ ? ldualₖ[end]-Lₖ : 2lprimₖ[1]-ldualₖ[1]), isbloch, SVector(l[PrimalGrid()]), SVector(l[DualGrid()]), L))  # lg[DUAL]
+    (map((lprimₖ,Lₖ) -> lprimₖ[1]+Lₖ, SVector(l[PrimalGrid()]), L),  # lg[PrimalGrid()]
+     map((isblochₖ,lprimₖ,ldualₖ,Lₖ) -> (isblochₖ ? ldualₖ[end]-Lₖ : 2lprimₖ[1]-ldualₖ[1]), isbloch, SVector(l[PrimalGrid()]), SVector(l[DualGrid()]), L))  # lg[DualGrid()]
 
 @testset "grid" begin
 

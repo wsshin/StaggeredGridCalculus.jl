@@ -137,10 +137,10 @@ export isproper_blochphase, lghost  # functions
 # than N.  (Even thought σ seems to deal with reflection of ghost points, it doesn't; it has
 # N entries, so it is defined in Grid rather than in Ghosted.)
 struct Ghosted{K}
-    lg::NTuple{2,NTuple{K,Vector{Float64}}}  # lg[PRIM][k] = primal vertex locations in k-direction with ghost points
-    τlg::NTuple{2,NTuple{K,Vector{Float64}}}  # τlg[PRIM][k] = primal vertex locations in k-direction with transformed ghost points into domain; all τlg are in domain
-    τind::NTuple{2,NTuple{K,Vector{Int}}}  # τind[PRIM][k] = indices of ghosted.lg corresponding to transformed points in to domain by boundary conditions
-    ∆τ::NTuple{2,NTuple{K,Vector{Float64}}}  # ∆τ[PRIM][k] = amount of "shift" to get points into domain by Bloch boundary conditions (ignoring transformation by reflection by symmetry boundary, which is handled by Grid.σ)
+    lg::NTuple{2,NTuple{K,Vector{Float64}}}  # lg[PrimalGrid()][k] = primal vertex locations in k-direction with ghost points
+    τlg::NTuple{2,NTuple{K,Vector{Float64}}}  # τlg[PrimalGrid()][k] = primal vertex locations in k-direction with transformed ghost points into domain; all τlg are in domain
+    τind::NTuple{2,NTuple{K,Vector{Int}}}  # τind[PrimalGrid()][k] = indices of ghosted.lg corresponding to transformed points in to domain by boundary conditions
+    ∆τ::NTuple{2,NTuple{K,Vector{Float64}}}  # ∆τ[PrimalGrid()][k] = amount of "shift" to get points into domain by Bloch boundary conditions (ignoring transformation by reflection by symmetry boundary, which is handled by Grid.σ)
 end
 
 # Consider storing lvxlbounds, which is
@@ -157,8 +157,8 @@ end
 struct Grid{K}
     N::SVector{K,Int}  # N[k] = number of grid cells in k-direction
     L::SVector{K,Float64}  # L[k] = length of grid (domain) in k-direction
-    l::NTuple{2,NTuple{K,Vector{Float64}}}  # l[PRIM][k] = primal vertex locations in k-direction
-    ∆l::NTuple{2,NTuple{K,Vector{Float64}}}  # ∆l[PRIM][k] = (∆l at primal vertices in k) == diff(l[DUAL][k] including ghost point)
+    l::NTuple{2,NTuple{K,Vector{Float64}}}  # l[PrimalGrid()][k] = primal vertex locations in k-direction
+    ∆l::NTuple{2,NTuple{K,Vector{Float64}}}  # ∆l[PrimalGrid()][k] = (∆l at primal vertices in k) == diff(l[DualGrid()][k] including ghost point)
     isbloch::SVector{K,Bool}  # isbloch[k]: true if boundary condition in k-direction is Bloch
     σ::NTuple{2,NTuple{K,Vector{Bool}}}  # false only for non-ghost points exactly on symmetry boundary (= first point in primal grid)
     bounds::NTuple{2,SVector{K,Float64}}  # bounds[LowerBound()][k] = boundary of domain at (-) end in k-direction
