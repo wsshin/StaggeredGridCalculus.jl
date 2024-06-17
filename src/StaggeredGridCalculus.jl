@@ -8,7 +8,7 @@ using StaticArrays
 using ArgCheck
 using Base.Threads: @threads  # used in matrixfree/differential/*.jl
 
-import Base: show, getindex, setindex!, conj, instances
+import Base: show, broadcastable, getindex, setindex!, conj, instances
 
 # The order of inclusion matters: if types or functions in file A are used in file B, file A
 # must be included first.

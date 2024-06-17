@@ -8,6 +8,7 @@ export gt4Fw
 # Bound types
 abstract type AbstractBoundType end
 show(io::IO, ::MIME"text/plain", bt::AbstractBoundType) = show(io, bt)
+broadcastable(bt::AbstractBoundType) = Ref(bt)
 
 struct LowerBound <: AbstractBoundType end
 show(io::IO, ::LowerBound) = print(io, "lower bound")
@@ -33,6 +34,7 @@ instances(::Type{AbstractBoundType}) = (LowerBound(), UpperBound())
 # Grid types
 abstract type AbstractGridType end
 show(io::IO, ::MIME"text/plain", gt::AbstractGridType) = show(io, gt)
+broadcastable(gt::AbstractGridType) = Ref(gt)
 
 struct PrimalGrid <: AbstractGridType end
 show(io::IO, ::PrimalGrid) = print(io, "primal grid")
