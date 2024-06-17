@@ -10,8 +10,8 @@ rmax = R_MAX_DEFAULT  # 2.0
     lprim0 = Float64[-75, 75]
     ldual0 = Float64[-10,0,10]
 
-    sublprim = MaxwellFDM.gen_sublprim1d(domain, DUAL, intvprim, intvdual, lprim0, ldual0)
-    @test @inferred(MaxwellFDM.gen_sublprim1d(domain, DUAL, intvprim, intvdual, lprim0, ldual0)) == sublprim
+    sublprim = MaxwellFDM.gen_sublprim1d(domain, DualGrid(), intvprim, intvdual, lprim0, ldual0)
+    @test @inferred(MaxwellFDM.gen_sublprim1d(domain, DualGrid(), intvprim, intvdual, lprim0, ldual0)) == sublprim
 end  # @testset "gen_sublprim1d stability"
 
 @testset "gen_lprim1d for fixed intervals to fail" begin
@@ -21,13 +21,13 @@ end  # @testset "gen_sublprim1d stability"
     intvdual = ClosedInterval[]
 
     intvprim = [ClosedInterval((-0.2,0.5), 0.05), ClosedInterval((-0.3,1.2), 0.15)]
-    sublprim = MaxwellFDM.gen_sublprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0)
+    sublprim = MaxwellFDM.gen_sublprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0)
     # @info "sublprim = $sublprim"
-    @test_throws ArgumentError MaxwellFDM.gen_lprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0, rt, rmax)
+    @test_throws ArgumentError MaxwellFDM.gen_lprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0, rt, rmax)
 
     intvprim = [ClosedInterval((-3.,-0.1), 1.0), ClosedInterval((0.1,1.), 1.0)]
-    sublprim = MaxwellFDM.gen_sublprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0)
-    @test_throws ErrorException MaxwellFDM.gen_lprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0, rt, rmax)
+    sublprim = MaxwellFDM.gen_sublprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0)
+    @test_throws ErrorException MaxwellFDM.gen_lprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0, rt, rmax)
 end  # @testset "gen_lprim1d for fixed intervals to fail"
 
 @testset "gen_lprim1d for fixed intervals" begin
@@ -38,7 +38,7 @@ end  # @testset "gen_lprim1d for fixed intervals to fail"
     lprim0 = Float64[-75, 75]
     ldual0 = Float64[-10,0,10]
 
-    sublprim = MaxwellFDM.gen_sublprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0)
+    sublprim = MaxwellFDM.gen_sublprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0)
     # @info "sublprim = $sublprim"
     @test typeof(sublprim) == Vector{Vector{Float64}}
     @test isodd(length(sublprim))
@@ -51,7 +51,7 @@ end  # @testset "gen_lprim1d for fixed intervals to fail"
     # @info "ldual0 = $ldual0"
     # @info "rt = $rt"
     # @info "rmax = $rmax"
-    lprim = MaxwellFDM.gen_lprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0, rt, rmax)
+    lprim = MaxwellFDM.gen_lprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0, rt, rmax)
     # @info "lprim = $lprim"
     @test all(lprim[[1,end]] .== bounds(domain))
     @test MaxwellFDM.issmooth(diff(lprim), rmax)
@@ -65,7 +65,7 @@ end  # @testset "gen_lprim1d for fixed intervals"
     lprim0 = Float64[-75, 75]
     ldual0 = Float64[-10,0,10]
 
-    sublprim = MaxwellFDM.gen_sublprim1d(domain, DUAL, intvprim, intvdual, lprim0, ldual0)
+    sublprim = MaxwellFDM.gen_sublprim1d(domain, DualGrid(), intvprim, intvdual, lprim0, ldual0)
     # @info "sublprim = $sublprim"
     @test typeof(sublprim) == Vector{Vector{Float64}}
     @test isodd(length(sublprim))
@@ -78,7 +78,7 @@ end  # @testset "gen_lprim1d for fixed intervals"
     # @info "ldual0 = $ldual0"
     # @info "rt = $rt"
     # @info "rmax = $rmax"
-    lprim = MaxwellFDM.gen_lprim1d(domain, DUAL, intvprim, intvdual, lprim0, ldual0, rt, rmax)
+    lprim = MaxwellFDM.gen_lprim1d(domain, DualGrid(), intvprim, intvdual, lprim0, ldual0, rt, rmax)
     # @info "lprim = $lprim"
     @test mean(lprim[1:2]) == bounds(domain)[1]
     @test mean(lprim[end-1:end]) == bounds(domain)[2]
@@ -96,14 +96,14 @@ end  # @testset "gen_lprim1d for fixed intervals, dual domain"
     lprim0 = [-0.314801,-0.314801,-0.770512,-0.685944,-0.664589]
     ldual0 = [-0.395004,-0.225236,0.081886,-0.477425]
 
-    sublprim = MaxwellFDM.gen_sublprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0)
+    sublprim = MaxwellFDM.gen_sublprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0)
     # @info "sublprim = $sublprim"
     @test typeof(sublprim) == Vector{Vector{Float64}}
     @test isodd(length(sublprim))
     subgrid = sublprim[1:2:end]
     ∆lt = sublprim[2:2:end]
     @test length.(∆lt) == ones(Int, length(∆lt))
-    lprim = MaxwellFDM.gen_lprim1d(domain, PRIM, intvprim, intvdual, lprim0, ldual0, rt, rmax)
+    lprim = MaxwellFDM.gen_lprim1d(domain, PrimalGrid(), intvprim, intvdual, lprim0, ldual0, rt, rmax)
     # @info "lprim = $lprim"
     @test all(lprim[[1,end]] .== bounds(domain))
     @test MaxwellFDM.issmooth(diff(lprim), rmax)
@@ -120,14 +120,14 @@ end  # @testset "gen_lprim1d for randomly generated intervals"
     lprim0 = [-0.314801,-0.314801,-0.770512,-0.685944,-0.664589]
     ldual0 = [-0.395004,-0.225236,0.081886,-0.477425]
 
-    sublprim = MaxwellFDM.gen_sublprim1d(domain, DUAL, intvprim, intvdual, lprim0, ldual0)
+    sublprim = MaxwellFDM.gen_sublprim1d(domain, DualGrid(), intvprim, intvdual, lprim0, ldual0)
     # @info "sublprim = $sublprim"
     @test typeof(sublprim) == Vector{Vector{Float64}}
     @test isodd(length(sublprim))
     subgrid = sublprim[1:2:end]
     ∆lt = sublprim[2:2:end]
     @test length.(∆lt) == ones(Int, length(∆lt))
-    lprim = MaxwellFDM.gen_lprim1d(domain, DUAL, intvprim, intvdual, lprim0, ldual0, rt, rmax)
+    lprim = MaxwellFDM.gen_lprim1d(domain, DualGrid(), intvprim, intvdual, lprim0, ldual0, rt, rmax)
     # @info "lprim = $lprim"
 
     # Entries of diff(wprim) can exceed max∆l(domain)[w], but not much.  See gridgen.jl:fill_constant
@@ -158,7 +158,7 @@ end  # @testset "comp_lprim1d"
     sprim = [Object(Cylinder([0,0,0],r,h,[0,0,1]), vac, [∆l,∆l,∆L]), Object(Sphere([0,0,h/2], r), vac, ∆l), Object(Sphere([0,0,-h/2], r), vac, ∆l)]
     # sprim = [Object(Sphere([0,0,0],r), vac, [∆l,∆l,∆L]), Object(Sphere([0,0,h/2], r), vac, ∆l), Object(Sphere([0,0,-h/2], r), vac, ∆l)]
 
-    (xprim, yprim, zprim) = gen_lprim(domain, (PRIM,PRIM,PRIM), sprim)
+    (xprim, yprim, zprim) = gen_lprim(domain, (PrimalGrid(),PrimalGrid(),PrimalGrid()), sprim)
     # @info "xprim = $xprim"
     # @info "yprim = $yprim"
     # @info "zprim = $zprim"
