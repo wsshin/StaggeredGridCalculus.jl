@@ -62,5 +62,4 @@ gt4Fw(
     nw::Int,  # component index of field
     gt₀::SVector{K,<:AbstractGridType}  # grid type of corners of voxel whose edges are field lines
 ) where {K} =
-    # Below, map() doesn't work because length(nw) is 1, not K.
-    broadcast((ax,w,g)->(ax==w ? conj(g) : g), 1:K, nw, gt₀)  # no change from gt₀ for nw ∉ {1,...,K}
+    SVector(ntuple(k->k==nw ? conj(gt₀[k]) : gt₀[k], Val(K)))
