@@ -86,8 +86,8 @@ end  # @testset "1D, Npml = 0"
     M = sum(Npml) + N
     ∆ldual = ntuple(d->rand(M[d]), length(N))
 
-    L = SVector(sum.(∆ldual))  # SFloat{3}
-    l₀ = L ./ 2  # SFloat{3}
+    L = SVector(sum.(∆ldual))  # SVector{3,Float64}
+    l₀ = L ./ 2  # SVector{3,Float64}
     lprim = map((v,s)->v.-s, map(x->[0; cumsum(x)], ∆ldual), (l₀...,))  # tuple of vectors
     ldual = StaggeredGridCalculus.movingavg.(lprim)
 

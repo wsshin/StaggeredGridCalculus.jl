@@ -202,7 +202,7 @@ function Grid(
 
     # Set N (number of grid cells along the axis).
     @assert length.(∆l[PrimalGrid()]) == length.(∆l[DualGrid()])  # lprim, ldual, ∆lprim, ∆ldual have the same length
-    N = SVector(length.(∆l[PrimalGrid()]))  # SInt{3}
+    N = SVector(length.(∆l[PrimalGrid()]))  # SVector{3,Int}
 
     # Find the locations of the ghost points transformed into the domain by the boundary
     # conditions.  Note that regardless of the boundary condition, the primal ghost point is

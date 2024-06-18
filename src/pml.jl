@@ -208,8 +208,8 @@ function pml_loc(
     # Below, if Npml[UpperBound()] = 0, lprim[end+1-Npml[UpperBound()]] = lprim[end+1] is out of bound.  Because
     # lprim[end+1] points to the ghost point, we return the positive-end boundary in this
     # case.
-    lpml = (map((v,n)->v[1+n], lprim, Npml[LowerBound()]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[UpperBound()], Npml[UpperBound()]))  # NTuple{2,SFloat{K}}
-    Lpml = (lpml[LowerBound()]-bounds[LowerBound()], bounds[UpperBound()]-lpml[UpperBound()])  # NTuple{2,SFloat{K}}
+    lpml = (map((v,n)->v[1+n], lprim, Npml[LowerBound()]), map((v,b,n)->(n==0 ? b : v[end+1-n]), lprim, bounds[UpperBound()], Npml[UpperBound()]))  # NTuple{2,SVector{K,Float64}}
+    Lpml = (lpml[LowerBound()]-bounds[LowerBound()], bounds[UpperBound()]-lpml[UpperBound()])  # NTuple{2,SVector{K,Float64}}
 
     return lpml, Lpml
 end

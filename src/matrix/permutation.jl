@@ -5,7 +5,7 @@ export create_πcmp, create_πcell, create_invπcmp, create_invπcell
 
 # Wrapper to convert AbstractVector's to SVector's.
 #
-# If N and permute are both SInt, do not expect this wrapper to be called even if scale is
+# If N and permute are both SVector{K,Int}, do not expect this wrapper to be called even if scale is
 # typed AbstractVector{<:Number}, because keyword arguments don't affect the dispatch procedure.
 create_πcmp(
     N::AbstractVector{<:Integer},  # size of grid
