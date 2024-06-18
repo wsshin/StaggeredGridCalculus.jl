@@ -13,7 +13,7 @@ export getindex_col, invert_∆l
 # From a tuple of two tuples 1 and 2, each with K entries, construct a tuple (with K entries)
 # whose kth entry is the kth entry of either tuple 1 or tuple 2.
 # E.g., getindex_col(((0.1,0.2,0.3), (1.0,2.0,3.0)), 1, 2, 1) = (0.1, 2.0, 0.3)
-@inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::Vararg{Any,K}) where {K} = getindex_col(t, ind₁₂)  # ind = i₁₂, j₁₂, k₁₂, ..., each of whihc is 1 or 2
+@inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::Vararg{<:AbstractBinaryType,K}) where {K} = getindex_col(t, ind₁₂)  # ind = i₁₂, j₁₂, k₁₂, ..., each of whihc is 1 or 2
 @inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::CartesianIndex{K}) where {K} = getindex_col(t, ind₁₂.I)  # ind₁₂.I: NTuple{K,Int}
 @inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::NTuple{K,Any}) where {K} = getindex_col(t, SVector(ind₁₂))
 @inline getindex_col(t::NTuple{2,NTuple{K}}, ind₁₂::SVector{K}) where {K} =  # ind₁₂[k] = 1 or 2
