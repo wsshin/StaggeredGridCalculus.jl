@@ -1,12 +1,14 @@
 # enumerated types
+export AbstractBinaryType
 export AbstractBoundType, LowerBound, UpperBound
 export AbstractGridType, PrimalGrid, DualGrid
 
 # functions
 export gt4Fw
 
+abstract type AbstractBinaryType end
 # Bound types
-abstract type AbstractBoundType end
+abstract type AbstractBoundType <: AbstractBinaryType end
 show(io::IO, ::MIME"text/plain", bt::AbstractBoundType) = show(io, bt)
 broadcastable(bt::AbstractBoundType) = Ref(bt)
 
@@ -32,7 +34,7 @@ instances(::Type{AbstractBoundType}) = (LowerBound(), UpperBound())
 
 
 # Grid types
-abstract type AbstractGridType end
+abstract type AbstractGridType <: AbstractBinaryType end
 show(io::IO, ::MIME"text/plain", gt::AbstractGridType) = show(io, gt)
 broadcastable(gt::AbstractGridType) = Ref(gt)
 
@@ -58,7 +60,7 @@ instances(::Type{AbstractGridType}) = (PrimalGrid(), DualGrid())
 # If w is not one of the valid axes, return the voxel corner grid types gt₀.
 gt4Fw(
     nw::Int,  # component index of field
-    gt₀::SVector{K,AbstractGridType}  # grid type of corners of voxel whose edges are field lines
+    gt₀::SVector{K,<:AbstractGridType}  # grid type of corners of voxel whose edges are field lines
 ) where {K} =
     # Below, map() doesn't work because length(nw) is 1, not K.
     broadcast((ax,w,g)->(ax==w ? conj(g) : g), 1:K, nw, gt₀)  # no change from gt₀ for nw ∉ {1,...,K}
