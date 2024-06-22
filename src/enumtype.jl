@@ -7,6 +7,7 @@ export AbstractGridType, PrimalGrid, DualGrid
 export gt4Fw
 
 abstract type AbstractBinaryType end
+
 # Bound types
 abstract type AbstractBoundType <: AbstractBinaryType end
 show(io::IO, ::MIME"text/plain", bt::AbstractBoundType) = show(io, bt)
