@@ -12,7 +12,7 @@ import Base: show, broadcastable, getindex, setindex!, conj, instances
 
 # The order of inclusion matters: if types or functions in file A are used in file B, file A
 # must be included first.
-include("enumtype.jl")
+include("binarytype.jl")
 include("util.jl")
 include("grid.jl")
 # include("gridgen.jl")
