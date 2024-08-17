@@ -126,7 +126,7 @@
 # narrower bandwidth, which leads less fill-ins in matrix factors.
 
 export Grid  # types
-export isproper_blochphase, lghost  # functions
+export isproper_blochphase, create_e⁻ⁱᵏᴸ  # functions
 
 # Below, the transformation τ refers to the transformation of a ghost point back to the
 # non-ghost point that the material parameter at the ghost point comes from.  For the Bloch
@@ -278,3 +278,6 @@ Base.in(l::SVector{K}, g::Grid{K}) where {K} = all(g.bounds[LowerBound()] .≤ l
 isproper_blochphase(e⁻ⁱᵏᴸ::Number, isbloch::Bool) = (isbloch && abs(e⁻ⁱᵏᴸ)==1) || (!isbloch && e⁻ⁱᵏᴸ==1)
 isproper_blochphase(e⁻ⁱᵏᴸ::SVector{K,<:Number}, isbloch::SVector{K,Bool}) where {K} =
     all(isproper_blochphase.(e⁻ⁱᵏᴸ, isbloch))
+
+create_e⁻ⁱᵏᴸ(kbloch::Real, L::Real) = iszero(kbloch) ? 1 : exp(-im * kbloch * L)
+create_e⁻ⁱᵏᴸ(kbloch::SVector{K,<:Real}, L::SVector{K,<:Real}) where {K} = create_e⁻ⁱᵏᴸ.(kbloch, L)
