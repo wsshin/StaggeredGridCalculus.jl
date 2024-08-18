@@ -184,8 +184,7 @@ function Grid(
 
     ldual = movingavg.(lprim)  # NTuple{K,Vector{Float64}}
 
-    lbound = SVector(lprim)  # SVector{K,Vector{<:Real}}; to make broadcast and map on lprim to produce SVector
-    bounds = (getindex.(lbound,1), getindex.(lbound,lastindex.(lbound)))  # NTuple{2,SVector{K,<:Real}}
+    bounds = SVector.((first.(lprim), last.(lprim)))  # NTuple{2,SVector{K,<:Real}}
     L = bounds[UpperBound()] - bounds[LowerBound()]  # SVector{K,<:Real}
 
     # Prepare lprim and ldual to calculate ∆lprim and ∆ldual.
